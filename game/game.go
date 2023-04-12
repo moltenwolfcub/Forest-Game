@@ -7,21 +7,39 @@ import (
 )
 
 type Game struct {
-	Player Player
+	player Player
 }
 
 func NewGame() Game {
-	return Game{Player{150, 180}}
+	return Game{Player{}}
 }
 
 func (g *Game) Update() error {
-	g.Player.Update()
+	g.HandleInput()
+	g.player.Update()
 	return nil
+}
+
+func (g *Game) HandleInput() {
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
+		g.player.Dy = -1
+	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
+		g.player.Dy = 1
+	} else {
+		g.player.Dy = 0
+	}
+	if ebiten.IsKeyPressed(ebiten.KeyD) {
+		g.player.Dx = 1
+	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
+		g.player.Dx = -1
+	} else {
+		g.player.Dx = 0
+	}
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{34, 139, 34, 255})
-	g.Player.Draw(screen)
+	g.player.Draw(screen)
 }
 
 func (g *Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
