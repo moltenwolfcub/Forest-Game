@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	gameInstance := game.Game{}
+	gameInstance := game.NewGame()
 	if err := gameInstance.Run(); err != nil {
 		log.Fatal(err)
 	}

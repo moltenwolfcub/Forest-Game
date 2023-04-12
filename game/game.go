@@ -1,26 +1,36 @@
 package game
 
 import (
+	"image/color"
+
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
 
-type Game struct{}
+type Game struct {
+	Player Player
+}
+
+func NewGame() Game {
+	return Game{Player{150, 180}}
+}
 
 func (g *Game) Update() error {
+	g.Player.Update()
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, "Hello, World!")
+	screen.Fill(color.RGBA{34, 139, 34, 255})
+	g.Player.Draw(screen)
 }
 
-func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
-	return 320, 240
+func (g *Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
+	return 1920, 1080
 }
 
 func (g *Game) Run() error {
-	ebiten.SetWindowSize(640, 480)
-	ebiten.SetWindowTitle("Hello, World!")
+	ebiten.SetWindowSize(960, 540)
+	ebiten.SetWindowTitle("Chill Forest Game")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	return ebiten.RunGame(g)
 }
