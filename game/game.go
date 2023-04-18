@@ -22,14 +22,22 @@ func (g *Game) Update() error {
 
 func (g *Game) HandleInput() {
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		g.player.Dy = -1
+		if ebiten.IsKeyPressed(ebiten.KeyS) {
+			g.player.Dy = 0
+		} else {
+			g.player.Dy = -1
+		}
 	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
 		g.player.Dy = 1
 	} else {
 		g.player.Dy = 0
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		g.player.Dx = 1
+		if ebiten.IsKeyPressed(ebiten.KeyA) {
+			g.player.Dx = 0
+		} else {
+			g.player.Dx = 1
+		}
 	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
 		g.player.Dx = -1
 	} else {
