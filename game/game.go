@@ -8,10 +8,11 @@ import (
 
 type Game struct {
 	player Player
+	trees  []Tree
 }
 
 func NewGame() Game {
-	return Game{Player{}}
+	return Game{Player{}, []Tree{{960, 540}}}
 }
 
 func (g *Game) Update() error {
@@ -48,6 +49,9 @@ func (g *Game) HandleInput() {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{34, 139, 34, 255})
 	g.player.Draw(screen)
+	for _, tree := range g.trees {
+		tree.Draw(screen)
+	}
 }
 
 func (g *Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
