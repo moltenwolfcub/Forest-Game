@@ -6,13 +6,26 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const (
+	WindowWidth  int = 1920
+	WindowHeight int = 1080
+)
+
 type Game struct {
 	player Player
 	trees  []Tree
+	view   Viewport
 }
 
 func NewGame() Game {
-	return Game{Player{}, []Tree{{Position{960, 540}}}}
+	g := Game{
+		player: Player{},
+		trees: []Tree{
+			{Pos: Position{960, 540}},
+		},
+		view: NewViewport(),
+	}
+	return g
 }
 
 func (g *Game) Update() error {
@@ -50,12 +63,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{34, 139, 34, 255})
 	g.player.Draw(screen)
 	for _, tree := range g.trees {
-		tree.Draw(screen)
+		g.view.Draw(screen, tree)
 	}
 }
 
 func (g *Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
-	return 1920, 1080
+	return WindowWidth, WindowHeight
 }
 
 func (g *Game) Run() error {

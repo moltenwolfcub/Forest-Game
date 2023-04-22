@@ -20,15 +20,19 @@ func init() {
 }
 
 type Tree struct {
-	ActualPos Position
+	Pos Position
 }
 
-func (p *Tree) Draw(screen *ebiten.Image) {
+func (t Tree) GetMapPos() Position {
+	return t.Pos
+}
+
+func (t Tree) DrawAt(screen *ebiten.Image, pos Position) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(p.ActualPos.Xpos, p.ActualPos.Ypos)
+	options.GeoM.Translate(pos.Xpos, pos.Ypos)
 
 	screen.DrawImage(treeImage, &options)
 }
 
-func (p *Tree) Update() {
+func (t *Tree) Update() {
 }
