@@ -12,7 +12,7 @@ var (
 )
 
 const (
-	playerMoveSpeed float32 = 1.5
+	playerMoveSpeed float64 = 11.5
 )
 
 func init() {
@@ -24,18 +24,18 @@ func init() {
 }
 
 type Player struct {
-	Dx, Dy                 int
-	ActualXpos, ActualYpos float32
+	Dx, Dy    int
+	ActualPos Position
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(p.ActualXpos), float64(p.ActualYpos))
+	options.GeoM.Translate(p.ActualPos.Xpos, p.ActualPos.Ypos)
 
 	screen.DrawImage(playerImage, &options)
 }
 
 func (p *Player) Update() {
-	p.ActualXpos += float32(p.Dx) * playerMoveSpeed
-	p.ActualYpos += float32(p.Dy) * playerMoveSpeed
+	p.ActualPos.Xpos += float64(p.Dx) * playerMoveSpeed
+	p.ActualPos.Ypos += float64(p.Dy) * playerMoveSpeed
 }

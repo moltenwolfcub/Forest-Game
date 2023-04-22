@@ -12,7 +12,7 @@ type Game struct {
 }
 
 func NewGame() Game {
-	return Game{Player{}, []Tree{{960, 540}}}
+	return Game{Player{}, []Tree{{Position{960, 540}}}}
 }
 
 func (g *Game) Update() error {

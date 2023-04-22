@@ -20,12 +20,12 @@ func init() {
 }
 
 type Tree struct {
-	ActualXpos, ActualYpos float32
+	ActualPos Position
 }
 
 func (p *Tree) Draw(screen *ebiten.Image) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(p.ActualXpos), float64(p.ActualYpos))
+	options.GeoM.Translate(p.ActualPos.Xpos, p.ActualPos.Ypos)
 
 	screen.DrawImage(treeImage, &options)
 }
