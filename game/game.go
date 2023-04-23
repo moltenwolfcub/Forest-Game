@@ -59,15 +59,15 @@ func (g *Game) HandleInput() {
 	}
 }
 
-func (g *Game) Draw(screen *ebiten.Image) {
+func (g Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{34, 139, 34, 255})
-	g.player.Draw(screen)
+	g.view.Draw(screen, g.player)
 	for _, tree := range g.trees {
 		g.view.Draw(screen, tree)
 	}
 }
 
-func (g *Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
+func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
 	return WindowWidth, WindowHeight
 }
 
