@@ -24,13 +24,19 @@ func init() {
 }
 
 type Player struct {
-	Dx, Dy int
-	MapPos Position
+	Dx, Dy                    int
+	MapPos                    Position
+	PlayerWidth, PlayerHeight int
+}
+
+func NewPlayer() Player {
+	width, height := playerImage.Bounds().Size().X, playerImage.Bounds().Size().Y
+	return Player{0, 0, Position{}, width, height}
 }
 
 func (p Player) DrawAt(screen *ebiten.Image, pos Position) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(pos.Xpos, pos.Ypos)
+	options.GeoM.Translate(float64(pos.Xpos), float64(pos.Ypos))
 
 	screen.DrawImage(playerImage, &options)
 }
@@ -40,6 +46,6 @@ func (p Player) GetMapPos() Position {
 }
 
 func (p *Player) Update() {
-	p.MapPos.Xpos += float64(p.Dx) * playerMoveSpeed
-	p.MapPos.Ypos += float64(p.Dy) * playerMoveSpeed
+	p.MapPos.Xpos += int(float64(p.Dx) * playerMoveSpeed)
+	p.MapPos.Ypos += int(float64(p.Dy) * playerMoveSpeed)
 }

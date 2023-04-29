@@ -29,7 +29,7 @@ func (t Tree) GetMapPos() Position {
 
 func (t Tree) DrawAt(screen *ebiten.Image, pos Position) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(pos.Xpos, pos.Ypos)
+	options.GeoM.Translate(float64(pos.Xpos), float64(pos.Ypos))
 
 	screen.DrawImage(treeImage, &options)
 }

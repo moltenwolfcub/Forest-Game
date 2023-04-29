@@ -19,7 +19,7 @@ type Game struct {
 
 func NewGame() Game {
 	g := Game{
-		player: Player{},
+		player: NewPlayer(),
 		trees: []Tree{
 			{Pos: Position{960, 540}},
 		},
@@ -31,6 +31,7 @@ func NewGame() Game {
 func (g *Game) Update() error {
 	g.HandleInput()
 	g.player.Update()
+	g.view.UpdatePosition(g.player)
 	return nil
 }
 
