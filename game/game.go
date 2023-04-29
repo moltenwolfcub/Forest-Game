@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -21,7 +22,7 @@ func NewGame() Game {
 	g := Game{
 		player: NewPlayer(),
 		trees: []Tree{
-			{Pos: Position{960, 540}},
+			{Pos: image.Point{960, 540}},
 		},
 		view: NewViewport(),
 	}
@@ -38,25 +39,25 @@ func (g *Game) Update() error {
 func (g *Game) HandleInput() {
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		if ebiten.IsKeyPressed(ebiten.KeyS) {
-			g.player.Dy = 0
+			g.player.Delta.Y = 0
 		} else {
-			g.player.Dy = -1
+			g.player.Delta.Y = -1
 		}
 	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
-		g.player.Dy = 1
+		g.player.Delta.Y = 1
 	} else {
-		g.player.Dy = 0
+		g.player.Delta.Y = 0
 	}
 	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		if ebiten.IsKeyPressed(ebiten.KeyA) {
-			g.player.Dx = 0
+			g.player.Delta.X = 0
 		} else {
-			g.player.Dx = 1
+			g.player.Delta.X = 1
 		}
 	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
-		g.player.Dx = -1
+		g.player.Delta.X = -1
 	} else {
-		g.player.Dx = 0
+		g.player.Delta.X = 0
 	}
 }
 

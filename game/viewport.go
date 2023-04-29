@@ -1,37 +1,41 @@
 package game
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"image"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 type Drawable interface {
-	GetMapPos() Position
+	GetMapPos() image.Point
 
-	DrawAt(*ebiten.Image, Position)
+	DrawAt(*ebiten.Image, image.Point)
 }
 
 type Viewport struct {
 	width, height int
-	offset        Position
+	offset        image.Point
 }
 
 func NewViewport() Viewport {
 	return Viewport{
 		width:  WindowWidth,
 		height: WindowHeight,
-		offset: Position{0, 0},
+		offset: image.Point{0, 0},
 	}
 }
 
-func (v Viewport) pointInViewport(point Position) bool {
-	if point.Xpos < v.offset.Xpos {
+func (v Viewport) pointInViewport(point image.Point) bool {
+	if point.X < v.offset.X {
 		return false
 	}
-	if point.Xpos > v.offset.Xpos+v.width {
+	if point.X > v.offset.X+v.width {
 		return false
 	}
-	if point.Ypos < v.offset.Ypos {
+	if point.Y < v.offset.Y {
 		return false
 	}
-	if point.Ypos > v.offset.Ypos+v.height {
+	if point.Y > v.offset.Y+v.height {
 		return false
 	}
 	return true
@@ -41,9 +45,9 @@ func (v Viewport) Draw(screen *ebiten.Image, drawable Drawable) {
 	mapPos := drawable.GetMapPos()
 
 	if v.pointInViewport(mapPos) {
-		offsetPos := Position{
-			mapPos.Xpos - v.offset.Xpos,
-			mapPos.Ypos - v.offset.Ypos,
+		offsetPos := image.Point{
+			mapPos.X - v.offset.X,
+			mapPos.Y - v.offset.Y,
 		}
 		drawable.DrawAt(screen, offsetPos)
 	}
@@ -51,6 +55,6 @@ func (v Viewport) Draw(screen *ebiten.Image, drawable Drawable) {
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
-	v.offset.Xpos = player.MapPos.Xpos + player.PlayerWidth/2 - v.width/2
-	v.offset.Ypos = player.MapPos.Ypos + player.PlayerHeight/2 - v.height/2
+	v.offset.X = player.MapPos.X + player.PlayerWidth/2 - v.width/2
+	v.offset.Y = player.MapPos.Y + player.PlayerHeight/2 - v.height/2
 }

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -24,28 +25,28 @@ func init() {
 }
 
 type Player struct {
-	Dx, Dy                    int
-	MapPos                    Position
+	Delta                     image.Point
+	MapPos                    image.Point
 	PlayerWidth, PlayerHeight int
 }
 
 func NewPlayer() Player {
 	width, height := playerImage.Bounds().Size().X, playerImage.Bounds().Size().Y
-	return Player{0, 0, Position{}, width, height}
+	return Player{image.Point{}, image.Point{}, width, height}
 }
 
-func (p Player) DrawAt(screen *ebiten.Image, pos Position) {
+func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(pos.Xpos), float64(pos.Ypos))
+	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) GetMapPos() Position {
+func (p Player) GetMapPos() image.Point {
 	return p.MapPos
 }
 
 func (p *Player) Update() {
-	p.MapPos.Xpos += int(float64(p.Dx) * playerMoveSpeed)
-	p.MapPos.Ypos += int(float64(p.Dy) * playerMoveSpeed)
+	p.MapPos.X += int(float64(p.Delta.X) * playerMoveSpeed)
+	p.MapPos.Y += int(float64(p.Delta.Y) * playerMoveSpeed)
 }

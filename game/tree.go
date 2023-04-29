@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -20,16 +21,16 @@ func init() {
 }
 
 type Tree struct {
-	Pos Position
+	Pos image.Point
 }
 
-func (t Tree) GetMapPos() Position {
+func (t Tree) GetMapPos() image.Point {
 	return t.Pos
 }
 
-func (t Tree) DrawAt(screen *ebiten.Image, pos Position) {
+func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(pos.Xpos), float64(pos.Ypos))
+	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
 	screen.DrawImage(treeImage, &options)
 }
