@@ -1,6 +1,11 @@
 package game
 
+import (
+	"fmt"
+)
+
 //  Minute
+// TPGM ticks
 //irl - second
 
 //  Hour
@@ -23,14 +28,38 @@ package game
 //4 Seasons
 //irl - 26hr 40mins
 
-type Time struct {
-	ticksElapsed uint
-}
+const (
+	TPGM = TPS / 60
+)
+
+type Time int
 
 func (t *Time) Tick() {
-	t.ticksElapsed++
+	*t++
 }
 
-func (t Time) getTicks() uint {
-	return t.ticksElapsed
+// func (t Time) Minutes() int {
+// 	return int((t / TPGM) % 60)
+// }
+// func (t Time) Hours() int {
+// 	return (t.Minutes() / 60) % 20
+// }
+// func (t Time) Days() int {
+// 	return (t.Hours() / 20) % 10
+// }
+// func (t Time) Months() int {
+// 	return (t.Days() / 10) % 2
+// }
+// func (t Time) Seasons() int {
+// 	return (t.Months() / 2) % 4
+// }
+// func (t Time) Years() int {
+// 	return t.Seasons() / 4
+// }
+
+func (t Time) String() string {
+	minutes := (t / TPGM) % 60
+	hours := (t / TPGM / 60) % 20
+
+	return fmt.Sprintf("%02d:%02d", hours, minutes)
 }

@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	WindowWidth  int = 1920
-	WindowHeight int = 1080
-	TPS          int = 60
+	WindowWidth  = 1920
+	WindowHeight = 1080
+	TPS          = 60
 )
 
 var (
@@ -97,8 +97,10 @@ func (g Game) Draw(screen *ebiten.Image) {
 	}
 	g.view.Draw(screen, g.player)
 
-	bounds := text.BoundString(fontFace, fmt.Sprint(g.time.getTicks()))
-	text.Draw(screen, fmt.Sprint(g.time.getTicks()), fontFace, WindowWidth/2-bounds.Dx()/2, 50, color.Black)
+	time := fmt.Sprint(g.time)
+
+	bounds := text.BoundString(fontFace, time)
+	text.Draw(screen, time, fontFace, WindowWidth/2-bounds.Dx()/2, 50, color.Black)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
