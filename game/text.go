@@ -37,11 +37,11 @@ type TextElement struct {
 	Pos      image.Point
 }
 
-func (t TextElement) GetPos() image.Point {
-	return t.Pos
+func (t TextElement) GetPos() image.Rectangle {
+	return text.BoundString(fontFace, t.Contents).Add(t.Pos)
 }
 
 func (t TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 	bounds := text.BoundString(fontFace, t.Contents)
-	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y+bounds.Dy(), color.Black)
+	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y+(2*bounds.Dy()), color.Black)
 }

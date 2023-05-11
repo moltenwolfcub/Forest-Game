@@ -25,14 +25,17 @@ func init() {
 }
 
 type Player struct {
-	Delta                     image.Point
-	MapPos                    image.Point
-	PlayerWidth, PlayerHeight int
+	Delta image.Point
+	Rect  image.Rectangle
 }
 
 func NewPlayer() Player {
 	width, height := playerImage.Bounds().Size().X, playerImage.Bounds().Size().Y
-	return Player{image.Point{}, image.Point{}, width, height}
+	return Player{
+		Rect: image.Rectangle{
+			Max: image.Point{width, height},
+		},
+	}
 }
 
 func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
@@ -42,11 +45,13 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) GetPos() image.Point {
-	return p.MapPos
+func (p Player) GetPos() image.Rectangle {
+	return p.Rect
 }
 
 func (p *Player) Update() {
-	p.MapPos.X += int(float64(p.Delta.X) * playerMoveSpeed)
-	p.MapPos.Y += int(float64(p.Delta.Y) * playerMoveSpeed)
+	p.Rect = p.Rect.Add(image.Point{
+		X: int(float64(p.Delta.X) * playerMoveSpeed),
+		Y: int(float64(p.Delta.Y) * playerMoveSpeed),
+	})
 }

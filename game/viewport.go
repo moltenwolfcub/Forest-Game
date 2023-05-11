@@ -7,7 +7,7 @@ import (
 )
 
 type HasPosition interface {
-	GetPos() image.Point
+	GetPos() image.Rectangle
 }
 
 type Drawable interface {
@@ -17,51 +17,39 @@ type Drawable interface {
 }
 
 type Viewport struct {
-	width, height int
-	offset        image.Point
+	Rect image.Rectangle
 }
 
 func NewViewport() Viewport {
-	return Viewport{
-		width:  WindowWidth,
-		height: WindowHeight,
-		offset: image.Point{0, 0},
-	}
+	return Viewport{Rect: image.Rectangle{
+		Max: image.Point{
+			X: WindowWidth,
+			Y: WindowHeight,
+		},
+	}}
 }
 
-func (v Viewport) pointInViewport(point image.Point) bool {
-	if point.X < v.offset.X {
-		return false
-	}
-	if point.X > v.offset.X+v.width {
-		return false
-	}
-	if point.Y < v.offset.Y {
-		return false
-	}
-	if point.Y > v.offset.Y+v.height {
-		return false
-	}
-	return true
+func (v Viewport) objectInViewport(object image.Rectangle) bool {
+	return v.Rect.Overlaps(object)
 }
 
 func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
 	mapPos := drawable.GetPos()
 
-	if v.pointInViewport(mapPos) {
-		offsetPos := image.Point{
-			mapPos.X - v.offset.X,
-			mapPos.Y - v.offset.Y,
-		}
+	if v.objectInViewport(mapPos) {
+		offsetPos := mapPos.Min.Sub(v.Rect.Min)
 		drawable.DrawAt(mapLayer, offsetPos)
 	}
 
 }
+
 func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
-	drawable.DrawAt(hudLayer, drawable.GetPos())
+	drawable.DrawAt(hudLayer, drawable.GetPos().Min)
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
-	v.offset.X = player.MapPos.X + player.PlayerWidth/2 - v.width/2
-	v.offset.Y = player.MapPos.Y + player.PlayerHeight/2 - v.height/2
+	v.Rect = v.Rect.Sub(v.Rect.Min).Add(image.Point{
+		player.Rect.Min.X + player.Rect.Dx()/2 - v.Rect.Dx()/2,
+		player.Rect.Min.Y + player.Rect.Dy()/2 - v.Rect.Dy()/2,
+	})
 }

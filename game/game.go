@@ -1,7 +1,6 @@
 package game
 
 import (
-	"image"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -27,7 +26,7 @@ func NewGame() Game {
 	g := Game{
 		player: NewPlayer(),
 		trees: []Tree{
-			{Pos: image.Point{960, 540}},
+			NewTree(),
 		},
 		view:     NewViewport(),
 		mapLayer: ebiten.NewImage(WindowWidth, WindowHeight),

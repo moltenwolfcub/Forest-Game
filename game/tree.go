@@ -21,11 +21,20 @@ func init() {
 }
 
 type Tree struct {
-	Pos image.Point
+	Rect image.Rectangle
 }
 
-func (t Tree) GetPos() image.Point {
-	return t.Pos
+func NewTree() Tree {
+	width, height := treeImage.Bounds().Size().X, treeImage.Bounds().Size().Y
+	return Tree{
+		Rect: image.Rectangle{
+			Max: image.Point{width, height},
+		},
+	}
+}
+
+func (t Tree) GetPos() image.Rectangle {
+	return t.Rect
 }
 
 func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) {
