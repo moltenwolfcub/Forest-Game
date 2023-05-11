@@ -29,7 +29,7 @@ import (
 //irl - 26hr 40mins
 
 const (
-	TPGM = TPS / 60
+	TPGM = TPS
 )
 
 type Time int
