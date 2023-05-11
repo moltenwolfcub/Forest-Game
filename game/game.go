@@ -1,16 +1,10 @@
 package game
 
 import (
-	"fmt"
 	"image"
 	"image/color"
-	"log"
 
-	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
 )
 
 const (
@@ -19,31 +13,14 @@ const (
 	TPS          = 60
 )
 
-var (
-	fontFace font.Face
-)
-
 type Game struct {
-	time   Time
-	player Player
-	trees  []Tree
-	view   Viewport
-}
-
-func init() {
-	loadedFont, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fontFace, err = opentype.NewFace(loadedFont, &opentype.FaceOptions{
-		Size:    24,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
+	time     Time
+	timeHud  TextElement
+	player   Player
+	trees    []Tree
+	view     Viewport
+	mapLayer *ebiten.Image
+	hudLayer *ebiten.Image
 }
 
 func NewGame() Game {
@@ -52,13 +29,19 @@ func NewGame() Game {
 		trees: []Tree{
 			{Pos: image.Point{960, 540}},
 		},
-		view: NewViewport(),
+		view:     NewViewport(),
+		mapLayer: ebiten.NewImage(WindowWidth, WindowHeight),
+		hudLayer: ebiten.NewImage(WindowWidth, WindowHeight),
+	}
+	g.timeHud = TextElement{
+		Contents: g.time.String(),
 	}
 	return g
 }
 
 func (g *Game) Update() error {
 	g.time.Tick()
+	g.timeHud.Contents = g.time.String()
 	g.HandleInput()
 	g.player.Update()
 	g.view.UpdatePosition(g.player)
@@ -92,15 +75,18 @@ func (g *Game) HandleInput() {
 
 func (g Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{34, 139, 34, 255})
+
+	g.mapLayer.Clear()
+	g.hudLayer.Clear()
+
 	for _, tree := range g.trees {
-		g.view.Draw(screen, tree)
+		g.view.DrawToMap(g.mapLayer, tree)
 	}
-	g.view.Draw(screen, g.player)
+	g.view.DrawToMap(g.mapLayer, g.player)
+	g.view.DrawToHUD(g.hudLayer, g.timeHud)
 
-	time := fmt.Sprint(g.time)
-
-	bounds := text.BoundString(fontFace, time)
-	text.Draw(screen, time, fontFace, WindowWidth/2-bounds.Dx()/2, 50, color.Black)
+	screen.DrawImage(g.mapLayer, &ebiten.DrawImageOptions{})
+	screen.DrawImage(g.hudLayer, &ebiten.DrawImageOptions{})
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {

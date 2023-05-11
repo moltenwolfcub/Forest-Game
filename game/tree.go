@@ -24,7 +24,7 @@ type Tree struct {
 	Pos image.Point
 }
 
-func (t Tree) GetMapPos() image.Point {
+func (t Tree) GetPos() image.Point {
 	return t.Pos
 }
 

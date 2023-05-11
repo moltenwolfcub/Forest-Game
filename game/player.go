@@ -42,7 +42,7 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) GetMapPos() image.Point {
+func (p Player) GetPos() image.Point {
 	return p.MapPos
 }
 

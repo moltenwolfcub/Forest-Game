@@ -6,8 +6,12 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type HasPosition interface {
+	GetPos() image.Point
+}
+
 type Drawable interface {
-	GetMapPos() image.Point
+	HasPosition
 
 	DrawAt(*ebiten.Image, image.Point)
 }
@@ -41,17 +45,20 @@ func (v Viewport) pointInViewport(point image.Point) bool {
 	return true
 }
 
-func (v Viewport) Draw(screen *ebiten.Image, drawable Drawable) {
-	mapPos := drawable.GetMapPos()
+func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
+	mapPos := drawable.GetPos()
 
 	if v.pointInViewport(mapPos) {
 		offsetPos := image.Point{
 			mapPos.X - v.offset.X,
 			mapPos.Y - v.offset.Y,
 		}
-		drawable.DrawAt(screen, offsetPos)
+		drawable.DrawAt(mapLayer, offsetPos)
 	}
 
+}
+func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
+	drawable.DrawAt(hudLayer, drawable.GetPos())
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
