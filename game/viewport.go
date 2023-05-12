@@ -21,7 +21,7 @@ type Drawable interface {
 type Lightable interface {
 	HasPosition
 
-	GetLight() Light
+	Radius() int
 }
 
 type Viewport struct {
@@ -52,18 +52,19 @@ func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
 }
 func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightable) {
 	mapPos := lightable.GetPos()
-	light := lightable.GetLight()
+	radius := lightable.Radius()
 
 	if v.objectInViewport(mapPos) || true {
 		offsetPos := mapPos.Min.Sub(v.Rect.Min)
 
-		img := ebiten.NewImage(light.Radius*2, light.Radius*2)
-		vector.DrawFilledCircle(img, float32(light.Radius), float32(light.Radius), float32(light.Radius), color.RGBA{250, 129, 40, 255}, false)
+		img := ebiten.NewImage(radius*2, radius*2)
+		vector.DrawFilledCircle(img, float32(radius), float32(radius), float32(radius), color.RGBA{250, 129, 40, 255}, false)
 
 		options := ebiten.DrawImageOptions{}
 		options.GeoM.Translate(float64(offsetPos.X), float64(offsetPos.Y))
 
 		lightingLayer.DrawImage(img, &options)
+		img.Dispose()
 	}
 }
 
