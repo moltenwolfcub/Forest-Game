@@ -13,13 +13,17 @@ const (
 )
 
 type Game struct {
-	time     Time
-	timeHud  TextElement
-	player   Player
-	trees    []Tree
-	view     Viewport
-	mapLayer *ebiten.Image
-	hudLayer *ebiten.Image
+	time Time
+	view Viewport
+
+	mapLayer      *ebiten.Image
+	lightingLayer *ebiten.Image
+	hudLayer      *ebiten.Image
+
+	timeHud TextElement
+	player  Player
+	trees   []Tree
+	lamp    Lamp
 }
 
 func NewGame() Game {
@@ -28,9 +32,11 @@ func NewGame() Game {
 		trees: []Tree{
 			NewTree(),
 		},
-		view:     NewViewport(),
-		mapLayer: ebiten.NewImage(WindowWidth, WindowHeight),
-		hudLayer: ebiten.NewImage(WindowWidth, WindowHeight),
+		lamp:          NewLamp(),
+		view:          NewViewport(),
+		mapLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
+		hudLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
+		lightingLayer: ebiten.NewImage(WindowWidth, WindowHeight),
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
@@ -76,6 +82,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{34, 139, 34, 255})
 
 	g.mapLayer.Clear()
+	g.lightingLayer.Clear()
 	g.hudLayer.Clear()
 
 	for _, tree := range g.trees {
@@ -83,8 +90,10 @@ func (g Game) Draw(screen *ebiten.Image) {
 	}
 	g.view.DrawToMap(g.mapLayer, g.player)
 	g.view.DrawToHUD(g.hudLayer, g.timeHud)
+	g.view.DrawToLighting(g.lightingLayer, g.lamp)
 
 	screen.DrawImage(g.mapLayer, &ebiten.DrawImageOptions{})
+	screen.DrawImage(g.lightingLayer, &ebiten.DrawImageOptions{})
 	screen.DrawImage(g.hudLayer, &ebiten.DrawImageOptions{})
 }
 
