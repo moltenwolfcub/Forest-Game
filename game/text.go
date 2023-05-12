@@ -37,7 +37,7 @@ type TextElement struct {
 	Pos      image.Point
 }
 
-func (t TextElement) GetPos() image.Rectangle {
+func (t TextElement) Hitbox(RenderLayer) image.Rectangle {
 	return text.BoundString(fontFace, t.Contents).Add(t.Pos)
 }
 

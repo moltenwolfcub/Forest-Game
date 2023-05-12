@@ -33,7 +33,7 @@ func NewTree() Tree {
 	}
 }
 
-func (t Tree) GetPos() image.Rectangle {
+func (t Tree) Hitbox(RenderLayer) image.Rectangle {
 	return t.Rect
 }
 

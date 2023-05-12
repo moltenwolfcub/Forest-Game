@@ -17,7 +17,7 @@ func NewLamp() Lamp {
 	return lamp
 }
 
-func (l Lamp) GetPos() image.Rectangle {
+func (l Lamp) Hitbox(RenderLayer) image.Rectangle {
 	return l.Rect
 }
 

@@ -45,7 +45,7 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) GetPos() image.Rectangle {
+func (p Player) Hitbox(RenderLayer) image.Rectangle {
 	return p.Rect
 }
 

@@ -8,18 +8,26 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
-type HasPosition interface {
-	GetPos() image.Rectangle
+type RenderLayer int
+
+const (
+	Map RenderLayer = iota
+	Lighting
+	GUI
+)
+
+type HasHitbox interface {
+	Hitbox(RenderLayer) image.Rectangle
 }
 
 type Drawable interface {
-	HasPosition
+	HasHitbox
 
 	DrawAt(*ebiten.Image, image.Point)
 }
 
 type Lightable interface {
-	HasPosition
+	HasHitbox
 
 	Radius() int
 }
@@ -42,7 +50,7 @@ func (v Viewport) objectInViewport(object image.Rectangle) bool {
 }
 
 func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
-	mapPos := drawable.GetPos()
+	mapPos := drawable.Hitbox(Map)
 
 	if v.objectInViewport(mapPos) {
 		offsetPos := mapPos.Min.Sub(v.Rect.Min)
@@ -51,7 +59,7 @@ func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
 
 }
 func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightable) {
-	mapPos := lightable.GetPos()
+	mapPos := lightable.Hitbox(Lighting)
 	radius := lightable.Radius()
 
 	if v.objectInViewport(mapPos) || true {
@@ -69,7 +77,7 @@ func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightabl
 }
 
 func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
-	drawable.DrawAt(hudLayer, drawable.GetPos().Min)
+	drawable.DrawAt(hudLayer, drawable.Hitbox(GUI).Min)
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
