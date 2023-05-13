@@ -90,6 +90,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 	g.hudLayer.Clear()
 
 	g.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
+	g.lightingLayer.Fill(color.RGBA{48, 48, 48, 255})
 
 	for _, tree := range g.trees {
 		g.view.DrawToMap(g.mapLayer, tree)
@@ -100,7 +101,13 @@ func (g Game) Draw(screen *ebiten.Image) {
 
 	g.layeredImage.DrawImage(g.bgLayer, nil)
 	g.layeredImage.DrawImage(g.mapLayer, nil)
-	g.layeredImage.DrawImage(g.lightingLayer, nil)
+
+	options := ebiten.DrawImageOptions{}
+	options.Blend.BlendOperationRGB = ebiten.BlendOperationAdd
+	options.Blend.BlendFactorSourceRGB = ebiten.BlendFactorDestinationColor
+	options.Blend.BlendFactorDestinationRGB = ebiten.BlendFactorZero
+
+	g.layeredImage.DrawImage(g.lightingLayer, &options)
 	g.layeredImage.DrawImage(g.hudLayer, nil)
 
 	screen.DrawImage(g.layeredImage, nil)

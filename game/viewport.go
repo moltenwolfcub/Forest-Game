@@ -66,7 +66,7 @@ func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightabl
 		offsetPos := mapPos.Min.Sub(v.Rect.Min)
 
 		img := ebiten.NewImage(radius*2, radius*2)
-		vector.DrawFilledCircle(img, float32(radius), float32(radius), float32(radius), color.RGBA{250, 129, 40, 255}, false)
+		vector.DrawFilledCircle(img, float32(radius), float32(radius), float32(radius), color.Opaque, false)
 
 		options := ebiten.DrawImageOptions{}
 		options.GeoM.Translate(float64(offsetPos.X), float64(offsetPos.Y))

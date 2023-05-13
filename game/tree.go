@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -16,7 +15,7 @@ func init() {
 	var err error
 	treeImage, _, err = ebitenutil.NewImageFromFile("assets/tree.png")
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }
 

@@ -3,7 +3,6 @@ package game
 import (
 	"image"
 	"image/color"
-	"log"
 
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -19,7 +18,7 @@ var (
 func init() {
 	loadedFont, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	fontFace, err = opentype.NewFace(loadedFont, &opentype.FaceOptions{
@@ -28,7 +27,7 @@ func init() {
 		Hinting: font.HintingFull,
 	})
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }
 
