@@ -16,6 +16,8 @@ type Game struct {
 	time Time
 	view Viewport
 
+	layeredImage  *ebiten.Image
+	bgLayer       *ebiten.Image
 	mapLayer      *ebiten.Image
 	lightingLayer *ebiten.Image
 	hudLayer      *ebiten.Image
@@ -34,6 +36,8 @@ func NewGame() Game {
 		},
 		lamp:          NewLamp(),
 		view:          NewViewport(),
+		layeredImage:  ebiten.NewImage(WindowWidth, WindowHeight),
+		bgLayer:       ebiten.NewImage(WindowWidth, WindowHeight),
 		mapLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
 		hudLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
 		lightingLayer: ebiten.NewImage(WindowWidth, WindowHeight),
@@ -79,11 +83,13 @@ func (g *Game) HandleInput() {
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
-	screen.Fill(color.RGBA{34, 139, 34, 255})
-
+	g.layeredImage.Clear()
+	g.bgLayer.Clear()
 	g.mapLayer.Clear()
 	g.lightingLayer.Clear()
 	g.hudLayer.Clear()
+
+	g.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
 
 	for _, tree := range g.trees {
 		g.view.DrawToMap(g.mapLayer, tree)
@@ -92,9 +98,12 @@ func (g Game) Draw(screen *ebiten.Image) {
 	g.view.DrawToHUD(g.hudLayer, g.timeHud)
 	g.view.DrawToLighting(g.lightingLayer, g.lamp)
 
-	screen.DrawImage(g.mapLayer, &ebiten.DrawImageOptions{})
-	screen.DrawImage(g.lightingLayer, &ebiten.DrawImageOptions{})
-	screen.DrawImage(g.hudLayer, &ebiten.DrawImageOptions{})
+	g.layeredImage.DrawImage(g.bgLayer, nil)
+	g.layeredImage.DrawImage(g.mapLayer, nil)
+	g.layeredImage.DrawImage(g.lightingLayer, nil)
+	g.layeredImage.DrawImage(g.hudLayer, nil)
+
+	screen.DrawImage(g.layeredImage, nil)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
