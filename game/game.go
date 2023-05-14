@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 const (
@@ -21,6 +22,8 @@ type Game struct {
 	mapLayer      *ebiten.Image
 	lightingLayer *ebiten.Image
 	hudLayer      *ebiten.Image
+
+	debugLighting bool
 
 	timeHud TextElement
 	player  Player
@@ -80,6 +83,10 @@ func (g *Game) HandleInput() {
 	} else {
 		g.player.Delta.X = 0
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyL) {
+		g.debugLighting = !g.debugLighting
+	}
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
@@ -103,9 +110,12 @@ func (g Game) Draw(screen *ebiten.Image) {
 	g.layeredImage.DrawImage(g.mapLayer, nil)
 
 	options := ebiten.DrawImageOptions{}
-	options.Blend.BlendOperationRGB = ebiten.BlendOperationAdd
-	options.Blend.BlendFactorSourceRGB = ebiten.BlendFactorDestinationColor
-	options.Blend.BlendFactorDestinationRGB = ebiten.BlendFactorZero
+
+	if !g.debugLighting {
+		options.Blend.BlendOperationRGB = ebiten.BlendOperationAdd
+		options.Blend.BlendFactorSourceRGB = ebiten.BlendFactorDestinationColor
+		options.Blend.BlendFactorDestinationRGB = ebiten.BlendFactorZero
+	}
 
 	g.layeredImage.DrawImage(g.lightingLayer, &options)
 	g.layeredImage.DrawImage(g.hudLayer, nil)
