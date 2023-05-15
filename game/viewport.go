@@ -2,10 +2,8 @@ package game
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 type RenderLayer int
@@ -29,7 +27,7 @@ type Drawable interface {
 type Lightable interface {
 	HasHitbox
 
-	Radius() int
+	DrawLighting(*ebiten.Image, image.Point)
 }
 
 type Viewport struct {
@@ -60,19 +58,10 @@ func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
 }
 func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightable) {
 	mapPos := lightable.Hitbox(Lighting)
-	radius := lightable.Radius()
 
 	if v.objectInViewport(mapPos) {
 		offsetPos := mapPos.Min.Sub(v.Rect.Min)
-
-		img := ebiten.NewImage(radius*2, radius*2)
-		vector.DrawFilledCircle(img, float32(radius), float32(radius), float32(radius), color.Opaque, false)
-
-		options := ebiten.DrawImageOptions{}
-		options.GeoM.Translate(float64(offsetPos.X), float64(offsetPos.Y))
-
-		lightingLayer.DrawImage(img, &options)
-		img.Dispose()
+		lightable.DrawLighting(lightingLayer, offsetPos)
 	}
 }
 

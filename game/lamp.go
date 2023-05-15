@@ -1,6 +1,12 @@
 package game
 
-import "image"
+import (
+	"image"
+	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+)
 
 type Lamp struct {
 	Rect image.Rectangle
@@ -17,10 +23,21 @@ func NewLamp() Lamp {
 	return lamp
 }
 
-func (l Lamp) Hitbox(RenderLayer) image.Rectangle {
+func (l Lamp) Hitbox(layer RenderLayer) image.Rectangle {
 	return l.Rect
 }
 
-func (l Lamp) Radius() int {
-	return 70
+func (l Lamp) DrawLighting(lightingLayer *ebiten.Image, pos image.Point) {
+	radius := 70
+
+	img := ebiten.NewImage(radius*2, radius*2)
+
+	vector.DrawFilledCircle(img, float32(radius), float32(radius), float32(radius), color.Opaque, false)
+
+	options := ebiten.DrawImageOptions{}
+	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
+
+	lightingLayer.DrawImage(img, &options)
+	img.Dispose()
+
 }
