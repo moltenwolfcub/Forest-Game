@@ -62,7 +62,7 @@ func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightabl
 	mapPos := lightable.Hitbox(Lighting)
 	radius := lightable.Radius()
 
-	if v.objectInViewport(mapPos) || true {
+	if v.objectInViewport(mapPos) {
 		offsetPos := mapPos.Min.Sub(v.Rect.Min)
 
 		img := ebiten.NewImage(radius*2, radius*2)
