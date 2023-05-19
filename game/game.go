@@ -97,7 +97,9 @@ func (g Game) Draw(screen *ebiten.Image) {
 	g.hudLayer.Clear()
 
 	g.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
-	g.lightingLayer.Fill(color.RGBA{48, 48, 48, 255})
+
+	ambientLight := g.time.GetLighting()
+	g.lightingLayer.Fill(color.RGBA{ambientLight, ambientLight, ambientLight, 255})
 
 	for _, tree := range g.trees {
 		g.view.DrawToMap(g.mapLayer, tree)
