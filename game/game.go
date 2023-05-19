@@ -92,6 +92,18 @@ func (g *Game) HandleInput() {
 	}
 }
 
+func (g Game) ambientLight(min float64, max float64) color.Color {
+	colorPerTick := (max - min) / float64(DAYLEN/2)
+	mappedLight := min + colorPerTick*float64(g.time.GetTimeInDay())
+	if mappedLight > max {
+		diff := mappedLight - max
+		mappedLight = max - diff
+	}
+	intLight := uint8(mappedLight)
+
+	return color.RGBA{intLight, intLight, intLight, 255}
+}
+
 func (g Game) Draw(screen *ebiten.Image) {
 	g.layeredImage.Clear()
 	g.bgLayer.Clear()
@@ -100,9 +112,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 	g.hudLayer.Clear()
 
 	g.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
-
-	ambientLight := g.time.GetLighting()
-	g.lightingLayer.Fill(color.RGBA{ambientLight, ambientLight, ambientLight, 255})
+	g.lightingLayer.Fill(g.ambientLight(48, 255))
 
 	for _, tree := range g.trees {
 		g.view.DrawToMap(g.mapLayer, tree)

@@ -31,6 +31,8 @@ import (
 
 const (
 	TPGM = TPS
+
+	DAYLEN = TPGM * 60 * 20
 )
 
 type Time int
@@ -65,22 +67,10 @@ func (t Time) String() string {
 	return fmt.Sprintf("%02d:%02d", hours, minutes)
 }
 
-func (t Time) GetLighting() uint8 {
-	// at 00:00 minimum light
-	// at 10:00 maximum light
-	var dayLen float64 = TPGM * 60 * 20
-	var halfDayLen float64 = dayLen / 2
-	var minLight float64 = 48
-	var maxLight float64 = 255
+// Returns the number of minutes through the day it currently is
+func (t Time) GetTimeInDay() int {
+	ticks := math.Mod(float64(t), DAYLEN)
+	minutes := ticks / TPGM
 
-	var current float64 = math.Mod(float64(t), dayLen)
-
-	colorPerTick := (maxLight - minLight) / (halfDayLen)
-	mappedLight := minLight + colorPerTick*float64(current)
-	if mappedLight > maxLight {
-		diff := mappedLight - maxLight
-		mappedLight = maxLight - diff
-	}
-
-	return uint8(mappedLight)
+	return int(minutes)
 }
