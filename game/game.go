@@ -32,6 +32,8 @@ type Game struct {
 }
 
 func NewGame() Game {
+	startTime := 5
+
 	g := Game{
 		player: NewPlayer(),
 		trees: []Tree{
@@ -44,6 +46,7 @@ func NewGame() Game {
 		mapLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
 		hudLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
 		lightingLayer: ebiten.NewImage(WindowWidth, WindowHeight),
+		time:          Time(TPGM * 60 * startTime),
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
