@@ -1,10 +1,7 @@
 package game
 
 import (
-	"image/color"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 const (
@@ -17,13 +14,7 @@ type Game struct {
 	time Time
 	view Viewport
 
-	layeredImage  *ebiten.Image
-	bgLayer       *ebiten.Image
-	mapLayer      *ebiten.Image
-	lightingLayer *ebiten.Image
-	hudLayer      *ebiten.Image
-
-	debugLighting bool
+	renderer Renderer
 
 	timeHud TextElement
 	player  Player
@@ -39,14 +30,10 @@ func NewGame() Game {
 		trees: []Tree{
 			NewTree(),
 		},
-		lamp:          NewLamp(),
-		view:          NewViewport(),
-		layeredImage:  ebiten.NewImage(WindowWidth, WindowHeight),
-		bgLayer:       ebiten.NewImage(WindowWidth, WindowHeight),
-		mapLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
-		hudLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
-		lightingLayer: ebiten.NewImage(WindowWidth, WindowHeight),
-		time:          Time(TPGM * 60 * startTime),
+		lamp:     NewLamp(),
+		view:     NewViewport(),
+		renderer: NewRenderer(),
+		time:     Time(TPGM * 60 * startTime),
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
@@ -86,56 +73,25 @@ func (g *Game) HandleInput() {
 	} else {
 		g.player.Delta.X = 0
 	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyL) {
-		g.debugLighting = !g.debugLighting
-	}
-}
-
-func (g Game) ambientLight(min float64, max float64) color.Color {
-	colorPerTick := (max - min) / float64(DAYLEN/2)
-	mappedLight := min + colorPerTick*float64(g.time.GetTimeInDay())
-	if mappedLight > max {
-		diff := mappedLight - max
-		mappedLight = max - diff
-	}
-	intLight := uint8(mappedLight)
-
-	return color.RGBA{intLight, intLight, intLight, 255}
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
-	g.layeredImage.Clear()
-	g.bgLayer.Clear()
-	g.mapLayer.Clear()
-	g.lightingLayer.Clear()
-	g.hudLayer.Clear()
-
-	g.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
-	g.lightingLayer.Fill(g.ambientLight(48, 255))
-
+	mapElements := []Drawable{
+		g.player,
+	}
 	for _, tree := range g.trees {
-		g.view.DrawToMap(g.mapLayer, tree)
-	}
-	g.view.DrawToMap(g.mapLayer, g.player)
-	g.view.DrawToHUD(g.hudLayer, g.timeHud)
-	g.view.DrawToLighting(g.lightingLayer, g.lamp)
-
-	g.layeredImage.DrawImage(g.bgLayer, nil)
-	g.layeredImage.DrawImage(g.mapLayer, nil)
-
-	options := ebiten.DrawImageOptions{}
-
-	if !g.debugLighting {
-		options.Blend.BlendOperationRGB = ebiten.BlendOperationAdd
-		options.Blend.BlendFactorSourceRGB = ebiten.BlendFactorDestinationColor
-		options.Blend.BlendFactorDestinationRGB = ebiten.BlendFactorZero
+		mapElements = append(mapElements, Drawable(tree))
 	}
 
-	g.layeredImage.DrawImage(g.lightingLayer, &options)
-	g.layeredImage.DrawImage(g.hudLayer, nil)
+	lights := []Lightable{
+		g.lamp,
+	}
 
-	screen.DrawImage(g.layeredImage, nil)
+	hudElements := []Drawable{
+		g.timeHud,
+	}
+
+	screen.DrawImage(g.renderer.Render(g.view, g.time, mapElements, lights, hudElements), nil)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
