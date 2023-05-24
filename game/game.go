@@ -1,6 +1,8 @@
 package game
 
 import (
+	"image"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -15,6 +17,7 @@ type Game struct {
 	view Viewport
 
 	renderer Renderer
+	keys     Keybinds
 
 	timeHud TextElement
 	player  Player
@@ -34,6 +37,7 @@ func NewGame() Game {
 		view:     NewViewport(),
 		renderer: NewRenderer(),
 		time:     Time(TPGM * 60 * startTime),
+		keys:     NewKeybinds(),
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
@@ -51,28 +55,21 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) HandleInput() {
-	if ebiten.IsKeyPressed(ebiten.KeyW) {
-		if ebiten.IsKeyPressed(ebiten.KeyS) {
-			g.player.Delta.Y = 0
-		} else {
-			g.player.Delta.Y = -1
-		}
-	} else if ebiten.IsKeyPressed(ebiten.KeyS) {
-		g.player.Delta.Y = 1
-	} else {
-		g.player.Delta.Y = 0
+	var delta = image.Point{0, 0}
+
+	if g.keys.Forwards.Triggered() {
+		delta.Y -= 1
 	}
-	if ebiten.IsKeyPressed(ebiten.KeyD) {
-		if ebiten.IsKeyPressed(ebiten.KeyA) {
-			g.player.Delta.X = 0
-		} else {
-			g.player.Delta.X = 1
-		}
-	} else if ebiten.IsKeyPressed(ebiten.KeyA) {
-		g.player.Delta.X = -1
-	} else {
-		g.player.Delta.X = 0
+	if g.keys.Backwards.Triggered() {
+		delta.Y += 1
 	}
+	if g.keys.Left.Triggered() {
+		delta.X -= 1
+	}
+	if g.keys.Right.Triggered() {
+		delta.X += 1
+	}
+	g.player.Delta = delta
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
