@@ -24,6 +24,12 @@ type Drawable interface {
 	DrawAt(*ebiten.Image, image.Point)
 }
 
+type DepthAwareDrawable interface {
+	Drawable
+
+	GetZ() int
+}
+
 type Lightable interface {
 	HasHitbox
 

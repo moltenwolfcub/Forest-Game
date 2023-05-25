@@ -73,11 +73,11 @@ func (g *Game) HandleInput() {
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
-	mapElements := []Drawable{
+	mapElements := []DepthAwareDrawable{
 		g.player,
 	}
 	for _, tree := range g.trees {
-		mapElements = append(mapElements, Drawable(tree))
+		mapElements = append(mapElements, DepthAwareDrawable(tree))
 	}
 
 	lights := []Lightable{

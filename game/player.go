@@ -48,6 +48,10 @@ func (p Player) Hitbox(RenderLayer) image.Rectangle {
 	return p.Rect
 }
 
+func (p Player) GetZ() int {
+	return 0
+}
+
 func (p *Player) Update() {
 	p.Rect = p.Rect.Add(image.Point{
 		X: int(float64(p.Delta.X) * playerMoveSpeed),

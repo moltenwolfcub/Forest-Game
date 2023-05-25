@@ -43,5 +43,9 @@ func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(treeImage, &options)
 }
 
+func (t Tree) GetZ() int {
+	return -1
+}
+
 func (t *Tree) Update() {
 }

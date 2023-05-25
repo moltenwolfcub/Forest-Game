@@ -2,6 +2,7 @@ package game
 
 import (
 	"image/color"
+	"sort"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -26,7 +27,7 @@ func NewRenderer() Renderer {
 	return render
 }
 
-func (r *Renderer) Render(view Viewport, time Time, mapElements []Drawable, lights []Lightable, hudElements []Drawable) *ebiten.Image {
+func (r *Renderer) Render(view Viewport, time Time, mapElements []DepthAwareDrawable, lights []Lightable, hudElements []Drawable) *ebiten.Image {
 	r.pre()
 	r.bg()
 	r.main(view, mapElements)
@@ -60,7 +61,11 @@ func (r *Renderer) post() {
 func (r *Renderer) bg() {
 	r.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
 }
-func (r *Renderer) main(view Viewport, elements []Drawable) {
+func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
+	sort.SliceStable(elements, func(i, j int) bool {
+		return elements[i].GetZ() < elements[j].GetZ()
+	})
+
 	for _, e := range elements {
 		view.DrawToMap(r.mapLayer, e)
 	}
