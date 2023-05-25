@@ -80,7 +80,7 @@ func (r *Renderer) hud(view Viewport, elements []Drawable) {
 
 func (r Renderer) ambientLight(min float64, max float64, time Time) color.Color {
 	colorPerTick := (max - min) / float64(DAYLEN/2)
-	mappedLight := min + colorPerTick*float64(time.GetTimeInDay())
+	mappedLight := min + colorPerTick*float64(time.GetTimeInDay()*TPGM)
 	if mappedLight > max {
 		diff := mappedLight - max
 		mappedLight = max - diff
