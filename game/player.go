@@ -57,15 +57,23 @@ func (p *Player) Update(collidables []HasHitbox) {
 }
 
 func (p *Player) movePlayer(collidables []HasHitbox) {
-	moveSpeed := playerMoveSpeed
+	scalar := playerMoveSpeed
 
-	x := image.Point{X: int(float64(p.Delta.X) * moveSpeed)}
-	p.Rect = p.Rect.Add(x)
-	p.checkCollisions(collidables, x)
+	steps := int(scalar)
+	stepSize := scalar / float64(steps)
 
-	y := image.Point{Y: int(float64(p.Delta.Y) * moveSpeed)}
-	p.Rect = p.Rect.Add(y)
-	p.checkCollisions(collidables, y)
+	for i := 0; i < steps; i++ {
+
+		x := image.Point{X: int(float64(p.Delta.X) * stepSize)}
+		y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
+
+		p.Rect = p.Rect.Add(x)
+		p.checkCollisions(collidables, x)
+
+		p.Rect = p.Rect.Add(y)
+		p.checkCollisions(collidables, y)
+
+	}
 }
 
 func (p *Player) checkCollisions(collidables []HasHitbox, direction image.Point) {
