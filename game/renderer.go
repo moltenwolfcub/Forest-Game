@@ -59,7 +59,7 @@ func (r *Renderer) post() {
 }
 
 func (r *Renderer) bg() {
-	r.bgLayer.Fill(color.RGBA{34, 139, 34, 255})
+	r.bgLayer.Fill(color.RGBA{40, 240, 40, 255})
 }
 func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
 	sort.SliceStable(elements, func(i, j int) bool {

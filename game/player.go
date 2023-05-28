@@ -52,9 +52,27 @@ func (p Player) GetZ() int {
 	return 0
 }
 
-func (p *Player) Update() {
-	p.Rect = p.Rect.Add(image.Point{
-		X: int(float64(p.Delta.X) * playerMoveSpeed),
-		Y: int(float64(p.Delta.Y) * playerMoveSpeed),
-	})
+func (p *Player) Update(collidables []HasHitbox) {
+	p.movePlayer(collidables)
+}
+
+func (p *Player) movePlayer(collidables []HasHitbox) {
+	moveSpeed := playerMoveSpeed
+
+	x := image.Point{X: int(float64(p.Delta.X) * moveSpeed)}
+	p.Rect = p.Rect.Add(x)
+	p.checkCollisions(collidables, x)
+
+	y := image.Point{Y: int(float64(p.Delta.Y) * moveSpeed)}
+	p.Rect = p.Rect.Add(y)
+	p.checkCollisions(collidables, y)
+}
+
+func (p *Player) checkCollisions(collidables []HasHitbox, direction image.Point) {
+	for _, c := range collidables {
+		if c.Hitbox(Map).Overlaps(p.Hitbox(Map)) {
+			p.Rect = p.Rect.Sub(direction)
+			break
+		}
+	}
 }

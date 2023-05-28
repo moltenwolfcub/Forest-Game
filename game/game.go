@@ -23,6 +23,8 @@ type Game struct {
 	player  Player
 	trees   []Tree
 	lamp    Lamp
+
+	incline Incline
 }
 
 func NewGame() Game {
@@ -38,6 +40,9 @@ func NewGame() Game {
 		renderer: NewRenderer(),
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
+		incline: Incline{
+			Collision: image.Rect(400, 150, 800, 300),
+		},
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
@@ -49,7 +54,7 @@ func (g *Game) Update() error {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.HandleInput()
-	g.player.Update()
+	g.player.Update([]HasHitbox{g.incline})
 	g.view.UpdatePosition(g.player)
 	return nil
 }
@@ -75,6 +80,7 @@ func (g *Game) HandleInput() {
 func (g Game) Draw(screen *ebiten.Image) {
 	mapElements := []DepthAwareDrawable{
 		g.player,
+		g.incline,
 	}
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))
