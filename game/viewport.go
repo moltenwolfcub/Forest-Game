@@ -9,9 +9,10 @@ import (
 type RenderLayer int
 
 const (
-	Map RenderLayer = iota
+	Render RenderLayer = iota
 	Lighting
 	GUI
+	Collision
 )
 
 type HasHitbox interface {
@@ -54,7 +55,7 @@ func (v Viewport) objectInViewport(object image.Rectangle) bool {
 }
 
 func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
-	mapPos := drawable.Hitbox(Map)
+	mapPos := drawable.Hitbox(Render)
 
 	if v.objectInViewport(mapPos) {
 		offsetPos := mapPos.Min.Sub(v.Rect.Min)

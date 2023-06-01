@@ -44,8 +44,19 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) Hitbox(RenderLayer) image.Rectangle {
-	return p.Rect
+func (p Player) Hitbox(layer RenderLayer) image.Rectangle {
+	switch layer {
+	case Collision:
+		baseSize := p.Rect.Size().Y / 2
+
+		rect := image.Rectangle{
+			Min: p.Rect.Max.Sub(image.Point{p.Rect.Dx(), baseSize}),
+			Max: p.Rect.Max,
+		}
+		return rect
+	default:
+		return p.Rect
+	}
 }
 
 func (p Player) GetZ() int {
@@ -78,7 +89,7 @@ func (p *Player) movePlayer(collidables []HasHitbox) {
 
 func (p *Player) checkCollisions(collidables []HasHitbox, direction image.Point) {
 	for _, c := range collidables {
-		if c.Hitbox(Map).Overlaps(p.Hitbox(Map)) {
+		if c.Hitbox(Collision).Overlaps(p.Hitbox(Collision)) {
 			p.Rect = p.Rect.Sub(direction)
 			break
 		}
