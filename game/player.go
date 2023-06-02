@@ -79,15 +79,15 @@ func (p *Player) movePlayer(collidables []HasHitbox) {
 		y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
 
 		p.Rect = p.Rect.Add(x)
-		p.checkCollisions(collidables, x)
+		p.fixCollisions(collidables, x)
 
 		p.Rect = p.Rect.Add(y)
-		p.checkCollisions(collidables, y)
+		p.fixCollisions(collidables, y)
 
 	}
 }
 
-func (p *Player) checkCollisions(collidables []HasHitbox, direction image.Point) {
+func (p *Player) fixCollisions(collidables []HasHitbox, direction image.Point) {
 	for _, c := range collidables {
 		if c.Hitbox(Collision).Overlaps(p.Hitbox(Collision)) {
 			p.Rect = p.Rect.Sub(direction)
