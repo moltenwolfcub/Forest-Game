@@ -24,8 +24,10 @@ func init() {
 }
 
 type Player struct {
-	Delta image.Point
-	Rect  image.Rectangle
+	Delta            image.Point
+	Rect             image.Rectangle
+	Climbing         bool
+	currentMoveSpeed float64
 }
 
 func NewPlayer() Player {
@@ -34,6 +36,7 @@ func NewPlayer() Player {
 		Rect: image.Rectangle{
 			Max: image.Point{width, height},
 		},
+		currentMoveSpeed: playerMoveSpeed,
 	}
 }
 
@@ -63,12 +66,36 @@ func (p Player) GetZ() int {
 	return 0
 }
 
-func (p *Player) Update(collidables []HasHitbox) {
+func (p *Player) Update(collidables []HasHitbox, climbables []Climbable) {
 	p.movePlayer(collidables)
+	p.tryClimb(climbables)
+}
+
+func (p *Player) tryClimb(climbables []Climbable) {
+	if !p.Climbing {
+		p.currentMoveSpeed = playerMoveSpeed
+		return
+	}
+	var found Climbable = nil
+	for _, c := range climbables {
+		if p.Rect.Sub(image.Point{0, 1}).Overlaps(c.Hitbox(Collision)) {
+			found = c
+			break
+		}
+	}
+	if found == nil {
+		p.currentMoveSpeed = playerMoveSpeed
+		return
+	}
+	p.currentMoveSpeed = playerMoveSpeed * found.GetClimbSpeed()
+
+	p.Rect = p.Rect.Sub(image.Point{
+		Y: int(p.currentMoveSpeed),
+	})
 }
 
 func (p *Player) movePlayer(collidables []HasHitbox) {
-	scalar := playerMoveSpeed
+	scalar := p.currentMoveSpeed
 
 	steps := int(scalar)
 	stepSize := scalar / float64(steps)
@@ -79,7 +106,9 @@ func (p *Player) movePlayer(collidables []HasHitbox) {
 		y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
 
 		p.Rect = p.Rect.Add(x)
-		p.fixCollisions(collidables, x)
+		if !p.Climbing {
+			p.fixCollisions(collidables, x)
+		}
 
 		p.Rect = p.Rect.Add(y)
 		p.fixCollisions(collidables, y)

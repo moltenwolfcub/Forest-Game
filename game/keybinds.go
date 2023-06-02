@@ -42,6 +42,7 @@ type Keybinds struct {
 	Backwards Keybind
 	Left      Keybind
 	Right     Keybind
+	Climb     Keybind
 }
 
 func NewKeybinds() Keybinds {
@@ -51,6 +52,8 @@ func NewKeybinds() Keybinds {
 	bindings.Backwards = NewKeybind(ebiten.KeyS, IsPressed)
 	bindings.Left = NewKeybind(ebiten.KeyA, IsPressed)
 	bindings.Right = NewKeybind(ebiten.KeyD, IsPressed)
+
+	bindings.Climb = NewKeybind(ebiten.KeySpace, IsPressed)
 
 	return bindings
 }

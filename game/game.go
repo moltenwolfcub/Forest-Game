@@ -54,7 +54,7 @@ func (g *Game) Update() error {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.HandleInput()
-	g.player.Update([]HasHitbox{g.incline})
+	g.player.Update([]HasHitbox{g.incline}, []Climbable{g.incline})
 	g.view.UpdatePosition(g.player)
 	return nil
 }
@@ -75,6 +75,8 @@ func (g *Game) HandleInput() {
 		delta.X += 1
 	}
 	g.player.Delta = delta
+
+	g.player.Climbing = g.keys.Climb.Triggered()
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
