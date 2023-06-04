@@ -82,10 +82,16 @@ func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64
 }
 
 func (p *Player) tryClimb(currentClimable Climbable) {
-	if p.Climbing && currentClimable != nil {
-		p.Rect = p.Rect.Sub(image.Point{
-			Y: int(p.currentMoveSpeed),
-		})
+	if currentClimable != nil {
+		if p.Climbing {
+			p.Rect = p.Rect.Sub(image.Point{
+				Y: int(p.currentMoveSpeed),
+			})
+		} else {
+			p.Rect = p.Rect.Add(image.Point{
+				Y: int(p.currentMoveSpeed),
+			})
+		}
 	}
 }
 
@@ -117,9 +123,12 @@ func (p *Player) movePlayer(collidables []HasHitbox, currentClimable Climbable) 
 			p.fixCollisions(collidables, x)
 		}
 
-		p.Rect = p.Rect.Add(y)
-		p.fixCollisions(collidables, y)
-
+		if currentClimable == nil {
+			p.Rect = p.Rect.Add(y)
+			if !p.Climbing && y.Y <= 0 {
+				p.fixCollisions(collidables, y)
+			}
+		}
 	}
 }
 
