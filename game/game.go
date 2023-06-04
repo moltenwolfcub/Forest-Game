@@ -41,7 +41,7 @@ func NewGame() Game {
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
 		incline: Incline{
-			Collision: image.Rect(400, 150, 800, 300),
+			Collision: image.Rect(400, -150, 800, 300),
 		},
 	}
 	g.timeHud = TextElement{

@@ -67,34 +67,41 @@ func (p Player) GetZ() int {
 }
 
 func (p *Player) Update(collidables []HasHitbox, climbables []Climbable) {
-	p.movePlayer(collidables)
-	p.tryClimb(climbables)
+	currentClimeable := p.findCurrentClimable(climbables)
+	p.currentMoveSpeed = p.calculateMovementSpeed(currentClimeable)
+
+	p.movePlayer(collidables, currentClimeable)
+	p.tryClimb(currentClimeable)
 }
 
-func (p *Player) tryClimb(climbables []Climbable) {
-	if !p.Climbing {
-		p.currentMoveSpeed = playerMoveSpeed
-		return
+func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64) {
+	if currentClimable == nil {
+		return playerMoveSpeed
 	}
-	var found Climbable = nil
+	return playerMoveSpeed * currentClimable.GetClimbSpeed()
+}
+
+func (p *Player) tryClimb(currentClimable Climbable) {
+	if p.Climbing && currentClimable != nil {
+		p.Rect = p.Rect.Sub(image.Point{
+			Y: int(p.currentMoveSpeed),
+		})
+	}
+}
+
+func (p Player) findCurrentClimable(climbables []Climbable) (found Climbable) {
+	rect := p.Hitbox(Collision)
+
 	for _, c := range climbables {
-		if p.Rect.Sub(image.Point{0, 1}).Overlaps(c.Hitbox(Collision)) {
+		if rect.Overlaps(c.Hitbox(Collision)) {
 			found = c
 			break
 		}
 	}
-	if found == nil {
-		p.currentMoveSpeed = playerMoveSpeed
-		return
-	}
-	p.currentMoveSpeed = playerMoveSpeed * found.GetClimbSpeed()
-
-	p.Rect = p.Rect.Sub(image.Point{
-		Y: int(p.currentMoveSpeed),
-	})
+	return
 }
 
-func (p *Player) movePlayer(collidables []HasHitbox) {
+func (p *Player) movePlayer(collidables []HasHitbox, currentClimable Climbable) {
 	scalar := p.currentMoveSpeed
 
 	steps := int(scalar)
@@ -106,7 +113,7 @@ func (p *Player) movePlayer(collidables []HasHitbox) {
 		y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
 
 		p.Rect = p.Rect.Add(x)
-		if !p.Climbing {
+		if currentClimable == nil {
 			p.fixCollisions(collidables, x)
 		}
 
