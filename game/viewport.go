@@ -11,7 +11,6 @@ type RenderLayer int
 const (
 	Render RenderLayer = iota
 	Lighting
-	GUI
 	Collision
 )
 
@@ -73,7 +72,7 @@ func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightabl
 }
 
 func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
-	drawable.DrawAt(hudLayer, drawable.Hitbox(GUI).Min)
+	drawable.DrawAt(hudLayer, drawable.Hitbox(Render).Min)
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
