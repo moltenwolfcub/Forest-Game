@@ -6,16 +6,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type RenderLayer int
+type GameContext int
 
 const (
-	Render RenderLayer = iota
+	Render GameContext = iota
 	Lighting
 	Collision
 )
 
 type HasHitbox interface {
-	Hitbox(RenderLayer) image.Rectangle
+	Hitbox(GameContext) image.Rectangle
 }
 
 type Drawable interface {

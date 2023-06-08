@@ -32,7 +32,7 @@ func NewTree() Tree {
 	}
 }
 
-func (t Tree) Hitbox(RenderLayer) image.Rectangle {
+func (t Tree) Hitbox(GameContext) image.Rectangle {
 	return t.Rect
 }
 

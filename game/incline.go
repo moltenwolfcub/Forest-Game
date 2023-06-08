@@ -17,7 +17,7 @@ type Incline struct {
 	Collision image.Rectangle
 }
 
-func (i Incline) Hitbox(RenderLayer) image.Rectangle {
+func (i Incline) Hitbox(GameContext) image.Rectangle {
 	return i.Collision
 }
 

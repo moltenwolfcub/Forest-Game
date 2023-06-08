@@ -23,7 +23,7 @@ func NewLamp() Lamp {
 	return lamp
 }
 
-func (l Lamp) Hitbox(layer RenderLayer) image.Rectangle {
+func (l Lamp) Hitbox(layer GameContext) image.Rectangle {
 	return l.Rect
 }
 

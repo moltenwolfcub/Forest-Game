@@ -47,7 +47,7 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) Hitbox(layer RenderLayer) image.Rectangle {
+func (p Player) Hitbox(layer GameContext) image.Rectangle {
 	switch layer {
 	case Collision:
 		baseSize := p.Rect.Size().Y / 2
