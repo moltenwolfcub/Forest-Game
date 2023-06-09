@@ -23,7 +23,7 @@ func (i Incline) Hitbox(GameContext) image.Rectangle {
 
 func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
 	img := ebiten.NewImage(i.Collision.Dx(), i.Collision.Dy())
-	img.Fill(color.RGBA{185, 124, 0, 255})
+	img.Fill(color.RGBA{117, 88, 69, 255})
 
 	options := ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
