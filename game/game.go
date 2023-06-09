@@ -25,6 +25,7 @@ type Game struct {
 	lamp    Lamp
 
 	incline Incline
+	river   River
 }
 
 func NewGame() Game {
@@ -43,6 +44,9 @@ func NewGame() Game {
 		incline: Incline{
 			Collision: image.Rect(400, -150, 800, 300),
 		},
+		river: River{
+			Collision: image.Rect(500, 500, 1500, 700),
+		},
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
@@ -54,7 +58,7 @@ func (g *Game) Update() error {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.HandleInput()
-	g.player.Update([]HasHitbox{g.incline}, []Climbable{g.incline})
+	g.player.Update([]HasHitbox{g.incline, g.river}, []Climbable{g.incline})
 	g.view.UpdatePosition(g.player)
 	return nil
 }
@@ -83,6 +87,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 	mapElements := []DepthAwareDrawable{
 		g.player,
 		g.incline,
+		g.river,
 	}
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))

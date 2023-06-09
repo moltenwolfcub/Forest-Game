@@ -32,7 +32,7 @@ func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
 }
 
 func (i Incline) GetZ() int {
-	return -100
+	return -2
 }
 
 func (i Incline) GetClimbSpeed() float64 {
