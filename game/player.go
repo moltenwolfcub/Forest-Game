@@ -70,7 +70,7 @@ func (p *Player) Update(collidables []HasHitbox, climbables []Climbable) {
 	currentClimeable := p.findCurrentClimable(climbables)
 	p.currentMoveSpeed = p.calculateMovementSpeed(currentClimeable)
 
-	p.movePlayer(collidables, currentClimeable)
+	p.movePlayer(collidables, climbables)
 	p.tryClimb(currentClimeable)
 }
 
@@ -107,28 +107,38 @@ func (p Player) findCurrentClimable(climbables []Climbable) (found Climbable) {
 	return
 }
 
-func (p *Player) movePlayer(collidables []HasHitbox, currentClimable Climbable) {
+func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 	scalar := p.currentMoveSpeed
 
 	steps := int(scalar)
 	stepSize := scalar / float64(steps)
 
+	x := image.Point{X: int(float64(p.Delta.X) * stepSize)}
+	y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
+
+	climbingPreMove := p.findCurrentClimable(climbables) == nil
+
 	for i := 0; i < steps; i++ {
 
-		x := image.Point{X: int(float64(p.Delta.X) * stepSize)}
-		y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
-
 		p.Rect = p.Rect.Add(x)
-		if currentClimable == nil {
+		if climbingPreMove {
 			p.fixCollisions(collidables, x)
 		}
 
-		if currentClimable == nil {
-			p.Rect = p.Rect.Add(y)
-			if !p.Climbing && y.Y <= 0 {
-				p.fixCollisions(collidables, y)
-			}
+		if p.findCurrentClimable(climbables) != nil {
+			//if currently climbing or decending Y-input should be ignored
+			continue
 		}
+		p.Rect = p.Rect.Add(y)
+		if p.Climbing && p.findCurrentClimable(climbables) != nil && y.Y <= 0 {
+			//if hitting the bottom of a climbable while trying to climb don't fix collisions
+			continue
+		}
+		if !p.Climbing && p.findCurrentClimable(climbables) != nil && y.Y >= 0 {
+			//if hitting the top of a climbable and not climbing don't fix collisions
+			continue
+		}
+		p.fixCollisions(collidables, y)
 	}
 }
 
