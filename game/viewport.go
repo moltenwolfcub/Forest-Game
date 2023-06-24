@@ -12,6 +12,7 @@ const (
 	Render GameContext = iota
 	Lighting
 	Collision
+	Interaction
 )
 
 type HasHitbox interface {

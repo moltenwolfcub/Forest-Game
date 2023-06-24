@@ -27,6 +27,7 @@ type Player struct {
 	Delta            image.Point
 	Rect             image.Rectangle
 	Climbing         bool
+	RiverJumping     bool
 	currentMoveSpeed float64
 }
 
@@ -66,12 +67,49 @@ func (p Player) GetZ() int {
 	return 0
 }
 
-func (p *Player) Update(collidables []HasHitbox, climbables []Climbable) {
+func (p *Player) Update(collidables []HasHitbox, climbables []Climbable, rivers []HasHitbox) {
 	currentClimeable := p.findCurrentClimable(climbables)
 	p.currentMoveSpeed = p.calculateMovementSpeed(currentClimeable)
 
 	p.movePlayer(collidables, climbables)
 	p.tryClimb(currentClimeable)
+	p.handleInteractions(rivers)
+}
+
+func (p *Player) handleInteractions(interactables []HasHitbox) {
+	if p.RiverJumping {
+		var objectToJump HasHitbox = nil
+		playerHitbox := p.Hitbox(Collision)
+
+		for _, c := range interactables {
+			if playerHitbox.Overlaps(c.Hitbox(Interaction)) {
+				objectToJump = c
+				break
+			}
+		}
+		if objectToJump == nil {
+			return
+		}
+		objectHitbox := objectToJump.Hitbox(Collision)
+
+		newPos := image.Point{}
+
+		if playerHitbox.Max.Y <= objectHitbox.Min.Y {
+			newPos.X = playerHitbox.Min.X
+			newPos.Y = objectHitbox.Max.Y
+		} else if playerHitbox.Min.Y >= objectHitbox.Max.Y {
+			newPos.X = playerHitbox.Min.X
+			newPos.Y = objectHitbox.Min.Y - playerHitbox.Dy()
+		} else if playerHitbox.Max.X <= objectHitbox.Min.X {
+			newPos.X = objectHitbox.Max.X
+			newPos.Y = playerHitbox.Min.Y
+		} else if playerHitbox.Min.X >= objectHitbox.Max.X {
+			newPos.X = objectHitbox.Min.X - playerHitbox.Dx()
+			newPos.Y = playerHitbox.Min.Y
+		}
+
+		p.Rect = p.Rect.Sub(playerHitbox.Min).Add(newPos)
+	}
 }
 
 func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64) {

@@ -11,8 +11,17 @@ type River struct {
 	Collision image.Rectangle
 }
 
-func (r River) Hitbox(GameContext) image.Rectangle {
-	return r.Collision
+func (r River) Hitbox(layer GameContext) image.Rectangle {
+	switch layer {
+	case Interaction:
+		rect := image.Rectangle{
+			Min: r.Collision.Min.Sub(image.Point{20, 20}),
+			Max: r.Collision.Max.Add(image.Point{20, 20}),
+		}
+		return rect
+	default:
+		return r.Collision
+	}
 }
 
 func (r River) DrawAt(screen *ebiten.Image, pos image.Point) {
