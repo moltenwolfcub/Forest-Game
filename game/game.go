@@ -21,31 +21,33 @@ type Game struct {
 
 	timeHud TextElement
 	player  Player
-	trees   []Tree
 	lamp    Lamp
 
-	incline Incline
-	river   River
+	inclines []Incline
+	rivers   []River
+	trees    []Tree
 }
 
 func NewGame() Game {
 	startTime := 5
 
 	g := Game{
-		player: NewPlayer(),
-		trees: []Tree{
-			NewTree(),
-		},
+		player:   NewPlayer(),
 		lamp:     NewLamp(),
 		view:     NewViewport(),
 		renderer: NewRenderer(),
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
-		incline: Incline{
-			Collision: image.Rect(400, -150, 800, 300),
+
+		trees: []Tree{
+			NewTree(),
 		},
-		river: River{
-			Collision: image.Rect(500, 500, 1500, 700),
+		inclines: []Incline{
+			{Collision: image.Rect(400, -150, 800, 300)},
+		},
+		rivers: []River{
+			{Collision: image.Rect(500, 500, 1500, 700)},
+			{Collision: image.Rect(1500, 550, 2000, 750)},
 		},
 	}
 	g.timeHud = TextElement{
@@ -55,10 +57,28 @@ func NewGame() Game {
 }
 
 func (g *Game) Update() error {
+	collideables := []HasHitbox{}
+	for _, incline := range g.inclines {
+		collideables = append(collideables, HasHitbox(incline))
+	}
+	for _, river := range g.rivers {
+		collideables = append(collideables, HasHitbox(river))
+	}
+
+	climbables := []Climbable{}
+	for _, incline := range g.inclines {
+		climbables = append(climbables, Climbable(incline))
+	}
+
+	rivers := []HasHitbox{}
+	for _, river := range g.rivers {
+		rivers = append(rivers, HasHitbox(river))
+	}
+
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.HandleInput()
-	g.player.Update([]HasHitbox{g.incline, g.river}, []Climbable{g.incline}, []HasHitbox{g.river})
+	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
 	return nil
 }
@@ -87,11 +107,15 @@ func (g *Game) HandleInput() {
 func (g Game) Draw(screen *ebiten.Image) {
 	mapElements := []DepthAwareDrawable{
 		g.player,
-		g.incline,
-		g.river,
 	}
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))
+	}
+	for _, incline := range g.inclines {
+		mapElements = append(mapElements, DepthAwareDrawable(incline))
+	}
+	for _, river := range g.rivers {
+		mapElements = append(mapElements, DepthAwareDrawable(river))
 	}
 
 	lights := []Lightable{
