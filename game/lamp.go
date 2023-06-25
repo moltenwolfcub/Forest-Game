@@ -19,7 +19,7 @@ func NewLamp() Lamp {
 			Max: image.Point{radius * 2, radius * 2},
 		},
 	}
-	lamp.Rect = lamp.Rect.Add(image.Point{50, 40})
+	lamp.Rect = lamp.Rect.Add(image.Point{1280, 256})
 	return lamp
 }
 

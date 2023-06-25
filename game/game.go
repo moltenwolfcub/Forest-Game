@@ -40,14 +40,17 @@ func NewGame() Game {
 		keys:     NewKeybinds(),
 
 		trees: []Tree{
-			NewTree(),
+			// NewTree(),
 		},
 		inclines: []Incline{
-			{Collision: image.Rect(400, -150, 800, 300)},
+			{Collision: image.Rect(0, 0, 1024, 256)},
+			{Collision: image.Rect(1024, -128, 1472, 128)},
+			{Collision: image.Rect(1472, -256, 1792, 0)},
 		},
 		rivers: []River{
-			{Collision: image.Rect(500, 500, 1500, 700)},
-			{Collision: image.Rect(1500, 550, 2000, 750)},
+			{Collision: image.Rect(0, 448, 1024, 704)},
+			{Collision: image.Rect(768, 576, 1536, 832)},
+			{Collision: image.Rect(1280, 768, 1728, 1024)},
 		},
 	}
 	g.timeHud = TextElement{

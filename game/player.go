@@ -35,7 +35,8 @@ func NewPlayer() Player {
 	width, height := playerImage.Bounds().Size().X, playerImage.Bounds().Size().Y
 	return Player{
 		Rect: image.Rectangle{
-			Max: image.Point{width, height},
+			Min: image.Point{-100, -100},
+			Max: image.Point{width - 100, height - 100},
 		},
 		currentMoveSpeed: playerMoveSpeed,
 	}
