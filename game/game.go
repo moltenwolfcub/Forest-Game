@@ -21,7 +21,6 @@ type Game struct {
 
 	timeHud TextElement
 	player  Player
-	lamp    Lamp
 
 	inclines []Incline
 	rivers   []River
@@ -29,11 +28,10 @@ type Game struct {
 }
 
 func NewGame() Game {
-	startTime := 5
+	startTime := 0
 
 	g := Game{
 		player:   NewPlayer(),
-		lamp:     NewLamp(),
 		view:     NewViewport(),
 		renderer: NewRenderer(),
 		time:     Time(TPGM * 60 * startTime),
@@ -121,9 +119,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 		mapElements = append(mapElements, DepthAwareDrawable(river))
 	}
 
-	lights := []Lightable{
-		g.lamp,
-	}
+	lights := []Lightable{}
 
 	hudElements := []Drawable{
 		g.timeHud,
