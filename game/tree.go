@@ -1,10 +1,11 @@
 package game
 
 import (
+	"bytes"
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
 var (
@@ -13,10 +14,12 @@ var (
 
 func init() {
 	var err error
-	treeImage, _, err = ebitenutil.NewImageFromFile("assets/tree.png")
+	treeDecoded, _, err := image.Decode(bytes.NewReader(assets.TreePng))
 	if err != nil {
 		panic(err)
 	}
+
+	treeImage = ebiten.NewImageFromImage(treeDecoded)
 }
 
 type Tree struct {

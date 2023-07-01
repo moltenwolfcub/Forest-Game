@@ -1,10 +1,13 @@
 package game
 
 import (
+	"bytes"
+	_ "embed"
 	"image"
+	_ "image/png"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
 var (
@@ -17,10 +20,12 @@ const (
 
 func init() {
 	var err error
-	playerImage, _, err = ebitenutil.NewImageFromFile("assets/player.png")
+	playerDecoded, _, err := image.Decode(bytes.NewReader(assets.PlayerPng))
 	if err != nil {
 		panic(err)
 	}
+
+	playerImage = ebiten.NewImageFromImage(playerDecoded)
 }
 
 type Player struct {
