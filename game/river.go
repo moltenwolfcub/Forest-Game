@@ -32,6 +32,7 @@ func (r River) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
 	screen.DrawImage(img, &options)
+	img.Dispose()
 }
 
 func (r River) GetZ() int {
