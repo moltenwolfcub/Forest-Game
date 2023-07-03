@@ -28,7 +28,7 @@ type Game struct {
 }
 
 func NewGame() Game {
-	startTime := 0
+	startTime := 10
 
 	g := Game{
 		player:   NewPlayer(),
