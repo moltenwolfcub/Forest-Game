@@ -17,8 +17,16 @@ type Incline struct {
 	Collision image.Rectangle
 }
 
-func (i Incline) Hitbox(GameContext) image.Rectangle {
-	return i.Collision
+func (i Incline) Overlaps(layer GameContext, other HasHitbox) bool {
+	return DefaultHitboxOverlaps(layer, i, other)
+}
+func (i Incline) Origin(GameContext) image.Point {
+	return i.Collision.Min
+}
+func (i Incline) GetHitbox(layer GameContext) []image.Rectangle {
+	return []image.Rectangle{
+		i.Collision,
+	}
 }
 
 func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {

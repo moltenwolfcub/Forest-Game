@@ -36,8 +36,16 @@ type TextElement struct {
 	Pos      image.Point
 }
 
-func (t TextElement) Hitbox(GameContext) image.Rectangle {
-	return text.BoundString(fontFace, t.Contents).Add(t.Pos)
+func (t TextElement) Overlaps(layer GameContext, other HasHitbox) bool {
+	return DefaultHitboxOverlaps(layer, t, other)
+}
+func (t TextElement) Origin(GameContext) image.Point {
+	return t.Pos
+}
+func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
+	return []image.Rectangle{
+		text.BoundString(fontFace, t.Contents).Add(t.Pos),
+	}
 }
 
 func (t TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {

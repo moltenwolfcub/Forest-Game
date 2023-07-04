@@ -54,18 +54,28 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) Hitbox(layer GameContext) image.Rectangle {
+func (p Player) Overlaps(layer GameContext, other HasHitbox) bool {
+	return DefaultHitboxOverlaps(layer, p, other)
+}
+func (p Player) Origin(GameContext) image.Point {
+	return p.Rect.Min
+}
+func (p Player) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
 	case Collision:
 		baseSize := p.Rect.Size().Y / 2
 
-		rect := image.Rectangle{
+		playerRect := image.Rectangle{
 			Min: p.Rect.Max.Sub(image.Point{p.Rect.Dx(), baseSize}),
 			Max: p.Rect.Max,
 		}
-		return rect
+		return []image.Rectangle{
+			playerRect,
+		}
 	default:
-		return p.Rect
+		return []image.Rectangle{
+			p.Rect,
+		}
 	}
 }
 
@@ -85,10 +95,9 @@ func (p *Player) Update(collidables []HasHitbox, climbables []Climbable, rivers 
 func (p *Player) handleInteractions(interactables []HasHitbox) {
 	if p.RiverJumping {
 		var objectToJump HasHitbox = nil
-		playerHitbox := p.Hitbox(Collision)
 
 		for _, c := range interactables {
-			if playerHitbox.Overlaps(c.Hitbox(Interaction)) {
+			if p.Overlaps(Interaction, c) {
 				objectToJump = c
 				break
 			}
@@ -96,25 +105,11 @@ func (p *Player) handleInteractions(interactables []HasHitbox) {
 		if objectToJump == nil {
 			return
 		}
-		objectHitbox := objectToJump.Hitbox(Collision)
 
-		newPos := image.Point{}
+		//for now jump to top corner will need to properly re-implement at some point
+		newPos := objectToJump.Origin(Collision).Sub(image.Point{p.Rect.Dx(), p.Rect.Dy()})
 
-		if playerHitbox.Max.Y <= objectHitbox.Min.Y {
-			newPos.X = playerHitbox.Min.X
-			newPos.Y = objectHitbox.Max.Y
-		} else if playerHitbox.Min.Y >= objectHitbox.Max.Y {
-			newPos.X = playerHitbox.Min.X
-			newPos.Y = objectHitbox.Min.Y - playerHitbox.Dy()
-		} else if playerHitbox.Max.X <= objectHitbox.Min.X {
-			newPos.X = objectHitbox.Max.X
-			newPos.Y = playerHitbox.Min.Y
-		} else if playerHitbox.Min.X >= objectHitbox.Max.X {
-			newPos.X = objectHitbox.Min.X - playerHitbox.Dx()
-			newPos.Y = playerHitbox.Min.Y
-		}
-
-		p.Rect = p.Rect.Sub(playerHitbox.Min).Add(newPos)
+		p.Rect = p.Rect.Sub(p.Rect.Min).Add(newPos)
 	}
 }
 
@@ -140,10 +135,8 @@ func (p *Player) tryClimb(currentClimable Climbable) {
 }
 
 func (p Player) findCurrentClimable(climbables []Climbable) (found Climbable) {
-	rect := p.Hitbox(Collision)
-
 	for _, c := range climbables {
-		if rect.Overlaps(c.Hitbox(Collision)) {
+		if c.Overlaps(Collision, p) {
 			found = c
 			break
 		}
@@ -188,7 +181,7 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 
 func (p *Player) fixCollisions(collidables []HasHitbox, direction image.Point) {
 	for _, c := range collidables {
-		if c.Hitbox(Collision).Overlaps(p.Hitbox(Collision)) {
+		if c.Overlaps(Collision, p) {
 			p.Rect = p.Rect.Sub(direction)
 			break
 		}

@@ -11,16 +11,26 @@ type River struct {
 	Collision image.Rectangle
 }
 
-func (r River) Hitbox(layer GameContext) image.Rectangle {
+func (r River) Overlaps(layer GameContext, other HasHitbox) bool {
+	return DefaultHitboxOverlaps(layer, r, other)
+}
+func (r River) Origin(GameContext) image.Point {
+	return r.Collision.Min
+}
+func (r River) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
 	case Interaction:
-		rect := image.Rectangle{
+		riverRect := image.Rectangle{
 			Min: r.Collision.Min.Sub(image.Point{20, 20}),
 			Max: r.Collision.Max.Add(image.Point{20, 20}),
 		}
-		return rect
+		return []image.Rectangle{
+			riverRect,
+		}
 	default:
-		return r.Collision
+		return []image.Rectangle{
+			r.Collision,
+		}
 	}
 }
 

@@ -16,7 +16,23 @@ const (
 )
 
 type HasHitbox interface {
-	Hitbox(GameContext) image.Rectangle
+	// Most objects run a direct call to DefaultHitboxOverlaps.
+	// This is basically here incase of non-rectangle hitboxes
+	// like circles
+	Overlaps(GameContext, HasHitbox) bool
+	Origin(GameContext) image.Point
+	GetHitbox(GameContext) []image.Rectangle
+}
+
+func DefaultHitboxOverlaps(layer GameContext, mine HasHitbox, other HasHitbox) bool {
+	for _, otherSub := range other.GetHitbox(layer) {
+		for _, mySub := range mine.GetHitbox(layer) {
+			if otherSub.Overlaps(mySub) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 type Drawable interface {
@@ -50,30 +66,38 @@ func NewViewport() Viewport {
 	}}
 }
 
-func (v Viewport) objectInViewport(object image.Rectangle) bool {
-	return v.Rect.Overlaps(object)
+func (v Viewport) Overlaps(layer GameContext, other HasHitbox) bool {
+	return DefaultHitboxOverlaps(layer, v, other)
+}
+func (v Viewport) Origin(layer GameContext) image.Point {
+	return v.Rect.Min
+}
+func (v Viewport) GetHitbox(layer GameContext) []image.Rectangle {
+	return []image.Rectangle{
+		v.Rect,
+	}
+}
+
+func (v Viewport) objectInViewport(object HasHitbox, context GameContext) bool {
+	return object.Overlaps(context, v)
 }
 
 func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
-	mapPos := drawable.Hitbox(Render)
-
-	if v.objectInViewport(mapPos) {
-		offsetPos := mapPos.Min.Sub(v.Rect.Min)
+	if v.objectInViewport(drawable, Render) {
+		offsetPos := drawable.Origin(Render).Sub(v.Rect.Min)
 		drawable.DrawAt(mapLayer, offsetPos)
 	}
 
 }
 func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightable) {
-	mapPos := lightable.Hitbox(Lighting)
-
-	if v.objectInViewport(mapPos) {
-		offsetPos := mapPos.Min.Sub(v.Rect.Min)
+	if v.objectInViewport(lightable, Lighting) {
+		offsetPos := lightable.Origin(Lighting).Sub(v.Rect.Min)
 		lightable.DrawLighting(lightingLayer, offsetPos)
 	}
 }
 
 func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
-	drawable.DrawAt(hudLayer, drawable.Hitbox(Render).Min)
+	drawable.DrawAt(hudLayer, drawable.Origin(Render))
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
