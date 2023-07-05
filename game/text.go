@@ -32,15 +32,30 @@ func init() {
 }
 
 type TextElement struct {
-	Contents string
-	Pos      image.Point
+	Contents     string
+	pos          image.Point
+	cachedBounds image.Rectangle
 }
 
-func (t TextElement) Hitbox(GameContext) image.Rectangle {
-	return text.BoundString(fontFace, t.Contents).Add(t.Pos)
+func (t TextElement) Overlaps(layer GameContext, other HasHitbox) bool {
+	return DefaultHitboxOverlaps(layer, t, other)
+}
+func (t TextElement) Origin(GameContext) image.Point {
+	return t.pos
+}
+func (t TextElement) Size(GameContext) image.Point {
+	return t.cachedBounds.Size()
+}
+func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
+	return []image.Rectangle{
+		t.cachedBounds.Add(t.pos),
+	}
 }
 
 func (t TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
-	bounds := text.BoundString(fontFace, t.Contents)
-	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y+(2*bounds.Dy()), color.Black)
+	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y+(t.cachedBounds.Dy()), color.Black)
+}
+
+func (t *TextElement) Update() {
+	t.cachedBounds = text.BoundString(fontFace, t.Contents)
 }

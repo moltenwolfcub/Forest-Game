@@ -41,14 +41,16 @@ func NewGame() Game {
 			// NewTree(),
 		},
 		inclines: []Incline{
-			NewBasicTerrainElement[Incline](0, 0, 1024, 256),
-			NewBasicTerrainElement[Incline](1024, -128, 448, 256),
-			NewBasicTerrainElement[Incline](1472, -256, 320, 256),
+			{NewBasicTerrainElement(0, 0, 1024, 256)},
+			{NewBasicTerrainElement(1024, -128, 448, 256)},
+			{NewBasicTerrainElement(1472, -256, 320, 256)},
 		},
 		rivers: []River{
-			NewBasicTerrainElement[River](0, 448, 1024, 256),
-			NewBasicTerrainElement[River](768, 576, 768, 256),
-			NewBasicTerrainElement[River](1280, 768, 448, 256),
+			{hitbox: []image.Rectangle{
+				NewBasicTerrainElement(0, 448, 1024, 256),
+				NewBasicTerrainElement(768, 576, 768, 256),
+				NewBasicTerrainElement(1280, 768, 448, 256),
+			}},
 		},
 	}
 	g.timeHud = TextElement{
@@ -56,12 +58,11 @@ func NewGame() Game {
 	}
 	return g
 }
-func NewBasicTerrainElement[T River | Incline](x int, y int, dx int, dy int) (returnVal T) {
-	rect := image.Rectangle{
+func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
+	returnVal = image.Rectangle{
 		image.Point{x, y},
 		image.Point{x + dx, y + dy},
 	}
-	returnVal = T{Collision: rect}
 	return
 }
 
@@ -86,6 +87,7 @@ func (g *Game) Update() error {
 
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
+	g.timeHud.Update()
 	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
