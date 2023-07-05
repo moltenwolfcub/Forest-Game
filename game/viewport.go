@@ -19,14 +19,14 @@ type HasHitbox interface {
 	// Most objects run a direct call to DefaultHitboxOverlaps.
 	// This is basically here incase of non-rectangle hitboxes
 	// like circles
-	Overlaps(GameContext, HasHitbox) bool
+	Overlaps(GameContext, []image.Rectangle) bool
 	Origin(GameContext) image.Point
 	Size(GameContext) image.Point
 	GetHitbox(GameContext) []image.Rectangle
 }
 
-func DefaultHitboxOverlaps(layer GameContext, mine HasHitbox, other HasHitbox) bool {
-	for _, otherSub := range other.GetHitbox(layer) {
+func DefaultHitboxOverlaps(layer GameContext, mine HasHitbox, other []image.Rectangle) bool {
+	for _, otherSub := range other {
 		for _, mySub := range mine.GetHitbox(layer) {
 			if otherSub.Overlaps(mySub) {
 				return true
@@ -67,7 +67,7 @@ func NewViewport() Viewport {
 	}}
 }
 
-func (v Viewport) Overlaps(layer GameContext, other HasHitbox) bool {
+func (v Viewport) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, v, other)
 }
 func (v Viewport) Origin(layer GameContext) image.Point {
@@ -83,7 +83,7 @@ func (v Viewport) GetHitbox(layer GameContext) []image.Rectangle {
 }
 
 func (v Viewport) objectInViewport(object HasHitbox, context GameContext) bool {
-	return object.Overlaps(context, v)
+	return object.Overlaps(context, v.GetHitbox(context))
 }
 
 func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {

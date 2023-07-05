@@ -23,7 +23,7 @@ func NewLamp() Lamp {
 	return lamp
 }
 
-func (l Lamp) Overlaps(layer GameContext, other HasHitbox) bool {
+func (l Lamp) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, l, other)
 }
 func (l Lamp) Origin(GameContext) image.Point {
