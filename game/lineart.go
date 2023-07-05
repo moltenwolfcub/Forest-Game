@@ -3,6 +3,7 @@ package game
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -37,6 +38,37 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 		thisSeg.Min.X, thisSeg.Min.Y-(lineartW/2), thisSeg.Max.X, thisSeg.Min.Y)}) {
 
 		img.DrawImage(fullHorizontal, nil) //top
+	} else {
+		var start float64 = float64(thisSeg.Min.X)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min)) {
+				continue
+			}
+			if seg.Max.X < thisSeg.Max.X {
+				start = math.Max(start, float64(seg.Max.X))
+			}
+		}
+		var end float64 = float64(thisSeg.Max.X)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min)) {
+				continue
+			}
+			if seg.Min.X > thisSeg.Min.X {
+				end = math.Min(end, float64(seg.Min.X))
+			}
+		}
+		diff := int(end - start)
+		if diff >= lineartW {
+			partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
+			partialHorizontal.Fill(lineartC)
+
+			lineartOptions.GeoM.Reset()
+			lineartOptions.GeoM.Translate(start-float64(thisSeg.Min.X), 0)
+
+			img.DrawImage(partialHorizontal, &lineartOptions)
+
+			partialHorizontal.Dispose()
+		}
 	}
 
 	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
@@ -45,12 +77,75 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 		lineartOptions.GeoM.Reset()
 		lineartOptions.GeoM.Translate(0, float64(img.Bounds().Dy()-lineartW))
 		img.DrawImage(fullHorizontal, &lineartOptions) //bottom
+	} else {
+		var start float64 = float64(thisSeg.Min.X)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min.Add(image.Pt(0, img.Bounds().Dy()-lineartW)))) {
+				continue
+			}
+			if seg.Max.X < thisSeg.Max.X {
+				start = math.Max(start, float64(seg.Max.X))
+			}
+		}
+		var end float64 = float64(thisSeg.Max.X)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min.Add(image.Pt(0, img.Bounds().Dy()-lineartW)))) {
+				continue
+			}
+			if seg.Min.X > thisSeg.Min.X {
+				end = math.Min(end, float64(seg.Min.X))
+			}
+		}
+		diff := int(end - start)
+		if diff >= lineartW {
+			partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
+			partialHorizontal.Fill(lineartC)
+
+			lineartOptions.GeoM.Reset()
+			lineartOptions.GeoM.Translate(0, float64(img.Bounds().Dy()-lineartW))
+			lineartOptions.GeoM.Translate(start-float64(thisSeg.Min.X), 0)
+
+			img.DrawImage(partialHorizontal, &lineartOptions)
+
+			partialHorizontal.Dispose()
+		}
 	}
 
 	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
 		thisSeg.Min.X-(lineartW/2), thisSeg.Min.Y, thisSeg.Min.X, thisSeg.Max.Y)}) {
 
 		img.DrawImage(fullVertical, nil) //left
+	} else {
+		var start float64 = float64(thisSeg.Min.Y)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min)) {
+				continue
+			}
+			if seg.Max.Y < thisSeg.Max.Y {
+				start = math.Max(start, float64(seg.Max.Y))
+			}
+		}
+		var end float64 = float64(thisSeg.Max.Y)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min)) {
+				continue
+			}
+			if seg.Min.Y > thisSeg.Min.Y {
+				end = math.Min(end, float64(seg.Min.Y))
+			}
+		}
+		diff := int(end - start)
+		if diff >= lineartW {
+			partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
+			partialVertical.Fill(lineartC)
+
+			lineartOptions.GeoM.Reset()
+			lineartOptions.GeoM.Translate(0, start-float64(thisSeg.Min.Y))
+
+			img.DrawImage(partialVertical, &lineartOptions)
+
+			partialVertical.Dispose()
+		}
 	}
 
 	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
@@ -59,7 +154,41 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 		lineartOptions.GeoM.Reset()
 		lineartOptions.GeoM.Translate(float64(img.Bounds().Dx()-lineartW), 0)
 		img.DrawImage(fullVertical, &lineartOptions) //right
+	} else {
+		var start float64 = float64(thisSeg.Min.Y)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min.Add(image.Pt(img.Bounds().Dx()-lineartW, 0)))) {
+				continue
+			}
+			if seg.Max.Y < thisSeg.Max.Y {
+				start = math.Max(start, float64(seg.Max.Y))
+			}
+		}
+		var end float64 = float64(thisSeg.Max.Y)
+		for _, seg := range fullObj.GetHitbox(Render) {
+			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min.Add(image.Pt(img.Bounds().Dx()-lineartW, 0)))) {
+				continue
+			}
+			if seg.Min.Y > thisSeg.Min.Y {
+				end = math.Min(end, float64(seg.Min.Y))
+			}
+		}
+		diff := int(end - start)
+		if diff >= lineartW {
+			partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
+			partialVertical.Fill(lineartC)
+
+			lineartOptions.GeoM.Reset()
+			lineartOptions.GeoM.Translate(0, start-float64(thisSeg.Min.Y))
+			lineartOptions.GeoM.Translate(float64(img.Bounds().Dx()-lineartW), 0)
+
+			img.DrawImage(partialVertical, &lineartOptions)
+
+			partialVertical.Dispose()
+		}
 	}
 
 	return img, &imgOffset
 }
+
+//this function needs a serious refactor it's long and repetitive
