@@ -46,9 +46,11 @@ func NewGame() Game {
 			{hitbox: image.Rect(1472, -256, 1792, 0)},
 		},
 		rivers: []River{
-			{hitbox: image.Rect(0, 448, 1024, 704)},
-			{hitbox: image.Rect(768, 576, 1536, 832)},
-			{hitbox: image.Rect(1280, 768, 1728, 1024)},
+			{hitbox: []image.Rectangle{
+				image.Rect(0, 448, 1024, 704),
+				image.Rect(768, 576, 1536, 832),
+				image.Rect(1280, 768, 1728, 1024),
+			}},
 		},
 	}
 	g.timeHud = TextElement{

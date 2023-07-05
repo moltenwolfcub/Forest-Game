@@ -3,48 +3,70 @@ package game
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
 type River struct {
-	hitbox image.Rectangle
+	hitbox []image.Rectangle
 }
 
 func (r River) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, r, other)
 }
-func (r River) Origin(GameContext) image.Point {
-	return r.hitbox.Min
+func (r River) Origin(layer GameContext) image.Point {
+	bounds := r.findBounds(layer)
+	return bounds.Min
 }
-func (r River) Size(GameContext) image.Point {
-	return r.hitbox.Size()
+func (r River) Size(layer GameContext) image.Point {
+	bounds := r.findBounds(layer)
+	return bounds.Size()
 }
 func (r River) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
 	case Interaction:
-		riverRect := image.Rectangle{
-			Min: r.hitbox.Min.Sub(image.Point{20, 20}),
-			Max: r.hitbox.Max.Add(image.Point{20, 20}),
+		scaledRects := []image.Rectangle{}
+		for _, rect := range r.hitbox {
+			riverRect := image.Rectangle{
+				Min: rect.Min.Sub(image.Point{20, 20}),
+				Max: rect.Max.Add(image.Point{20, 20}),
+			}
+			scaledRects = append(scaledRects, riverRect)
 		}
-		return []image.Rectangle{
-			riverRect,
-		}
+		return scaledRects
 	default:
-		return []image.Rectangle{
-			r.hitbox,
-		}
+		return r.hitbox
 	}
 }
 
+func (r River) findBounds(layer GameContext) image.Rectangle {
+	minX, minY := math.MaxFloat64, math.MaxFloat64
+	maxX, maxY := -math.MaxFloat64, -math.MaxFloat64
+	for _, seg := range r.GetHitbox(layer) {
+		minX = math.Min(float64(seg.Min.X), minX)
+		minY = math.Min(float64(seg.Min.Y), minY)
+		maxX = math.Max(float64(seg.Max.X), maxX)
+		maxY = math.Max(float64(seg.Max.Y), maxY)
+	}
+	bounds := image.Rect(int(minX), int(minY), int(maxX), int(maxY))
+	return bounds
+}
+
 func (r River) DrawAt(screen *ebiten.Image, pos image.Point) {
-	img := ebiten.NewImage(r.hitbox.Dx(), r.hitbox.Dy())
-	img.Fill(color.RGBA{72, 122, 173, 255})
+	for _, rect := range r.GetHitbox(Render) {
+		rectImg := ebiten.NewImage(rect.Dx(), rect.Dy())
+		rectImg.Fill(color.RGBA{72, 122, 173, 255})
 
-	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
+		ops := ebiten.DrawImageOptions{}
+		ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
+		ops.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
+		origin := r.Origin(Render)
+		ops.GeoM.Translate(-float64(origin.X), -float64(origin.Y))
+		screen.DrawImage(rectImg, &ops)
 
-	screen.DrawImage(img, &options)
+		rectImg.Dispose()
+	}
 }
 
 func (r River) GetZ() int {
