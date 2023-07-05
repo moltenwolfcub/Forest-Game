@@ -78,6 +78,7 @@ func (g *Game) Update() error {
 
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
+	g.timeHud.Update()
 	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)

@@ -41,6 +41,9 @@ func (t Tree) Overlaps(layer GameContext, other HasHitbox) bool {
 func (t Tree) Origin(GameContext) image.Point {
 	return t.Hitbox.Min
 }
+func (t Tree) Size(GameContext) image.Point {
+	return t.Hitbox.Size()
+}
 func (t Tree) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
 		t.Hitbox,

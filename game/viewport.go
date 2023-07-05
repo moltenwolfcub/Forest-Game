@@ -21,6 +21,7 @@ type HasHitbox interface {
 	// like circles
 	Overlaps(GameContext, HasHitbox) bool
 	Origin(GameContext) image.Point
+	Size(GameContext) image.Point
 	GetHitbox(GameContext) []image.Rectangle
 }
 
@@ -72,6 +73,9 @@ func (v Viewport) Overlaps(layer GameContext, other HasHitbox) bool {
 func (v Viewport) Origin(layer GameContext) image.Point {
 	return v.Rect.Min
 }
+func (v Viewport) Size(layer GameContext) image.Point {
+	return v.Rect.Size()
+}
 func (v Viewport) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
 		v.Rect,
@@ -101,8 +105,8 @@ func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
-	v.Rect = v.Rect.Sub(v.Rect.Min).Add(image.Point{
-		player.Hitbox.Min.X + player.Hitbox.Dx()/2 - v.Rect.Dx()/2,
-		player.Hitbox.Min.Y + player.Hitbox.Dy()/2 - v.Rect.Dy()/2,
+	v.Rect = v.Rect.Sub(v.Origin(Render)).Add(image.Point{
+		player.Origin(Render).X + player.Size(Render).X/2 - v.Size(Render).X/2,
+		player.Origin(Render).Y + player.Size(Render).Y/2 - v.Size(Render).Y/2,
 	})
 }

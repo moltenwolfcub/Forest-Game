@@ -60,6 +60,9 @@ func (p Player) Overlaps(layer GameContext, other HasHitbox) bool {
 func (p Player) Origin(GameContext) image.Point {
 	return p.Hitbox.Min
 }
+func (p Player) Size(GameContext) image.Point {
+	return p.Hitbox.Size()
+}
 func (p Player) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
 	case Collision:

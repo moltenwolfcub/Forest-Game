@@ -29,6 +29,9 @@ func (l Lamp) Overlaps(layer GameContext, other HasHitbox) bool {
 func (l Lamp) Origin(GameContext) image.Point {
 	return l.Hitbox.Min
 }
+func (l Lamp) Size(GameContext) image.Point {
+	return l.Hitbox.Size()
+}
 func (l Lamp) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
 		l.Hitbox,

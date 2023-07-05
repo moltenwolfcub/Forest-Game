@@ -23,6 +23,9 @@ func (i Incline) Overlaps(layer GameContext, other HasHitbox) bool {
 func (i Incline) Origin(GameContext) image.Point {
 	return i.Hitbox.Min
 }
+func (i Incline) Size(GameContext) image.Point {
+	return i.Hitbox.Size()
+}
 func (i Incline) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
 		i.Hitbox,

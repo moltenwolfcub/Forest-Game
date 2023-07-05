@@ -17,6 +17,9 @@ func (r River) Overlaps(layer GameContext, other HasHitbox) bool {
 func (r River) Origin(GameContext) image.Point {
 	return r.Hitbox.Min
 }
+func (r River) Size(GameContext) image.Point {
+	return r.Hitbox.Size()
+}
 func (r River) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
 	case Interaction:
