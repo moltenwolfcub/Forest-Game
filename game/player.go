@@ -30,7 +30,7 @@ func init() {
 
 type Player struct {
 	Delta            image.Point
-	Rect             image.Rectangle
+	Hitbox           image.Rectangle
 	Climbing         bool
 	RiverJumping     bool
 	currentMoveSpeed float64
@@ -39,7 +39,7 @@ type Player struct {
 func NewPlayer() Player {
 	width, height := playerImage.Bounds().Size().X, playerImage.Bounds().Size().Y
 	return Player{
-		Rect: image.Rectangle{
+		Hitbox: image.Rectangle{
 			Min: image.Point{-100, -100},
 			Max: image.Point{width - 100, height - 100},
 		},
@@ -58,23 +58,23 @@ func (p Player) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, p, other)
 }
 func (p Player) Origin(GameContext) image.Point {
-	return p.Rect.Min
+	return p.Hitbox.Min
 }
 func (p Player) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
 	case Collision:
-		baseSize := p.Rect.Size().Y / 2
+		baseSize := p.Hitbox.Size().Y / 2
 
 		playerRect := image.Rectangle{
-			Min: p.Rect.Max.Sub(image.Point{p.Rect.Dx(), baseSize}),
-			Max: p.Rect.Max,
+			Min: p.Hitbox.Max.Sub(image.Point{p.Hitbox.Dx(), baseSize}),
+			Max: p.Hitbox.Max,
 		}
 		return []image.Rectangle{
 			playerRect,
 		}
 	default:
 		return []image.Rectangle{
-			p.Rect,
+			p.Hitbox,
 		}
 	}
 }
@@ -107,9 +107,9 @@ func (p *Player) handleInteractions(interactables []HasHitbox) {
 		}
 
 		//for now jump to top corner will need to properly re-implement at some point
-		newPos := objectToJump.Origin(Collision).Sub(image.Point{p.Rect.Dx(), p.Rect.Dy()})
+		newPos := objectToJump.Origin(Collision).Sub(image.Point{p.Hitbox.Dx(), p.Hitbox.Dy()})
 
-		p.Rect = p.Rect.Sub(p.Rect.Min).Add(newPos)
+		p.Hitbox = p.Hitbox.Sub(p.Hitbox.Min).Add(newPos)
 	}
 }
 
@@ -123,11 +123,11 @@ func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64
 func (p *Player) tryClimb(currentClimable Climbable) {
 	if currentClimable != nil {
 		if p.Climbing {
-			p.Rect = p.Rect.Sub(image.Point{
+			p.Hitbox = p.Hitbox.Sub(image.Point{
 				Y: int(p.currentMoveSpeed),
 			})
 		} else {
-			p.Rect = p.Rect.Add(image.Point{
+			p.Hitbox = p.Hitbox.Add(image.Point{
 				Y: int(p.currentMoveSpeed),
 			})
 		}
@@ -157,7 +157,7 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 
 	for i := 0; i < steps; i++ {
 
-		p.Rect = p.Rect.Add(x)
+		p.Hitbox = p.Hitbox.Add(x)
 		if climbingPreMove {
 			p.fixCollisions(collidables, x)
 		}
@@ -166,7 +166,7 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 			//if currently climbing or decending Y-input should be ignored
 			continue
 		}
-		p.Rect = p.Rect.Add(y)
+		p.Hitbox = p.Hitbox.Add(y)
 		if p.Climbing && p.findCurrentClimable(climbables) != nil && y.Y <= 0 {
 			//if hitting the bottom of a climbable while trying to climb don't fix collisions
 			continue
@@ -182,7 +182,7 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 func (p *Player) fixCollisions(collidables []HasHitbox, direction image.Point) {
 	for _, c := range collidables {
 		if c.Overlaps(Collision, p) {
-			p.Rect = p.Rect.Sub(direction)
+			p.Hitbox = p.Hitbox.Sub(direction)
 			break
 		}
 	}

@@ -102,7 +102,7 @@ func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
 
 func (v *Viewport) UpdatePosition(player Player) {
 	v.Rect = v.Rect.Sub(v.Rect.Min).Add(image.Point{
-		player.Rect.Min.X + player.Rect.Dx()/2 - v.Rect.Dx()/2,
-		player.Rect.Min.Y + player.Rect.Dy()/2 - v.Rect.Dy()/2,
+		player.Hitbox.Min.X + player.Hitbox.Dx()/2 - v.Rect.Dx()/2,
+		player.Hitbox.Min.Y + player.Hitbox.Dy()/2 - v.Rect.Dy()/2,
 	})
 }

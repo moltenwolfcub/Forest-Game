@@ -9,17 +9,17 @@ import (
 )
 
 type Lamp struct {
-	Rect image.Rectangle
+	Hitbox image.Rectangle
 }
 
 func NewLamp() Lamp {
 	radius := 100
 	lamp := Lamp{
-		Rect: image.Rectangle{
+		Hitbox: image.Rectangle{
 			Max: image.Point{radius * 2, radius * 2},
 		},
 	}
-	lamp.Rect = lamp.Rect.Add(image.Point{1280, 256})
+	lamp.Hitbox = lamp.Hitbox.Add(image.Point{1280, 256})
 	return lamp
 }
 
@@ -27,11 +27,11 @@ func (l Lamp) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, l, other)
 }
 func (l Lamp) Origin(GameContext) image.Point {
-	return l.Rect.Min
+	return l.Hitbox.Min
 }
 func (l Lamp) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
-		l.Rect,
+		l.Hitbox,
 	}
 }
 

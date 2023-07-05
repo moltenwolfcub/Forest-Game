@@ -23,13 +23,13 @@ func init() {
 }
 
 type Tree struct {
-	Rect image.Rectangle
+	Hitbox image.Rectangle
 }
 
 func NewTree() Tree {
 	width, height := treeImage.Bounds().Size().X, treeImage.Bounds().Size().Y
 	return Tree{
-		Rect: image.Rectangle{
+		Hitbox: image.Rectangle{
 			Max: image.Point{width, height},
 		},
 	}
@@ -39,11 +39,11 @@ func (t Tree) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, t, other)
 }
 func (t Tree) Origin(GameContext) image.Point {
-	return t.Rect.Min
+	return t.Hitbox.Min
 }
 func (t Tree) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
-		t.Rect,
+		t.Hitbox,
 	}
 }
 
