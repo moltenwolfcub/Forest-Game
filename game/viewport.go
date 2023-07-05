@@ -55,11 +55,11 @@ type Lightable interface {
 }
 
 type Viewport struct {
-	Rect image.Rectangle
+	rect image.Rectangle
 }
 
 func NewViewport() Viewport {
-	return Viewport{Rect: image.Rectangle{
+	return Viewport{rect: image.Rectangle{
 		Max: image.Point{
 			X: WindowWidth,
 			Y: WindowHeight,
@@ -71,14 +71,14 @@ func (v Viewport) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, v, other)
 }
 func (v Viewport) Origin(layer GameContext) image.Point {
-	return v.Rect.Min
+	return v.rect.Min
 }
 func (v Viewport) Size(layer GameContext) image.Point {
-	return v.Rect.Size()
+	return v.rect.Size()
 }
 func (v Viewport) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
-		v.Rect,
+		v.rect,
 	}
 }
 
@@ -88,14 +88,14 @@ func (v Viewport) objectInViewport(object HasHitbox, context GameContext) bool {
 
 func (v Viewport) DrawToMap(mapLayer *ebiten.Image, drawable Drawable) {
 	if v.objectInViewport(drawable, Render) {
-		offsetPos := drawable.Origin(Render).Sub(v.Rect.Min)
+		offsetPos := drawable.Origin(Render).Sub(v.rect.Min)
 		drawable.DrawAt(mapLayer, offsetPos)
 	}
 
 }
 func (v Viewport) DrawToLighting(lightingLayer *ebiten.Image, lightable Lightable) {
 	if v.objectInViewport(lightable, Lighting) {
-		offsetPos := lightable.Origin(Lighting).Sub(v.Rect.Min)
+		offsetPos := lightable.Origin(Lighting).Sub(v.rect.Min)
 		lightable.DrawLighting(lightingLayer, offsetPos)
 	}
 }
@@ -105,7 +105,7 @@ func (v Viewport) DrawToHUD(hudLayer *ebiten.Image, drawable Drawable) {
 }
 
 func (v *Viewport) UpdatePosition(player Player) {
-	v.Rect = v.Rect.Sub(v.Origin(Render)).Add(image.Point{
+	v.rect = v.rect.Sub(v.Origin(Render)).Add(image.Point{
 		player.Origin(Render).X + player.Size(Render).X/2 - v.Size(Render).X/2,
 		player.Origin(Render).Y + player.Size(Render).Y/2 - v.Size(Render).Y/2,
 	})

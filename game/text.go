@@ -33,7 +33,7 @@ func init() {
 
 type TextElement struct {
 	Contents     string
-	Pos          image.Point
+	pos          image.Point
 	cachedBounds image.Rectangle
 }
 
@@ -41,14 +41,14 @@ func (t TextElement) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, t, other)
 }
 func (t TextElement) Origin(GameContext) image.Point {
-	return t.Pos
+	return t.pos
 }
 func (t TextElement) Size(GameContext) image.Point {
 	return t.cachedBounds.Size()
 }
 func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
-		t.cachedBounds.Add(t.Pos),
+		t.cachedBounds.Add(t.pos),
 	}
 }
 

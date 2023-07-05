@@ -14,26 +14,26 @@ type Climbable interface {
 }
 
 type Incline struct {
-	Hitbox image.Rectangle
+	hitbox image.Rectangle
 }
 
 func (i Incline) Overlaps(layer GameContext, other HasHitbox) bool {
 	return DefaultHitboxOverlaps(layer, i, other)
 }
 func (i Incline) Origin(GameContext) image.Point {
-	return i.Hitbox.Min
+	return i.hitbox.Min
 }
 func (i Incline) Size(GameContext) image.Point {
-	return i.Hitbox.Size()
+	return i.hitbox.Size()
 }
 func (i Incline) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
-		i.Hitbox,
+		i.hitbox,
 	}
 }
 
 func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
-	img := ebiten.NewImage(i.Hitbox.Dx(), i.Hitbox.Dy())
+	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(color.RGBA{117, 88, 69, 255})
 
 	options := ebiten.DrawImageOptions{}

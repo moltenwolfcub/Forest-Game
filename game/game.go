@@ -41,14 +41,14 @@ func NewGame() Game {
 			// NewTree(),
 		},
 		inclines: []Incline{
-			{Hitbox: image.Rect(0, 0, 1024, 256)},
-			{Hitbox: image.Rect(1024, -128, 1472, 128)},
-			{Hitbox: image.Rect(1472, -256, 1792, 0)},
+			{hitbox: image.Rect(0, 0, 1024, 256)},
+			{hitbox: image.Rect(1024, -128, 1472, 128)},
+			{hitbox: image.Rect(1472, -256, 1792, 0)},
 		},
 		rivers: []River{
-			{Hitbox: image.Rect(0, 448, 1024, 704)},
-			{Hitbox: image.Rect(768, 576, 1536, 832)},
-			{Hitbox: image.Rect(1280, 768, 1728, 1024)},
+			{hitbox: image.Rect(0, 448, 1024, 704)},
+			{hitbox: image.Rect(768, 576, 1536, 832)},
+			{hitbox: image.Rect(1280, 768, 1728, 1024)},
 		},
 	}
 	g.timeHud = TextElement{
