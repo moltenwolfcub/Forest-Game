@@ -36,7 +36,7 @@ func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(color.RGBA{117, 88, 69, 255})
 
-	lineartImg, drawOps := ApplyLineart(img)
+	lineartImg, drawOps := ApplyLineart(img, i, i.hitbox)
 	drawOps.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
 	screen.DrawImage(lineartImg, drawOps)
