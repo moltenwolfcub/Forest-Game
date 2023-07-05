@@ -54,7 +54,7 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	screen.DrawImage(playerImage, &options)
 }
 
-func (p Player) Overlaps(layer GameContext, other HasHitbox) bool {
+func (p Player) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, p, other)
 }
 func (p Player) Origin(GameContext) image.Point {
@@ -100,7 +100,7 @@ func (p *Player) handleInteractions(interactables []HasHitbox) {
 		var objectToJump HasHitbox = nil
 
 		for _, c := range interactables {
-			if p.Overlaps(Interaction, c) {
+			if p.Overlaps(Interaction, c.GetHitbox(Interaction)) {
 				objectToJump = c
 				break
 			}
@@ -139,7 +139,7 @@ func (p *Player) tryClimb(currentClimable Climbable) {
 
 func (p Player) findCurrentClimable(climbables []Climbable) (found Climbable) {
 	for _, c := range climbables {
-		if c.Overlaps(Collision, p) {
+		if c.Overlaps(Collision, p.GetHitbox(Collision)) {
 			found = c
 			break
 		}
@@ -184,7 +184,7 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 
 func (p *Player) fixCollisions(collidables []HasHitbox, direction image.Point) {
 	for _, c := range collidables {
-		if c.Overlaps(Collision, p) {
+		if c.Overlaps(Collision, p.GetHitbox(Collision)) {
 			p.hitbox = p.hitbox.Sub(direction)
 			break
 		}

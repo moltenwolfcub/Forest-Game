@@ -35,7 +35,7 @@ func NewTree() Tree {
 	}
 }
 
-func (t Tree) Overlaps(layer GameContext, other HasHitbox) bool {
+func (t Tree) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, t, other)
 }
 func (t Tree) Origin(GameContext) image.Point {

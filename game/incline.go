@@ -17,7 +17,7 @@ type Incline struct {
 	hitbox image.Rectangle
 }
 
-func (i Incline) Overlaps(layer GameContext, other HasHitbox) bool {
+func (i Incline) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, i, other)
 }
 func (i Incline) Origin(GameContext) image.Point {

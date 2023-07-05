@@ -12,7 +12,7 @@ type River struct {
 	hitbox []image.Rectangle
 }
 
-func (r River) Overlaps(layer GameContext, other HasHitbox) bool {
+func (r River) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, r, other)
 }
 func (r River) Origin(layer GameContext) image.Point {
