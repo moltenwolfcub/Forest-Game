@@ -41,20 +41,29 @@ func NewGame() Game {
 			// NewTree(),
 		},
 		inclines: []Incline{
-			{Collision: image.Rect(0, 0, 1024, 256)},
-			{Collision: image.Rect(1024, -128, 1472, 128)},
-			{Collision: image.Rect(1472, -256, 1792, 0)},
+			{NewBasicTerrainElement(0, 0, 1024, 256)},
+			{NewBasicTerrainElement(1024, -128, 448, 256)},
+			{NewBasicTerrainElement(1472, -256, 320, 256)},
 		},
 		rivers: []River{
-			{Collision: image.Rect(0, 448, 1024, 704)},
-			{Collision: image.Rect(768, 576, 1536, 832)},
-			{Collision: image.Rect(1280, 768, 1728, 1024)},
+			{hitbox: []image.Rectangle{
+				NewBasicTerrainElement(0, 448, 1024, 256),
+				NewBasicTerrainElement(768, 576, 768, 256),
+				NewBasicTerrainElement(1280, 768, 448, 256),
+			}},
 		},
 	}
 	g.timeHud = TextElement{
 		Contents: g.time.String(),
 	}
 	return g
+}
+func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
+	returnVal = image.Rectangle{
+		image.Point{x, y},
+		image.Point{x + dx, y + dy},
+	}
+	return
 }
 
 func (g *Game) Update() error {
@@ -78,6 +87,7 @@ func (g *Game) Update() error {
 
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
+	g.timeHud.Update()
 	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
