@@ -31,96 +31,70 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	img.DrawImage(oldImgSeg, &oldImgOffset)
 
 	//line segments
-	fullHorizontal := ebiten.NewImage(img.Bounds().Dx(), lineartW)
-	fullVertical := ebiten.NewImage(lineartW, img.Bounds().Dy())
-	fullHorizontal.Fill(lineartC)
-	fullVertical.Fill(lineartC)
+	fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
+	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
 
 	//line art
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Min.X, thisSeg.Min.Y-(lineartW/2), thisSeg.Max.X, thisSeg.Min.Y)}) {
+	start := getPointOnBounds(top, startSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal)
+	end := getPointOnBounds(top, endSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal)
+	diff := int(end - start)
+	if diff >= lineartW {
+		partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
+		partialHorizontal.Fill(lineartC)
 
-		img.DrawImage(fullHorizontal, nil) //top
-	} else {
-		start := getPointOnBounds(top, startSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
-		end := getPointOnBounds(top, endSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
-		diff := int(end - start)
-		if diff >= lineartW {
-			partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
-			partialHorizontal.Fill(lineartC)
+		lineartOptions.GeoM.Reset()
+		lineartOptions.GeoM.Translate(start-float64(thisSeg.Min.X), 0)
 
-			lineartOptions.GeoM.Reset()
-			lineartOptions.GeoM.Translate(start-float64(thisSeg.Min.X), 0)
+		img.DrawImage(partialHorizontal, &lineartOptions)
 
-			img.DrawImage(partialHorizontal, &lineartOptions)
-
-			partialHorizontal.Dispose()
-		}
+		partialHorizontal.Dispose()
 	}
 
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Min.X, thisSeg.Max.Y+(lineartW/2), thisSeg.Max.X, thisSeg.Max.Y)}) {
+	start = getPointOnBounds(bottom, startSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal)
+	end = getPointOnBounds(bottom, endSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal)
+	diff = int(end - start)
+	if diff >= lineartW {
+		partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
+		partialHorizontal.Fill(lineartC)
 
 		lineartOptions.GeoM.Reset()
 		lineartOptions.GeoM.Translate(0, float64(img.Bounds().Dy()-lineartW))
-		img.DrawImage(fullHorizontal, &lineartOptions) //bottom
-	} else {
-		start := getPointOnBounds(bottom, startSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
-		end := getPointOnBounds(bottom, endSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
-		diff := int(end - start)
-		if diff >= lineartW {
-			partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
-			partialHorizontal.Fill(lineartC)
+		lineartOptions.GeoM.Translate(start-float64(thisSeg.Min.X), 0)
 
-			lineartOptions.GeoM.Reset()
-			lineartOptions.GeoM.Translate(0, float64(img.Bounds().Dy()-lineartW))
-			lineartOptions.GeoM.Translate(start-float64(thisSeg.Min.X), 0)
+		img.DrawImage(partialHorizontal, &lineartOptions)
 
-			img.DrawImage(partialHorizontal, &lineartOptions)
-
-			partialHorizontal.Dispose()
-		}
+		partialHorizontal.Dispose()
 	}
 
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Min.X-(lineartW/2), thisSeg.Min.Y, thisSeg.Min.X, thisSeg.Max.Y)}) {
-
-		img.DrawImage(fullVertical, nil) //left
-	} else {
-		start := getPointOnBounds(left, startSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
-		end := getPointOnBounds(left, endSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
-		diff := int(end - start)
-		if diff >= lineartW {
-			partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
-			partialVertical.Fill(lineartC)
-
-			lineartOptions.GeoM.Reset()
-			lineartOptions.GeoM.Translate(0, start-float64(thisSeg.Min.Y))
-
-			img.DrawImage(partialVertical, &lineartOptions)
-
-			partialVertical.Dispose()
-		}
-	}
-
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Max.X+(lineartW/2), thisSeg.Min.Y, thisSeg.Max.X, thisSeg.Max.Y)}) {
+	start = getPointOnBounds(left, startSide, thisSeg, fullObj.GetHitbox(Render), fullVertical)
+	end = getPointOnBounds(left, endSide, thisSeg, fullObj.GetHitbox(Render), fullVertical)
+	diff = int(end - start)
+	if diff >= lineartW {
+		partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
+		partialVertical.Fill(lineartC)
 
 		lineartOptions.GeoM.Reset()
+		lineartOptions.GeoM.Translate(0, start-float64(thisSeg.Min.Y))
+
+		img.DrawImage(partialVertical, &lineartOptions)
+
+		partialVertical.Dispose()
+	}
+
+	start = getPointOnBounds(right, startSide, thisSeg, fullObj.GetHitbox(Render), fullVertical)
+	end = getPointOnBounds(right, endSide, thisSeg, fullObj.GetHitbox(Render), fullVertical)
+	diff = int(end - start)
+	if diff >= lineartW {
+		partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
+		partialVertical.Fill(lineartC)
+
+		lineartOptions.GeoM.Reset()
+		lineartOptions.GeoM.Translate(0, start-float64(thisSeg.Min.Y))
 		lineartOptions.GeoM.Translate(float64(img.Bounds().Dx()-lineartW), 0)
-		img.DrawImage(fullVertical, &lineartOptions) //right
-	} else {
-		start := getPointOnBounds(right, startSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
-		end := getPointOnBounds(right, endSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
-		diff := int(end - start)
-		if diff >= lineartW {
-			partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
-			partialVertical.Fill(lineartC)
 
-			lineartOptions.GeoM.Reset()
-			lineartOptions.GeoM.Translate(0, start-float64(thisSeg.Min.Y))
-			lineartOptions.GeoM.Translate(float64(img.Bounds().Dx()-lineartW), 0)
+		img.DrawImage(partialVertical, &lineartOptions)
 
-			img.DrawImage(partialVertical, &lineartOptions)
-
-			partialVertical.Dispose()
-		}
+		partialVertical.Dispose()
 	}
 
 	return img, &imgOffset
