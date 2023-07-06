@@ -8,13 +8,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+var (
+	lineartW = 10
+	lineartC = color.RGBA{0, 0, 0, 255}
+)
+
 // Takes an image and adds lineart to all sides of it before returning the new image.
 // The image given should be a single rect out of the full object so that it can be
 // computed seperately. The new offset from the original image is also returned so the
 // image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
 func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*ebiten.Image, *ebiten.DrawImageOptions) {
-	lineartW := 10
-	lineartC := color.RGBA{0, 0, 0, 255}
 	lineartOptions := ebiten.DrawImageOptions{}
 
 	//image setup
@@ -34,29 +37,12 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	fullVertical.Fill(lineartC)
 
 	//line art
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
-		thisSeg.Min.X, thisSeg.Min.Y-(lineartW/2), thisSeg.Max.X, thisSeg.Min.Y)}) {
+	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Min.X, thisSeg.Min.Y-(lineartW/2), thisSeg.Max.X, thisSeg.Min.Y)}) {
 
 		img.DrawImage(fullHorizontal, nil) //top
 	} else {
-		var start float64 = float64(thisSeg.Min.X)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min)) {
-				continue
-			}
-			if seg.Max.X < thisSeg.Max.X {
-				start = math.Max(start, float64(seg.Max.X))
-			}
-		}
-		var end float64 = float64(thisSeg.Max.X)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min)) {
-				continue
-			}
-			if seg.Min.X > thisSeg.Min.X {
-				end = math.Min(end, float64(seg.Min.X))
-			}
-		}
+		start := getPointOnBounds(top, startSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
+		end := getPointOnBounds(top, endSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
 		diff := int(end - start)
 		if diff >= lineartW {
 			partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
@@ -71,31 +57,14 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 		}
 	}
 
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
-		thisSeg.Min.X, thisSeg.Max.Y+(lineartW/2), thisSeg.Max.X, thisSeg.Max.Y)}) {
+	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Min.X, thisSeg.Max.Y+(lineartW/2), thisSeg.Max.X, thisSeg.Max.Y)}) {
 
 		lineartOptions.GeoM.Reset()
 		lineartOptions.GeoM.Translate(0, float64(img.Bounds().Dy()-lineartW))
 		img.DrawImage(fullHorizontal, &lineartOptions) //bottom
 	} else {
-		var start float64 = float64(thisSeg.Min.X)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min.Add(image.Pt(0, img.Bounds().Dy()-lineartW)))) {
-				continue
-			}
-			if seg.Max.X < thisSeg.Max.X {
-				start = math.Max(start, float64(seg.Max.X))
-			}
-		}
-		var end float64 = float64(thisSeg.Max.X)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullHorizontal.Bounds().Add(thisSeg.Min.Add(image.Pt(0, img.Bounds().Dy()-lineartW)))) {
-				continue
-			}
-			if seg.Min.X > thisSeg.Min.X {
-				end = math.Min(end, float64(seg.Min.X))
-			}
-		}
+		start := getPointOnBounds(bottom, startSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
+		end := getPointOnBounds(bottom, endSide, thisSeg, fullObj.GetHitbox(Render), fullHorizontal.Bounds())
 		diff := int(end - start)
 		if diff >= lineartW {
 			partialHorizontal := ebiten.NewImage(diff+lineartW, lineartW)
@@ -111,29 +80,12 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 		}
 	}
 
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
-		thisSeg.Min.X-(lineartW/2), thisSeg.Min.Y, thisSeg.Min.X, thisSeg.Max.Y)}) {
+	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Min.X-(lineartW/2), thisSeg.Min.Y, thisSeg.Min.X, thisSeg.Max.Y)}) {
 
 		img.DrawImage(fullVertical, nil) //left
 	} else {
-		var start float64 = float64(thisSeg.Min.Y)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min)) {
-				continue
-			}
-			if seg.Max.Y < thisSeg.Max.Y {
-				start = math.Max(start, float64(seg.Max.Y))
-			}
-		}
-		var end float64 = float64(thisSeg.Max.Y)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min)) {
-				continue
-			}
-			if seg.Min.Y > thisSeg.Min.Y {
-				end = math.Min(end, float64(seg.Min.Y))
-			}
-		}
+		start := getPointOnBounds(left, startSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
+		end := getPointOnBounds(left, endSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
 		diff := int(end - start)
 		if diff >= lineartW {
 			partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
@@ -148,31 +100,14 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 		}
 	}
 
-	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(
-		thisSeg.Max.X+(lineartW/2), thisSeg.Min.Y, thisSeg.Max.X, thisSeg.Max.Y)}) {
+	if !fullObj.Overlaps(Render, []image.Rectangle{image.Rect(thisSeg.Max.X+(lineartW/2), thisSeg.Min.Y, thisSeg.Max.X, thisSeg.Max.Y)}) {
 
 		lineartOptions.GeoM.Reset()
 		lineartOptions.GeoM.Translate(float64(img.Bounds().Dx()-lineartW), 0)
 		img.DrawImage(fullVertical, &lineartOptions) //right
 	} else {
-		var start float64 = float64(thisSeg.Min.Y)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min.Add(image.Pt(img.Bounds().Dx()-lineartW, 0)))) {
-				continue
-			}
-			if seg.Max.Y < thisSeg.Max.Y {
-				start = math.Max(start, float64(seg.Max.Y))
-			}
-		}
-		var end float64 = float64(thisSeg.Max.Y)
-		for _, seg := range fullObj.GetHitbox(Render) {
-			if seg == thisSeg || !seg.Overlaps(fullVertical.Bounds().Add(thisSeg.Min.Add(image.Pt(img.Bounds().Dx()-lineartW, 0)))) {
-				continue
-			}
-			if seg.Min.Y > thisSeg.Min.Y {
-				end = math.Min(end, float64(seg.Min.Y))
-			}
-		}
+		start := getPointOnBounds(right, startSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
+		end := getPointOnBounds(right, endSide, thisSeg, fullObj.GetHitbox(Render), fullVertical.Bounds())
 		diff := int(end - start)
 		if diff >= lineartW {
 			partialVertical := ebiten.NewImage(lineartW, diff+lineartW)
@@ -191,4 +126,89 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	return img, &imgOffset
 }
 
-//this function needs a serious refactor it's long and repetitive
+func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
+	point = side.getAxis(end.getCheckStart(thisSeg))
+
+	offset := thisSeg.Min
+	switch side {
+	case bottom:
+		offset = offset.Add(image.Pt(0, thisSeg.Dy()-lineartW))
+	case right:
+		offset = offset.Add(image.Pt(thisSeg.Dx()-lineartW, 0))
+	}
+	offsetEdge := edge.Add(offset)
+
+	for _, seg := range occluders {
+		if seg == thisSeg || !seg.Overlaps(offsetEdge) {
+			continue
+		}
+		if end.checkOnRightSide(side.getAxis(end.getCheckEnd(thisSeg)), side.getAxis(end.getCheckEnd(seg))) {
+			point = end.minMax(point, side.getAxis(end.getCheckEnd(seg)))
+		}
+	}
+	return
+}
+
+type lineartSide int
+
+const (
+	left lineartSide = iota
+	right
+	top
+	bottom
+)
+
+func (l lineartSide) getAxis(point image.Point) float64 {
+	if l == left || l == right {
+		return float64(point.Y)
+	} else if l == top || l == bottom {
+		return float64(point.X)
+	} else {
+		return 0
+	}
+}
+
+type lineartEnd int
+
+const (
+	startSide lineartEnd = iota
+	endSide
+)
+
+func (l lineartEnd) getCheckStart(rect image.Rectangle) (point image.Point) {
+	switch l {
+	case startSide:
+		point = rect.Min
+	case endSide:
+		point = rect.Max
+	}
+	return
+}
+func (l lineartEnd) getCheckEnd(rect image.Rectangle) (point image.Point) {
+	switch l {
+	case startSide:
+		point = rect.Max
+	case endSide:
+		point = rect.Min
+	}
+	return
+}
+func (l lineartEnd) minMax(pos float64, potentialNew float64) (newPos float64) {
+	switch l {
+	case startSide:
+		newPos = math.Max(pos, potentialNew)
+	case endSide:
+		newPos = math.Min(pos, potentialNew)
+	}
+	return
+}
+func (l lineartEnd) checkOnRightSide(this float64, other float64) bool {
+	switch l {
+	case startSide:
+		return other < this
+	case endSide:
+		return other > this
+	default:
+		return false
+	}
+}
