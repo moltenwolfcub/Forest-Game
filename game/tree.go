@@ -1,10 +1,11 @@
 package game
 
 import (
+	"bytes"
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
 var (
@@ -13,27 +14,40 @@ var (
 
 func init() {
 	var err error
-	treeImage, _, err = ebitenutil.NewImageFromFile("assets/tree.png")
+	treeDecoded, _, err := image.Decode(bytes.NewReader(assets.TreePng))
 	if err != nil {
 		panic(err)
 	}
+
+	treeImage = ebiten.NewImageFromImage(treeDecoded)
 }
 
 type Tree struct {
-	Rect image.Rectangle
+	hitbox image.Rectangle
 }
 
 func NewTree() Tree {
 	width, height := treeImage.Bounds().Size().X, treeImage.Bounds().Size().Y
 	return Tree{
-		Rect: image.Rectangle{
+		hitbox: image.Rectangle{
 			Max: image.Point{width, height},
 		},
 	}
 }
 
-func (t Tree) Hitbox(GameContext) image.Rectangle {
-	return t.Rect
+func (t Tree) Overlaps(layer GameContext, other []image.Rectangle) bool {
+	return DefaultHitboxOverlaps(layer, t, other)
+}
+func (t Tree) Origin(GameContext) image.Point {
+	return t.hitbox.Min
+}
+func (t Tree) Size(GameContext) image.Point {
+	return t.hitbox.Size()
+}
+func (t Tree) GetHitbox(layer GameContext) []image.Rectangle {
+	return []image.Rectangle{
+		t.hitbox,
+	}
 }
 
 func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) {

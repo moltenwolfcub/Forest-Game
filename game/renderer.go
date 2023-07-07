@@ -59,7 +59,7 @@ func (r *Renderer) post() {
 }
 
 func (r *Renderer) bg() {
-	r.bgLayer.Fill(color.RGBA{40, 240, 40, 255})
+	r.bgLayer.Fill(color.RGBA{58, 112, 82, 255})
 }
 func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
 	sort.SliceStable(elements, func(i, j int) bool {
@@ -71,7 +71,8 @@ func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
 	}
 }
 func (r *Renderer) lighting(view Viewport, time Time, elements []Lightable) {
-	r.lightingLayer.Fill(r.ambientLight(48, 255, time))
+	r.lightingLayer.Fill(r.ambientLight(color.RGBA{115, 100, 135, 0},
+		color.RGBA{255, 255, 255, 0}, time))
 
 	for _, e := range elements {
 		view.DrawToLighting(r.lightingLayer, e)
@@ -83,14 +84,31 @@ func (r *Renderer) hud(view Viewport, elements []Drawable) {
 	}
 }
 
-func (r Renderer) ambientLight(min float64, max float64, time Time) color.Color {
-	colorPerTick := (max - min) / float64(DAYLEN/2)
-	mappedLight := min + colorPerTick*float64(time.GetTimeInDay()*TPGM)
-	if mappedLight > max {
-		diff := mappedLight - max
-		mappedLight = max - diff
-	}
-	intLight := uint8(mappedLight)
+func (r Renderer) ambientLight(min color.RGBA, max color.RGBA, time Time) color.Color {
 
-	return color.RGBA{intLight, intLight, intLight, 255}
+	colorPerTick := float64(max.R-min.R) / float64(DAYLEN/2)
+	mappedLight := float64(min.R) + colorPerTick*float64(time.GetTimeInDay()*TPGM)
+	if mappedLight > float64(max.R) {
+		diff := mappedLight - float64(max.R)
+		mappedLight = float64(max.R) - diff
+	}
+	redLight := uint8(mappedLight)
+
+	colorPerTick = float64(max.G-min.G) / float64(DAYLEN/2)
+	mappedLight = float64(min.G) + colorPerTick*float64(time.GetTimeInDay()*TPGM)
+	if mappedLight > float64(max.G) {
+		diff := mappedLight - float64(max.G)
+		mappedLight = float64(max.G) - diff
+	}
+	greenLight := uint8(mappedLight)
+
+	colorPerTick = float64(max.B-min.B) / float64(DAYLEN/2)
+	mappedLight = float64(min.B) + colorPerTick*float64(time.GetTimeInDay()*TPGM)
+	if mappedLight > float64(max.B) {
+		diff := mappedLight - float64(max.B)
+		mappedLight = float64(max.B) - diff
+	}
+	blueLight := uint8(mappedLight)
+
+	return color.RGBA{redLight, greenLight, blueLight, 255}
 }

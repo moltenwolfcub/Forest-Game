@@ -1,0 +1,49 @@
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+      - 386
+
+
+archives:
+  - format: binary
+    name_template: >-
+      {{ .ProjectName }}-{{ .Tag }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+    - goos: windows
+      format: zip
+release:
+  draft: true
+  name_template: Forest Game {{ .RawVersion }}
+  footer: |
+    ## Thanks for downloading!
+
+    Check the project [README](https://github.com/moltenwolfcub/Forest-Game/blob/master/README.md) for installation instructions (there will be a copy in the .zip file too)
+    Also check it if you are on Mac or Linux cause there might not be an executable to download available.
+
+    Any bugs found or feature requests can be reported/suggested in the [GitHub Repository](https://github.com/moltenwolfcub/Forest-Game/issues)
+
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

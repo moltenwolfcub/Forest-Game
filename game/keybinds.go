@@ -43,6 +43,7 @@ type Keybinds struct {
 	Left      Keybind
 	Right     Keybind
 	Climb     Keybind
+	RiverJump Keybind
 }
 
 func NewKeybinds() Keybinds {
@@ -54,6 +55,7 @@ func NewKeybinds() Keybinds {
 	bindings.Right = NewKeybind(ebiten.KeyD, IsPressed)
 
 	bindings.Climb = NewKeybind(ebiten.KeySpace, IsPressed)
+	bindings.RiverJump = NewKeybind(ebiten.KeySpace, JustPressed)
 
 	return bindings
 }

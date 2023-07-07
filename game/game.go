@@ -21,31 +21,36 @@ type Game struct {
 
 	timeHud TextElement
 	player  Player
-	trees   []Tree
-	lamp    Lamp
 
-	incline Incline
-	river   River
+	inclines []Incline
+	rivers   []River
+	trees    []Tree
 }
 
 func NewGame() Game {
-	startTime := 5
+	startTime := 10
 
 	g := Game{
-		player: NewPlayer(),
-		trees: []Tree{
-			NewTree(),
-		},
-		lamp:     NewLamp(),
+		player:   NewPlayer(),
 		view:     NewViewport(),
 		renderer: NewRenderer(),
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
-		incline: Incline{
-			Collision: image.Rect(400, -150, 800, 300),
+
+		trees: []Tree{
+			// NewTree(),
 		},
-		river: River{
-			Collision: image.Rect(500, 500, 1500, 700),
+		inclines: []Incline{
+			{NewBasicTerrainElement(0, 0, 1024, 256)},
+			{NewBasicTerrainElement(1024, -128, 448, 256)},
+			{NewBasicTerrainElement(1472, -256, 320, 256)},
+		},
+		rivers: []River{
+			{hitbox: []image.Rectangle{
+				NewBasicTerrainElement(0, 448, 1024, 256),
+				NewBasicTerrainElement(768, 576, 768, 256),
+				NewBasicTerrainElement(1280, 768, 448, 256),
+			}},
 		},
 	}
 	g.timeHud = TextElement{
@@ -53,12 +58,38 @@ func NewGame() Game {
 	}
 	return g
 }
+func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
+	returnVal = image.Rectangle{
+		image.Point{x, y},
+		image.Point{x + dx, y + dy},
+	}
+	return
+}
 
 func (g *Game) Update() error {
+	collideables := []HasHitbox{}
+	for _, incline := range g.inclines {
+		collideables = append(collideables, HasHitbox(incline))
+	}
+	for _, river := range g.rivers {
+		collideables = append(collideables, HasHitbox(river))
+	}
+
+	climbables := []Climbable{}
+	for _, incline := range g.inclines {
+		climbables = append(climbables, Climbable(incline))
+	}
+
+	rivers := []HasHitbox{}
+	for _, river := range g.rivers {
+		rivers = append(rivers, HasHitbox(river))
+	}
+
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
+	g.timeHud.Update()
 	g.HandleInput()
-	g.player.Update([]HasHitbox{g.incline, g.river}, []Climbable{g.incline})
+	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
 	return nil
 }
@@ -81,21 +112,24 @@ func (g *Game) HandleInput() {
 	g.player.Delta = delta
 
 	g.player.Climbing = g.keys.Climb.Triggered()
+	g.player.RiverJumping = g.keys.RiverJump.Triggered()
 }
 
 func (g Game) Draw(screen *ebiten.Image) {
 	mapElements := []DepthAwareDrawable{
 		g.player,
-		g.incline,
-		g.river,
 	}
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))
 	}
-
-	lights := []Lightable{
-		g.lamp,
+	for _, incline := range g.inclines {
+		mapElements = append(mapElements, DepthAwareDrawable(incline))
 	}
+	for _, river := range g.rivers {
+		mapElements = append(mapElements, DepthAwareDrawable(river))
+	}
+
+	lights := []Lightable{}
 
 	hudElements := []Drawable{
 		g.timeHud,
