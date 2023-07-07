@@ -143,23 +143,93 @@ func (p Player) GetSmallestJump(jumpables []HasHitbox) (point image.Point, found
 			segHitbox := jumpable.GetHitbox(Collision)[id]
 
 			if origin.X >= segHitbox.Max.X { //right
-				newPoint := image.Pt(segHitbox.Min.X, origin.Y)
-				newPoint = newPoint.Sub(image.Pt(size.X, 0))
+				newPoint := image.Pt(segHitbox.Min.X, origin.Y).Sub(image.Pt(size.X, 0))
+
+				newRect := image.Rectangle{
+					Min: newPoint,
+					Max: newPoint.Add(size),
+				}
+				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
+					for _, segInner := range jumpable.GetHitbox(Collision) {
+						if !newRect.Overlaps(segInner) {
+							continue
+						}
+						newPoint = image.Pt(segInner.Min.X, origin.Y).Sub(image.Pt(size.X, 0))
+						break
+					}
+					newRect = image.Rectangle{
+						Min: newPoint,
+						Max: newPoint.Add(size),
+					}
+				}
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			} else if origin.X <= segHitbox.Min.X { //left
 				newPoint := image.Pt(segHitbox.Max.X, origin.Y)
 
+				newRect := image.Rectangle{
+					Min: newPoint,
+					Max: newPoint.Add(size),
+				}
+				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
+					for _, segInner := range jumpable.GetHitbox(Collision) {
+						if !newRect.Overlaps(segInner) {
+							continue
+						}
+						newPoint = image.Pt(segInner.Max.X, origin.Y)
+						break
+					}
+					newRect = image.Rectangle{
+						Min: newPoint,
+						Max: newPoint.Add(size),
+					}
+				}
+
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			}
 
 			if origin.Y >= segHitbox.Max.Y { //bottom
-				newPoint := image.Pt(origin.X, segHitbox.Min.Y)
-				newPoint = newPoint.Sub(image.Pt(0, size.Y))
+				newPoint := image.Pt(origin.X, segHitbox.Min.Y).Sub(image.Pt(0, size.Y))
+
+				newRect := image.Rectangle{
+					Min: newPoint,
+					Max: newPoint.Add(size),
+				}
+				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
+					for _, segInner := range jumpable.GetHitbox(Collision) {
+						if !newRect.Overlaps(segInner) {
+							continue
+						}
+						newPoint = image.Pt(origin.X, segInner.Min.Y).Sub(image.Pt(0, size.Y))
+						break
+					}
+					newRect = image.Rectangle{
+						Min: newPoint,
+						Max: newPoint.Add(size),
+					}
+				}
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			} else if origin.Y <= segHitbox.Min.Y { //top
 				newPoint := image.Pt(origin.X, segHitbox.Max.Y)
+
+				newRect := image.Rectangle{
+					Min: newPoint,
+					Max: newPoint.Add(size),
+				}
+				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
+					for _, segInner := range jumpable.GetHitbox(Collision) {
+						if !newRect.Overlaps(segInner) {
+							continue
+						}
+						newPoint = image.Pt(origin.X, segInner.Max.Y)
+						break
+					}
+					newRect = image.Rectangle{
+						Min: newPoint,
+						Max: newPoint.Add(size),
+					}
+				}
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			}
@@ -174,7 +244,6 @@ func updateJumpIfSmaller(before image.Point, new image.Point, dist *float64, poi
 		*point = new
 		*dist = delta
 	}
-
 }
 
 func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64) {
