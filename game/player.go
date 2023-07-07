@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"image"
 	_ "image/png"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/assets"
@@ -57,15 +58,17 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 func (p Player) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, p, other)
 }
-func (p Player) Origin(GameContext) image.Point {
-	return p.hitbox.Min
+func (p Player) Origin(layer GameContext) image.Point {
+	bounds := p.findBounds(layer)
+	return bounds.Min
 }
-func (p Player) Size(GameContext) image.Point {
-	return p.hitbox.Size()
+func (p Player) Size(layer GameContext) image.Point {
+	bounds := p.findBounds(layer)
+	return bounds.Size()
 }
 func (p Player) GetHitbox(layer GameContext) []image.Rectangle {
 	switch layer {
-	case Collision:
+	case Collision, Interaction:
 		baseSize := p.hitbox.Size().Y / 2
 
 		playerRect := image.Rectangle{
@@ -80,6 +83,19 @@ func (p Player) GetHitbox(layer GameContext) []image.Rectangle {
 			p.hitbox,
 		}
 	}
+}
+
+func (p Player) findBounds(layer GameContext) image.Rectangle {
+	minX, minY := math.MaxFloat64, math.MaxFloat64
+	maxX, maxY := -math.MaxFloat64, -math.MaxFloat64
+	for _, seg := range p.GetHitbox(layer) {
+		minX = math.Min(float64(seg.Min.X), minX)
+		minY = math.Min(float64(seg.Min.Y), minY)
+		maxX = math.Max(float64(seg.Max.X), maxX)
+		maxY = math.Max(float64(seg.Max.Y), maxY)
+	}
+	bounds := image.Rect(int(minX), int(minY), int(maxX), int(maxY))
+	return bounds
 }
 
 func (p Player) GetZ() int {
@@ -97,23 +113,68 @@ func (p *Player) Update(collidables []HasHitbox, climbables []Climbable, rivers 
 
 func (p *Player) handleInteractions(interactables []HasHitbox) {
 	if p.RiverJumping {
-		var objectToJump HasHitbox = nil
 
-		for _, c := range interactables {
-			if p.Overlaps(Interaction, c.GetHitbox(Interaction)) {
-				objectToJump = c
-				break
+		newPos, found := p.GetSmallestJump(interactables)
+
+		if found {
+			p.hitbox = p.hitbox.Sub(p.hitbox.Min).Add(newPos)
+			offset := p.Origin(Collision).Y - p.hitbox.Min.Y
+			p.hitbox = p.hitbox.Sub(image.Pt(0, offset))
+		}
+	}
+}
+
+func (p Player) GetSmallestJump(jumpables []HasHitbox) (point image.Point, found bool) {
+	origin := p.Origin(Collision)
+	size := p.Size(Collision)
+	hitbox := p.GetHitbox(Collision)
+
+	smallestJumpDist := math.MaxFloat64
+	smallestJump := image.Point{}
+	for _, jumpable := range jumpables {
+		if !jumpable.Overlaps(Interaction, hitbox) {
+			continue
+		}
+
+		for id, seg := range jumpable.GetHitbox(Interaction) {
+			if !p.Overlaps(Collision, []image.Rectangle{seg}) {
+				continue
+			}
+			segHitbox := jumpable.GetHitbox(Collision)[id]
+
+			if origin.X >= segHitbox.Max.X { //right
+				newPoint := image.Pt(segHitbox.Min.X, origin.Y)
+				newPoint = newPoint.Sub(image.Pt(size.X, 0))
+
+				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
+			} else if origin.X <= segHitbox.Min.X { //left
+				newPoint := image.Pt(segHitbox.Max.X, origin.Y)
+
+				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
+			}
+
+			if origin.Y >= segHitbox.Max.Y { //bottom
+				newPoint := image.Pt(origin.X, segHitbox.Min.Y)
+				newPoint = newPoint.Sub(image.Pt(0, size.Y))
+
+				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
+			} else if origin.Y <= segHitbox.Min.Y { //top
+				newPoint := image.Pt(origin.X, segHitbox.Max.Y)
+
+				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			}
 		}
-		if objectToJump == nil {
-			return
-		}
-
-		//for now jump to top corner will need to properly re-implement at some point
-		newPos := objectToJump.Origin(Collision).Sub(image.Point{p.hitbox.Dx(), p.hitbox.Dy()})
-
-		p.hitbox = p.hitbox.Sub(p.hitbox.Min).Add(newPos)
 	}
+	return smallestJump, smallestJumpDist != math.MaxFloat64
+}
+
+func updateJumpIfSmaller(before image.Point, new image.Point, dist *float64, point *image.Point) {
+	delta := math.Hypot(float64(before.X-new.X), float64(before.Y-new.Y))
+	if delta < *dist {
+		*point = new
+		*dist = delta
+	}
+
 }
 
 func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64) {
