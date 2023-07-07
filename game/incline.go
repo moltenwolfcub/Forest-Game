@@ -17,7 +17,7 @@ type Incline struct {
 	hitbox image.Rectangle
 }
 
-func (i Incline) Overlaps(layer GameContext, other HasHitbox) bool {
+func (i Incline) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, i, other)
 }
 func (i Incline) Origin(GameContext) image.Point {
@@ -36,10 +36,12 @@ func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(color.RGBA{117, 88, 69, 255})
 
-	options := ebiten.DrawImageOptions{}
-	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
+	lineartImg, drawOps := ApplyLineart(img, i, i.hitbox)
+	drawOps.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
-	screen.DrawImage(img, &options)
+	screen.DrawImage(lineartImg, drawOps)
+	img.Dispose()
+	lineartImg.Dispose()
 }
 
 func (i Incline) GetZ() int {

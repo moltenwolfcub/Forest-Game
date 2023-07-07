@@ -37,7 +37,7 @@ type TextElement struct {
 	cachedBounds image.Rectangle
 }
 
-func (t TextElement) Overlaps(layer GameContext, other HasHitbox) bool {
+func (t TextElement) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, t, other)
 }
 func (t TextElement) Origin(GameContext) image.Point {

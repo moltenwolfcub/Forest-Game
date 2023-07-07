@@ -12,7 +12,7 @@ type River struct {
 	hitbox []image.Rectangle
 }
 
-func (r River) Overlaps(layer GameContext, other HasHitbox) bool {
+func (r River) Overlaps(layer GameContext, other []image.Rectangle) bool {
 	return DefaultHitboxOverlaps(layer, r, other)
 }
 func (r River) Origin(layer GameContext) image.Point {
@@ -58,14 +58,15 @@ func (r River) DrawAt(screen *ebiten.Image, pos image.Point) {
 		rectImg := ebiten.NewImage(rect.Dx(), rect.Dy())
 		rectImg.Fill(color.RGBA{72, 122, 173, 255})
 
-		ops := ebiten.DrawImageOptions{}
+		lineartImg, ops := ApplyLineart(rectImg, r, rect)
 		ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
 		ops.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
 		origin := r.Origin(Render)
 		ops.GeoM.Translate(-float64(origin.X), -float64(origin.Y))
-		screen.DrawImage(rectImg, &ops)
+		screen.DrawImage(lineartImg, ops)
 
 		rectImg.Dispose()
+		lineartImg.Dispose()
 	}
 }
 
