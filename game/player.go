@@ -127,12 +127,11 @@ func (p *Player) handleInteractions(interactables []HasHitbox) {
 func (p Player) GetSmallestJump(jumpables []HasHitbox) (point image.Point, found bool) {
 	origin := p.Origin(Collision)
 	size := p.Size(Collision)
-	hitbox := p.GetHitbox(Collision)
 
 	smallestJumpDist := math.MaxFloat64
 	smallestJump := image.Point{}
 	for _, jumpable := range jumpables {
-		if !jumpable.Overlaps(Interaction, hitbox) {
+		if !jumpable.Overlaps(Interaction, p.GetHitbox(Collision)) {
 			continue
 		}
 
@@ -143,93 +142,49 @@ func (p Player) GetSmallestJump(jumpables []HasHitbox) (point image.Point, found
 			segHitbox := jumpable.GetHitbox(Collision)[id]
 
 			if origin.X >= segHitbox.Max.X { //right
-				newPoint := image.Pt(segHitbox.Min.X, origin.Y).Sub(image.Pt(size.X, 0))
-
-				newRect := image.Rectangle{
-					Min: newPoint,
-					Max: newPoint.Add(size),
-				}
-				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
-					for _, segInner := range jumpable.GetHitbox(Collision) {
-						if !newRect.Overlaps(segInner) {
-							continue
-						}
-						newPoint = image.Pt(segInner.Min.X, origin.Y).Sub(image.Pt(size.X, 0))
-						break
-					}
-					newRect = image.Rectangle{
-						Min: newPoint,
-						Max: newPoint.Add(size),
-					}
-				}
+				newPoint := testJump(jumpable, segHitbox,
+					func(segment image.Rectangle) image.Point {
+						return image.Pt(segment.Min.X, origin.Y).Sub(image.Pt(size.X, 0))
+					},
+					func(origin image.Point) image.Rectangle {
+						return image.Rectangle{origin, origin.Add(size)}
+					},
+				)
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			} else if origin.X <= segHitbox.Min.X { //left
-				newPoint := image.Pt(segHitbox.Max.X, origin.Y)
-
-				newRect := image.Rectangle{
-					Min: newPoint,
-					Max: newPoint.Add(size),
-				}
-				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
-					for _, segInner := range jumpable.GetHitbox(Collision) {
-						if !newRect.Overlaps(segInner) {
-							continue
-						}
-						newPoint = image.Pt(segInner.Max.X, origin.Y)
-						break
-					}
-					newRect = image.Rectangle{
-						Min: newPoint,
-						Max: newPoint.Add(size),
-					}
-				}
+				newPoint := testJump(jumpable, segHitbox,
+					func(segment image.Rectangle) image.Point {
+						return image.Pt(segment.Max.X, origin.Y)
+					},
+					func(origin image.Point) image.Rectangle {
+						return image.Rectangle{origin, origin.Add(size)}
+					},
+				)
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			}
 
 			if origin.Y >= segHitbox.Max.Y { //bottom
-				newPoint := image.Pt(origin.X, segHitbox.Min.Y).Sub(image.Pt(0, size.Y))
-
-				newRect := image.Rectangle{
-					Min: newPoint,
-					Max: newPoint.Add(size),
-				}
-				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
-					for _, segInner := range jumpable.GetHitbox(Collision) {
-						if !newRect.Overlaps(segInner) {
-							continue
-						}
-						newPoint = image.Pt(origin.X, segInner.Min.Y).Sub(image.Pt(0, size.Y))
-						break
-					}
-					newRect = image.Rectangle{
-						Min: newPoint,
-						Max: newPoint.Add(size),
-					}
-				}
+				newPoint := testJump(jumpable, segHitbox,
+					func(segment image.Rectangle) image.Point {
+						return image.Pt(origin.X, segment.Min.Y).Sub(image.Pt(0, size.Y))
+					},
+					func(origin image.Point) image.Rectangle {
+						return image.Rectangle{origin, origin.Add(size)}
+					},
+				)
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			} else if origin.Y <= segHitbox.Min.Y { //top
-				newPoint := image.Pt(origin.X, segHitbox.Max.Y)
-
-				newRect := image.Rectangle{
-					Min: newPoint,
-					Max: newPoint.Add(size),
-				}
-				for jumpable.Overlaps(Collision, []image.Rectangle{newRect}) {
-					for _, segInner := range jumpable.GetHitbox(Collision) {
-						if !newRect.Overlaps(segInner) {
-							continue
-						}
-						newPoint = image.Pt(origin.X, segInner.Max.Y)
-						break
-					}
-					newRect = image.Rectangle{
-						Min: newPoint,
-						Max: newPoint.Add(size),
-					}
-				}
+				newPoint := testJump(jumpable, segHitbox,
+					func(segment image.Rectangle) image.Point {
+						return image.Pt(origin.X, segment.Max.Y)
+					},
+					func(origin image.Point) image.Rectangle {
+						return image.Rectangle{origin, origin.Add(size)}
+					},
+				)
 
 				updateJumpIfSmaller(origin, newPoint, &smallestJumpDist, &smallestJump)
 			}
@@ -238,6 +193,38 @@ func (p Player) GetSmallestJump(jumpables []HasHitbox) (point image.Point, found
 	return smallestJump, smallestJumpDist != math.MaxFloat64
 }
 
+// Finds the location the player would jump to taking into account multiple
+// segments that might need to be jumped. If the player would land in another
+// segment it continues to test further jumps on that new segment.
+//
+// Once that new land location is found it gets returned.
+//
+// makeJump returns the origin of the new player hitbox after jumping the given
+// segment. This function handles how the jump should be made (what direction)
+//
+// pRect generates a version of the player's hitbox to test for collisions after
+// each jump without actually moving the player yet. It should just return a hitbox
+// of the player's size with it's origin at the provided point.
+func testJump(fullObj HasHitbox, jumpSeg image.Rectangle, makeJump func(image.Rectangle) image.Point, pRect func(image.Point) image.Rectangle) image.Point {
+	newPoint := makeJump(jumpSeg)
+
+	newRect := pRect(newPoint)
+	for fullObj.Overlaps(Collision, []image.Rectangle{newRect}) {
+		for _, newSegTest := range fullObj.GetHitbox(Collision) {
+			if !newRect.Overlaps(newSegTest) {
+				continue
+			}
+			newPoint = makeJump(newSegTest)
+			break
+		}
+		newRect = pRect(newPoint)
+	}
+	return newPoint
+}
+
+// Calculates jump distance between points before and new and updates the
+// pointers with the new distance and point respectively if the new distance
+// is smaller than the previous smallest.
 func updateJumpIfSmaller(before image.Point, new image.Point, dist *float64, point *image.Point) {
 	delta := math.Hypot(float64(before.X-new.X), float64(before.Y-new.Y))
 	if delta < *dist {
