@@ -1,9 +1,11 @@
 package game
 
 import (
+	"bytes"
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
 const (
@@ -145,7 +147,76 @@ func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight i
 func (g *Game) Run() error {
 	ebiten.SetWindowSize(960, 540)
 	ebiten.SetWindowTitle("Chill Forest Game")
+	ebiten.SetWindowIcon([]image.Image{icon16, icon22, icon24, icon32, icon48, icon64, icon128, icon256, icon512})
 	ebiten.SetTPS(TPS)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	return ebiten.RunGame(g)
+}
+
+var (
+	icon16  *ebiten.Image
+	icon22  *ebiten.Image
+	icon24  *ebiten.Image
+	icon32  *ebiten.Image
+	icon48  *ebiten.Image
+	icon64  *ebiten.Image
+	icon128 *ebiten.Image
+	icon256 *ebiten.Image
+	icon512 *ebiten.Image
+)
+
+func init() {
+	iconDecoded, _, err := image.Decode(bytes.NewReader(assets.Icon16))
+	if err != nil {
+		panic(err)
+	}
+	icon16 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon22))
+	if err != nil {
+		panic(err)
+	}
+	icon22 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon24))
+	if err != nil {
+		panic(err)
+	}
+	icon24 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon32))
+	if err != nil {
+		panic(err)
+	}
+	icon32 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon48))
+	if err != nil {
+		panic(err)
+	}
+	icon48 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon64))
+	if err != nil {
+		panic(err)
+	}
+	icon64 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon128))
+	if err != nil {
+		panic(err)
+	}
+	icon128 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon256))
+	if err != nil {
+		panic(err)
+	}
+	icon256 = ebiten.NewImageFromImage(iconDecoded)
+
+	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon512))
+	if err != nil {
+		panic(err)
+	}
+	icon512 = ebiten.NewImageFromImage(iconDecoded)
 }
