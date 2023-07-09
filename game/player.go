@@ -262,12 +262,12 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 	x := image.Point{X: int(float64(p.Delta.X) * stepSize)}
 	y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
 
-	climbingPreMove := p.findCurrentClimable(climbables) == nil
+	climbingPreMove := p.findCurrentClimable(climbables) != nil
 
 	for i := 0; i < steps; i++ {
 
 		p.hitbox = p.hitbox.Add(x)
-		if climbingPreMove {
+		if !climbingPreMove {
 			p.fixCollisions(collidables, x)
 		}
 
