@@ -1,7 +1,6 @@
 package game
 
 import (
-	"bytes"
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -154,69 +153,13 @@ func (g *Game) Run() error {
 }
 
 var (
-	icon16  *ebiten.Image
-	icon22  *ebiten.Image
-	icon24  *ebiten.Image
-	icon32  *ebiten.Image
-	icon48  *ebiten.Image
-	icon64  *ebiten.Image
-	icon128 *ebiten.Image
-	icon256 *ebiten.Image
-	icon512 *ebiten.Image
+	icon16  *ebiten.Image = assets.LoadPNG(assets.Icon16)
+	icon22  *ebiten.Image = assets.LoadPNG(assets.Icon22)
+	icon24  *ebiten.Image = assets.LoadPNG(assets.Icon24)
+	icon32  *ebiten.Image = assets.LoadPNG(assets.Icon32)
+	icon48  *ebiten.Image = assets.LoadPNG(assets.Icon48)
+	icon64  *ebiten.Image = assets.LoadPNG(assets.Icon64)
+	icon128 *ebiten.Image = assets.LoadPNG(assets.Icon128)
+	icon256 *ebiten.Image = assets.LoadPNG(assets.Icon256)
+	icon512 *ebiten.Image = assets.LoadPNG(assets.Icon512)
 )
-
-func init() {
-	iconDecoded, _, err := image.Decode(bytes.NewReader(assets.Icon16))
-	if err != nil {
-		panic(err)
-	}
-	icon16 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon22))
-	if err != nil {
-		panic(err)
-	}
-	icon22 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon24))
-	if err != nil {
-		panic(err)
-	}
-	icon24 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon32))
-	if err != nil {
-		panic(err)
-	}
-	icon32 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon48))
-	if err != nil {
-		panic(err)
-	}
-	icon48 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon64))
-	if err != nil {
-		panic(err)
-	}
-	icon64 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon128))
-	if err != nil {
-		panic(err)
-	}
-	icon128 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon256))
-	if err != nil {
-		panic(err)
-	}
-	icon256 = ebiten.NewImageFromImage(iconDecoded)
-
-	iconDecoded, _, err = image.Decode(bytes.NewReader(assets.Icon512))
-	if err != nil {
-		panic(err)
-	}
-	icon512 = ebiten.NewImageFromImage(iconDecoded)
-}

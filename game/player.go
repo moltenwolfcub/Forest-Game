@@ -1,7 +1,6 @@
 package game
 
 import (
-	"bytes"
 	_ "embed"
 	"image"
 	_ "image/png"
@@ -12,22 +11,12 @@ import (
 )
 
 var (
-	playerImage *ebiten.Image
+	playerImage *ebiten.Image = assets.LoadPNG(assets.PlayerPng)
 )
 
 const (
 	playerMoveSpeed float64 = 11.5
 )
-
-func init() {
-	var err error
-	playerDecoded, _, err := image.Decode(bytes.NewReader(assets.PlayerPng))
-	if err != nil {
-		panic(err)
-	}
-
-	playerImage = ebiten.NewImageFromImage(playerDecoded)
-}
 
 type Player struct {
 	Delta            image.Point
