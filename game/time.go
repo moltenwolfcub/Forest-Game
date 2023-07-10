@@ -58,7 +58,7 @@ func (t Time) String() string {
 	hours := totalHours % HoursPerDay
 	days := totalDays%DaysPerMonth + 1
 	months := totalMonths%MonthsPerYear + 1
-	years := totalYears + 1
+	years := totalYears
 
 	return fmt.Sprintf("Season[unimplemented] %d/%d/%d %02d:%02d", days, months, years, hours, mins)
 }
