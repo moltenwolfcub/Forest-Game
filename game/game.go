@@ -55,7 +55,8 @@ func NewGame() Game {
 		},
 	}
 	g.timeHud = TextElement{
-		Contents: g.time.String(),
+		Contents:  g.time.String(),
+		Alignment: TopCentre,
 	}
 	return g
 }
