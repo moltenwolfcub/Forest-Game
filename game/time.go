@@ -33,6 +33,11 @@ const (
 	TPGM = TPS
 
 	DAYLEN = TPGM * 60 * 20
+
+	MinsPerHour   = 60
+	HoursPerDay   = 20
+	DaysPerMonth  = 10
+	MonthsPerYear = 8
 )
 
 type Time int
@@ -41,30 +46,21 @@ func (t *Time) Tick() {
 	*t++
 }
 
-// func (t Time) Minutes() int {
-// 	return int((t / TPGM) % 60)
-// }
-// func (t Time) Hours() int {
-// 	return (t.Minutes() / 60) % 20
-// }
-// func (t Time) Days() int {
-// 	return (t.Hours() / 20) % 10
-// }
-// func (t Time) Months() int {
-// 	return (t.Days() / 10) % 2
-// }
-// func (t Time) Seasons() int {
-// 	return (t.Months() / 2) % 4
-// }
-// func (t Time) Years() int {
-// 	return t.Seasons() / 4
-// }
-
 func (t Time) String() string {
-	minutes := (t / TPGM) % 60
-	hours := (t / TPGM / 60) % 20
+	totalMins := t / TPGM
+	totalHours := totalMins / MinsPerHour
+	totalDays := totalHours / HoursPerDay
+	totalMonths := totalDays / DaysPerMonth
+	totalYears := totalMonths / MonthsPerYear
 
-	return fmt.Sprintf("%02d:%02d", hours, minutes)
+	//+1 cause humans start from 1 with these things
+	mins := totalMins % MinsPerHour
+	hours := totalHours % HoursPerDay
+	days := totalDays%DaysPerMonth + 1
+	months := totalMonths%MonthsPerYear + 1
+	years := totalYears + 1
+
+	return fmt.Sprintf("Season[unimplemented] %d/%d/%d %02d:%02d", days, months, years, hours, mins)
 }
 
 // Returns the number of minutes through the day it currently is
