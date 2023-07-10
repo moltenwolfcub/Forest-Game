@@ -66,7 +66,7 @@ func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 }
 
 func (t TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
-	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y, color.Black)
+	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y, color.White)
 }
 
 var (
