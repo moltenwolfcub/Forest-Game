@@ -7,6 +7,8 @@ import (
 )
 
 func main() {
+	parseFlags()
+
 	gameInstance := game.NewGame()
 	if err := gameInstance.Run(); err != nil {
 		log.Fatal(err)
