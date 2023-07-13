@@ -1,4 +1,4 @@
-package main
+package args
 
 import "flag"
 
@@ -6,7 +6,7 @@ var (
 	exampleFlag int
 )
 
-func parseFlags() {
+func ParseFlags() {
 	flag.IntVar(&exampleFlag, "example", 5, "example flag")
 
 	flag.Parse()
