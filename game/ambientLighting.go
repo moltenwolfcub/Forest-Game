@@ -1,32 +1,50 @@
 package game
 
-import "image/color"
+import (
+	"fmt"
+	"image/color"
+	"math"
+)
 
-func GetAmbientLight(min color.RGBA, max color.RGBA, time Time) color.Color {
+// const transitionTime = TPGM * MinsPerHour
 
-	colorPerTick := float64(max.R-min.R) / float64(DAYLEN/2)
-	mappedLight := float64(min.R) + colorPerTick*float64(time.GetTimeInDay()*TPGM)
-	if mappedLight > float64(max.R) {
-		diff := mappedLight - float64(max.R)
-		mappedLight = float64(max.R) - diff
+func GetAmbientLight(nightLight color.RGBA, dayLight color.RGBA, time Time) color.Color {
+	currentDay := int(time) / TPGM / MinsPerHour / HoursPerDay
+	moddedDay := currentDay % (DaysPerMonth * MonthsPerYear)
+
+	sunrise := getSunriseTime(moddedDay)
+	sunset := getSunsetTime(moddedDay)
+
+	currentHour := math.Mod(float64(time)/TPGM/MinsPerHour, HoursPerDay)
+
+	fmt.Println(currentHour)
+
+	if currentHour > sunrise && currentHour < sunset {
+		return dayLight
+	} else {
+		return nightLight
 	}
-	redLight := uint8(mappedLight)
+}
 
-	colorPerTick = float64(max.G-min.G) / float64(DAYLEN/2)
-	mappedLight = float64(min.G) + colorPerTick*float64(time.GetTimeInDay()*TPGM)
-	if mappedLight > float64(max.G) {
-		diff := mappedLight - float64(max.G)
-		mappedLight = float64(max.G) - diff
-	}
-	greenLight := uint8(mappedLight)
+func getSunsetTime(dayOfYear int) float64 {
+	t := float64(DaysPerMonth * MonthsPerYear)
+	d := float64(HoursPerDay)
 
-	colorPerTick = float64(max.B-min.B) / float64(DAYLEN/2)
-	mappedLight = float64(min.B) + colorPerTick*float64(time.GetTimeInDay()*TPGM)
-	if mappedLight > float64(max.B) {
-		diff := mappedLight - float64(max.B)
-		mappedLight = float64(max.B) - diff
-	}
-	blueLight := uint8(mappedLight)
+	a := -d / (0.5 * t * t)
+	b := d / (0.5 * t)
+	c := 0.5 * d
 
-	return color.RGBA{redLight, greenLight, blueLight, 255}
+	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
+	return time
+}
+func getSunriseTime(dayOfYear int) float64 {
+	t := float64(DaysPerMonth * MonthsPerYear)
+	d := float64(HoursPerDay)
+
+	a := d / (0.5 * t * t)
+	b := -d / (0.5 * t)
+	c := 0.5 * d
+
+	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
+	return time
 }
