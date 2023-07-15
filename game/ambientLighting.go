@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 )
@@ -17,8 +16,6 @@ func GetAmbientLight(nightLight color.RGBA, dayLight color.RGBA, time Time) colo
 	sunsetStart, sunsetEnd := getSunsetTime(moddedDay)
 
 	currentHour := math.Mod(float64(time)/TPGM/MinsPerHour, HoursPerDay)
-
-	fmt.Println(currentHour)
 
 	if currentHour > sunriseEnd && currentHour < sunsetStart {
 		return dayLight
