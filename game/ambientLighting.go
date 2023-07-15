@@ -6,27 +6,30 @@ import (
 	"math"
 )
 
-// const transitionTime = TPGM * MinsPerHour
+// the number of hours sunrise/sunset takes
+const transitionTime = 1.0
 
 func GetAmbientLight(nightLight color.RGBA, dayLight color.RGBA, time Time) color.Color {
-	currentDay := int(time) / TPGM / MinsPerHour / HoursPerDay
+	currentDay := int(math.Floor(float64(time) / TPGM / MinsPerHour / HoursPerDay))
 	moddedDay := currentDay % (DaysPerMonth * MonthsPerYear)
 
-	sunrise := getSunriseTime(moddedDay)
-	sunset := getSunsetTime(moddedDay)
+	sunriseStart, sunriseEnd := getSunriseTime(moddedDay)
+	sunsetStart, sunsetEnd := getSunsetTime(moddedDay)
 
 	currentHour := math.Mod(float64(time)/TPGM/MinsPerHour, HoursPerDay)
 
 	fmt.Println(currentHour)
 
-	if currentHour > sunrise && currentHour < sunset {
+	if currentHour > sunriseEnd && currentHour < sunsetStart {
 		return dayLight
-	} else {
+	} else if currentHour < sunriseStart || currentHour > sunsetEnd {
 		return nightLight
+	} else {
+		return color.RGBA{255, 0, 0, 0}
 	}
 }
 
-func getSunsetTime(dayOfYear int) float64 {
+func getSunsetTime(dayOfYear int) (start float64, end float64) {
 	t := float64(DaysPerMonth * MonthsPerYear)
 	d := float64(HoursPerDay)
 
@@ -35,9 +38,9 @@ func getSunsetTime(dayOfYear int) float64 {
 	c := 0.5 * d
 
 	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
-	return time
+	return time - transitionTime/2, time + transitionTime/2
 }
-func getSunriseTime(dayOfYear int) float64 {
+func getSunriseTime(dayOfYear int) (start float64, end float64) {
 	t := float64(DaysPerMonth * MonthsPerYear)
 	d := float64(HoursPerDay)
 
@@ -46,5 +49,5 @@ func getSunriseTime(dayOfYear int) float64 {
 	c := 0.5 * d
 
 	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
-	return time
+	return time - transitionTime/2, time + transitionTime/2
 }
