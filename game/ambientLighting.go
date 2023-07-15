@@ -100,11 +100,13 @@ func getSunsetTime(dayOfYear int) (start float64, end float64) {
 	t := float64(DaysPerMonth * MonthsPerYear)
 	d := float64(HoursPerDay)
 
+	offsetDay := math.Mod(float64(dayOfYear)+(float64(SolsticeMonthsOffset)/MonthsPerYear)*t, t)
+
 	a := -d / (0.5 * t * t)
 	b := d / (0.5 * t)
 	c := 0.5 * d
 
-	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
+	time := a*float64(offsetDay*offsetDay) + b*float64(offsetDay) + c
 	return time - transitionTime/2, time + transitionTime/2
 }
 
@@ -123,10 +125,12 @@ func getSunriseTime(dayOfYear int) (start float64, end float64) {
 	t := float64(DaysPerMonth * MonthsPerYear)
 	d := float64(HoursPerDay)
 
+	offsetDay := math.Mod(float64(dayOfYear)+(float64(SolsticeMonthsOffset)/MonthsPerYear)*t, t)
+
 	a := d / (0.5 * t * t)
 	b := -d / (0.5 * t)
 	c := 0.5 * d
 
-	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
+	time := a*float64(offsetDay*offsetDay) + b*float64(offsetDay) + c
 	return time - transitionTime/2, time + transitionTime/2
 }
