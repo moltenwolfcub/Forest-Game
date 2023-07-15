@@ -31,6 +31,12 @@ func GetAmbientLight(time Time) color.Color {
 	}
 }
 
+// Gets the ambient lighting for when it's not day or night time
+//
+// It finds the lighting between day and night light for sunrise
+// and sunset and returns the correct one based upon which one is
+// currently happening. If both are happening due to it being close
+// to a solstice it returns the darker of the 2 colors.
 func getPartialLighting(hour float64, riseTime float64, setTime float64) color.Color {
 	risePercent := (hour - riseTime) / transitionTime
 	riseColor := getColorBetween(nightLight, dayLight, risePercent)
@@ -50,6 +56,7 @@ func getPartialLighting(hour float64, riseTime float64, setTime float64) color.C
 	}
 }
 
+// Returns the darkest of 2 colors
 func getDarkest(a color.RGBA, b color.RGBA) color.RGBA {
 	aSum := a.R + a.G + a.B + a.A
 	bSum := b.R + b.G + b.B + b.A
@@ -61,6 +68,11 @@ func getDarkest(a color.RGBA, b color.RGBA) color.RGBA {
 	}
 }
 
+// Returns a color between the start and end color based on the percentage.
+// Percentage represents how far between the 2 colors is the desired output.
+//
+// This currently uses linear interpolation between the 2 points but could be
+// changed to a different kind of transition possibly parsed as a parameter.
 func getColorBetween(start color.RGBA, end color.RGBA, percent float64) color.RGBA {
 	sr, sg, sb, sa := float64(start.R), float64(start.G), float64(start.B), float64(start.A)
 	er, eg, eb, ea := float64(end.R), float64(end.G), float64(end.B), float64(end.A)
@@ -78,6 +90,17 @@ func getColorBetween(start color.RGBA, end color.RGBA, percent float64) color.RG
 	return color.RGBA{r, g, b, a}
 }
 
+// Gets the time that the sun should set on a given day of the year
+//
+// This is based upon a parabolic curve betweeen midday at winter solstice
+// and very late evening at summer solstice.
+//
+// It describes the function for the parabola and parses the day
+// of the year into the function.
+//
+// First returned value is the starting time of the sunset an second the ending time.
+// Currently their difference (length of sunset) is `transitionTime` but will
+// eventually become more dynamic based upon time of year.
 func getSunsetTime(dayOfYear int) (start float64, end float64) {
 	t := float64(DaysPerMonth * MonthsPerYear)
 	d := float64(HoursPerDay)
@@ -89,6 +112,18 @@ func getSunsetTime(dayOfYear int) (start float64, end float64) {
 	time := a*float64(dayOfYear*dayOfYear) + b*float64(dayOfYear) + c
 	return time - transitionTime/2, time + transitionTime/2
 }
+
+// Gets the time that the sun should rise on a given day of the year
+//
+// This is based upon a parabolic curve betweeen midday at winter solstice
+// and very early morning at summer solstice.
+//
+// It describes the function for the parabola and parses the day
+// of the year into the function.
+//
+// First returned value is the starting time of the sunrise an second the ending
+// time. Currently their difference (length of sunrise) is `transitionTime` but
+// will eventually become more dynamic based upon time of year.
 func getSunriseTime(dayOfYear int) (start float64, end float64) {
 	t := float64(DaysPerMonth * MonthsPerYear)
 	d := float64(HoursPerDay)
