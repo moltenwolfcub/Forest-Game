@@ -42,6 +42,8 @@ const (
 	HoursPerDay   = 20
 	DaysPerMonth  = 10
 	MonthsPerYear = 8
+
+	SolsticeMonthsOffset = 1
 )
 
 type Season int
