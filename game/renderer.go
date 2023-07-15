@@ -71,8 +71,7 @@ func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
 	}
 }
 func (r *Renderer) lighting(view Viewport, time Time, elements []Lightable) {
-	r.lightingLayer.Fill(GetAmbientLight(color.RGBA{115, 100, 135, 0},
-		color.RGBA{255, 255, 255, 0}, time))
+	r.lightingLayer.Fill(GetAmbientLight(time))
 
 	for _, e := range elements {
 		view.DrawToLighting(r.lightingLayer, e)
