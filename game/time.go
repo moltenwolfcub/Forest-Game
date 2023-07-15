@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/moltenwolfcub/Forest-Game/args"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -89,7 +90,7 @@ func (s Season) String() string {
 type Time int
 
 func (t *Time) Tick() {
-	*t++
+	*t += Time(args.TimeRateFlag)
 }
 
 func (t Time) String() string {
