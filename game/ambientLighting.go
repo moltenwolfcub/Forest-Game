@@ -58,8 +58,8 @@ func getPartialLighting(hour float64, riseTime float64, setTime float64) color.C
 
 // Returns the darkest of 2 colors
 func getDarkest(a color.RGBA, b color.RGBA) color.RGBA {
-	aSum := a.R + a.G + a.B + a.A
-	bSum := b.R + b.G + b.B + b.A
+	aSum := int(a.R) + int(a.G) + int(a.B) + int(a.A)
+	bSum := int(b.R) + int(b.G) + int(b.B) + int(b.A)
 
 	if aSum <= bSum {
 		return a
