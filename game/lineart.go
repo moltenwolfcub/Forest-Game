@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -10,7 +9,6 @@ import (
 
 var (
 	lineartW = 10
-	lineartC = color.RGBA{0, 0, 0, 255}
 )
 
 // Takes an image and adds lineart to all sides of it before returning the new image.
@@ -51,7 +49,7 @@ func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox
 	}
 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
-	partialSide.Fill(lineartC)
+	partialSide.Fill(LineartColor)
 
 	lineartOptions := ebiten.DrawImageOptions{}
 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))

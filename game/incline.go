@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -34,7 +33,7 @@ func (i Incline) GetHitbox(layer GameContext) []image.Rectangle {
 
 func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
-	img.Fill(color.RGBA{117, 88, 69, 255})
+	img.Fill(InclineColor)
 
 	lineartImg, drawOps := ApplyLineart(img, i, i.hitbox)
 	drawOps.GeoM.Translate(float64(pos.X), float64(pos.Y))

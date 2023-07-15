@@ -1,7 +1,6 @@
 package game
 
 import (
-	"image/color"
 	"sort"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -59,7 +58,7 @@ func (r *Renderer) post() {
 }
 
 func (r *Renderer) bg() {
-	r.bgLayer.Fill(color.RGBA{58, 112, 82, 255})
+	r.bgLayer.Fill(BackgroundColor)
 }
 func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
 	sort.SliceStable(elements, func(i, j int) bool {

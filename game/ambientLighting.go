@@ -8,11 +8,6 @@ import (
 // the number of hours sunrise/sunset takes
 const transitionTime = 1.0
 
-var (
-	nightLight = color.RGBA{115, 100, 135, 0}
-	dayLight   = color.RGBA{255, 255, 255, 0}
-)
-
 func GetAmbientLight(time Time) color.Color {
 	currentDay := int(math.Floor(float64(time) / TPGM / MinsPerHour / HoursPerDay))
 	moddedDay := currentDay % (DaysPerMonth * MonthsPerYear)
@@ -23,9 +18,9 @@ func GetAmbientLight(time Time) color.Color {
 	currentHour := math.Mod(float64(time)/TPGM/MinsPerHour, HoursPerDay)
 
 	if currentHour > sunriseEnd && currentHour < sunsetStart {
-		return dayLight
+		return DayAmbientLightColor
 	} else if currentHour < sunriseStart || currentHour > sunsetEnd {
-		return nightLight
+		return NightAmbientLightColor
 	} else {
 		return getPartialLighting(currentHour, sunriseStart, sunsetStart)
 	}
@@ -39,10 +34,10 @@ func GetAmbientLight(time Time) color.Color {
 // to a solstice it returns the darker of the 2 colors.
 func getPartialLighting(hour float64, riseTime float64, setTime float64) color.Color {
 	risePercent := (hour - riseTime) / transitionTime
-	riseColor := getColorBetween(nightLight, dayLight, risePercent)
+	riseColor := getColorBetween(NightAmbientLightColor, DayAmbientLightColor, risePercent)
 
 	setPercent := (hour - setTime) / transitionTime
-	setColor := getColorBetween(dayLight, nightLight, setPercent)
+	setColor := getColorBetween(DayAmbientLightColor, NightAmbientLightColor, setPercent)
 
 	rising := hour >= riseTime && hour <= riseTime+transitionTime
 	setting := hour >= setTime && hour <= setTime+transitionTime
