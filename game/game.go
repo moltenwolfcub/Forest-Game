@@ -26,6 +26,7 @@ type Game struct {
 	inclines []Incline
 	rivers   []River
 	trees    []Tree
+	berries  []Berry
 }
 
 func NewGame() Game {
@@ -38,9 +39,8 @@ func NewGame() Game {
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
 
-		trees: []Tree{
-			// NewTree(),
-		},
+		trees:   []Tree{},
+		berries: []Berry{{}},
 		inclines: []Incline{
 			{NewBasicTerrainElement(0, 0, 1024, 256)},
 			{NewBasicTerrainElement(1024, -128, 448, 256)},
@@ -123,6 +123,9 @@ func (g Game) Draw(screen *ebiten.Image) {
 	}
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))
+	}
+	for _, berry := range g.berries {
+		mapElements = append(mapElements, DepthAwareDrawable(berry))
 	}
 	for _, incline := range g.inclines {
 		mapElements = append(mapElements, DepthAwareDrawable(incline))
