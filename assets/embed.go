@@ -6,26 +6,26 @@ import (
 
 var (
 	//go:embed player.png
-	PlayerPng []byte
+	playerBytes []byte
 	//go:embed tree.png
-	TreePng []byte
+	treeBytes []byte
 
 	//go:embed icon/icon16.png
-	Icon16 []byte
+	icon16Bytes []byte
 	//go:embed icon/icon22.png
-	Icon22 []byte
+	icon22Bytes []byte
 	//go:embed icon/icon24.png
-	Icon24 []byte
+	icon24Bytes []byte
 	//go:embed icon/icon32.png
-	Icon32 []byte
+	icon32Bytes []byte
 	//go:embed icon/icon48.png
-	Icon48 []byte
+	icon48Bytes []byte
 	//go:embed icon/icon64.png
-	Icon64 []byte
+	icon64Bytes []byte
 	//go:embed icon/icon128.png
-	Icon128 []byte
+	icon128Bytes []byte
 	//go:embed icon/icon256.png
-	Icon256 []byte
+	icon256Bytes []byte
 	//go:embed icon/icon512.png
-	Icon512 []byte
+	icon512Bytes []byte
 )

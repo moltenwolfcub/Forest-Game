@@ -7,16 +7,12 @@ import (
 	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
-var (
-	treeImage *ebiten.Image = assets.LoadPNG(assets.TreePng)
-)
-
 type Tree struct {
 	hitbox image.Rectangle
 }
 
 func NewTree() Tree {
-	width, height := treeImage.Bounds().Size().X, treeImage.Bounds().Size().Y
+	width, height := assets.Tree.Bounds().Size().X, assets.Tree.Bounds().Size().Y
 	return Tree{
 		hitbox: image.Rectangle{
 			Max: image.Point{width, height},
@@ -43,7 +39,7 @@ func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options := ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
-	screen.DrawImage(treeImage, &options)
+	screen.DrawImage(assets.Tree, &options)
 }
 
 func (t Tree) GetZ() int {
