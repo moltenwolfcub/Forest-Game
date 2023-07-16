@@ -40,7 +40,7 @@ func NewGame() Game {
 		keys:     NewKeybinds(),
 
 		trees:   []Tree{},
-		berries: []Berry{{}},
+		berries: []Berry{NewBerry()},
 		inclines: []Incline{
 			{NewBasicTerrainElement(0, 0, 1024, 256)},
 			{NewBasicTerrainElement(1024, -128, 448, 256)},

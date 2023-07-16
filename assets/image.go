@@ -29,4 +29,12 @@ var (
 	Icon128 *ebiten.Image = LoadPNG(icon128Bytes)
 	Icon256 *ebiten.Image = LoadPNG(icon256Bytes)
 	Icon512 *ebiten.Image = LoadPNG(icon512Bytes)
+
+	Berries1 *ebiten.Image = LoadPNG(berries1Bytes)
+	Berries2 *ebiten.Image = LoadPNG(berries2Bytes)
+	Berries3 *ebiten.Image = LoadPNG(berries3Bytes)
+	Berries4 *ebiten.Image = LoadPNG(berries4Bytes)
+	Berries5 *ebiten.Image = LoadPNG(berries5Bytes)
+	Berries6 *ebiten.Image = LoadPNG(berries6Bytes)
+	Berries7 *ebiten.Image = LoadPNG(berries7Bytes)
 )

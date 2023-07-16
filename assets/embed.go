@@ -28,4 +28,19 @@ var (
 	icon256Bytes []byte
 	//go:embed icon/icon512.png
 	icon512Bytes []byte
+
+	//go:embed berries/phase1.png
+	berries1Bytes []byte
+	//go:embed berries/phase2.png
+	berries2Bytes []byte
+	//go:embed berries/phase3.png
+	berries3Bytes []byte
+	//go:embed berries/phase4.png
+	berries4Bytes []byte
+	//go:embed berries/phase5.png
+	berries5Bytes []byte
+	//go:embed berries/phase6.png
+	berries6Bytes []byte
+	//go:embed berries/phase7.png
+	berries7Bytes []byte
 )
