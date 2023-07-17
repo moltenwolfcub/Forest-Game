@@ -37,4 +37,5 @@ var (
 	Berries5 *ebiten.Image = LoadPNG(berries5Bytes)
 	Berries6 *ebiten.Image = LoadPNG(berries6Bytes)
 	Berries7 *ebiten.Image = LoadPNG(berries7Bytes)
+	Berries8 *ebiten.Image = LoadPNG(berries8Bytes)
 )

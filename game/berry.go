@@ -25,6 +25,8 @@ func (b berryPhase) GetTexture() *ebiten.Image {
 		return assets.Berries6
 	case 7:
 		return assets.Berries7
+	case 8:
+		return assets.Berries8
 	default:
 		panic("not a valid berry phase")
 	}

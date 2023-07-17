@@ -43,4 +43,6 @@ var (
 	berries6Bytes []byte
 	//go:embed berries/phase7.png
 	berries7Bytes []byte
+	//go:embed berries/phase8.png
+	berries8Bytes []byte
 )
