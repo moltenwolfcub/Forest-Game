@@ -2,6 +2,7 @@ package game
 
 import (
 	"image"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/assets"
@@ -30,6 +31,47 @@ func (b berryPhase) GetTexture() *ebiten.Image {
 	default:
 		panic("not a valid berry phase")
 	}
+}
+
+type berryProgression struct {
+	NextPhase berryPhase
+	Chance    float64
+}
+
+func (b berryProgression) testChance() bool {
+	return rand.Intn(1000) < int(b.Chance*1000)
+}
+
+func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgression) {
+	month := time.GetMonth()
+
+	totalMins := int(time) / TPGM
+	totalHours := totalMins / MinsPerHour
+	hoursPerMonth := DaysPerMonth * HoursPerDay
+	hours := totalHours % hoursPerMonth
+	hoursThroughMonth := float64(hours) / float64(hoursPerMonth)
+
+	switch b {
+	case 1:
+		if month == 1 {
+			p := berryProgression{
+				NextPhase: 2,
+				Chance:    hoursThroughMonth,
+			}
+
+			progressions = append(progressions, p)
+		}
+	case 2:
+	case 3:
+	case 4:
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	default:
+		panic("not a valid berry phase")
+	}
+	return
 }
 
 type Berry struct {
@@ -75,4 +117,15 @@ func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
 
 func (b Berry) GetZ() int {
 	return 1
+}
+
+func (b *Berry) Update(time Time) {
+	progression := b.phase.CheckForProgression(time)
+
+	for _, p := range progression {
+		if p.testChance() && p.NextPhase != 0 {
+			b.phase = p.NextPhase
+			break
+		}
+	}
 }

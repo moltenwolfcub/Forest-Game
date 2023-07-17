@@ -90,6 +90,10 @@ func (g *Game) Update() error {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
+	for i := range g.berries {
+		g.berries[i].Update(g.time)
+	}
+
 	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)

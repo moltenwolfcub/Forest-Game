@@ -121,3 +121,20 @@ func (t Time) GetTimeInDay() int {
 
 	return int(minutes)
 }
+
+func (t Time) GetMonth() int {
+	totalMins := t / TPGM
+	totalHours := totalMins / MinsPerHour
+	totalDays := totalHours / HoursPerDay
+	totalMonths := totalDays / DaysPerMonth
+	months := totalMonths%MonthsPerYear + 1
+	return int(months)
+}
+
+// func (t Time) GetDayThroughMonth() int {
+// 	totalMins := t / TPGM
+// 	totalHours := totalMins / MinsPerHour
+// 	totalDays := totalHours / HoursPerDay
+// 	days := totalDays%DaysPerMonth + 1
+// 	return int(days)
+// }
