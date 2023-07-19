@@ -39,8 +39,7 @@ func NewGame() Game {
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
 
-		trees:   []Tree{},
-		berries: []Berry{NewBerry()},
+		trees: []Tree{},
 		inclines: []Incline{
 			{NewBasicTerrainElement(0, 0, 1024, 256)},
 			{NewBasicTerrainElement(1024, -128, 448, 256)},
@@ -54,6 +53,8 @@ func NewGame() Game {
 			}},
 		},
 	}
+	g.berries = []Berry{NewBerry(g.time)}
+
 	g.timeHud = TextElement{
 		Contents:  g.time.String(),
 		Alignment: TopCentre,

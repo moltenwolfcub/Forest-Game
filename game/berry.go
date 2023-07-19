@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
@@ -86,14 +87,18 @@ func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgress
 }
 
 type Berry struct {
-	phase berryPhase
-	pos   image.Point
+	phase              berryPhase
+	pos                image.Point
+	randomTickCooldown int
 }
 
-func NewBerry() Berry {
-	return Berry{
+func NewBerry(time Time) Berry {
+	created := Berry{
 		phase: 1,
 	}
+	created.SetCooldown(time, true)
+
+	return created
 }
 
 func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) bool {
@@ -130,13 +135,37 @@ func (b Berry) GetZ() int {
 	return 1
 }
 
-func (b *Berry) Update(time Time) {
-	progression := b.phase.CheckForProgression(time)
+const (
+	// Berries gets ticked once every `berryTickInterval`.
+	berryTickInterval = TPGM * MinsPerHour * HoursPerDay
+)
 
-	for _, p := range progression {
-		if p.testChance() && p.NextPhase != 0 {
-			b.phase = p.NextPhase
-			break
+func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
+	timeLeftInInterval := berryTickInterval - (int(time) % berryTickInterval)
+	if tickOnThis {
+		throughThis := rand.Intn(int(float64(timeLeftInInterval) * 0.95))
+		b.randomTickCooldown = throughThis
+	} else {
+		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
+		b.randomTickCooldown = timeLeftInInterval + throughNext
+	}
+}
+
+func (b *Berry) Update(time Time) {
+	b.randomTickCooldown -= args.TimeRateFlag
+
+	if b.randomTickCooldown <= 0 {
+		// fmt.Print("Random Tick, ")
+		progression := b.phase.CheckForProgression(time)
+
+		for _, p := range progression {
+			// fmt.Println(p.Chance)
+			if p.testChance() && p.NextPhase != 0 {
+				b.phase = p.NextPhase
+				// fmt.Println("Grew", time)
+				break
+			}
 		}
+		b.SetCooldown(time, false)
 	}
 }
