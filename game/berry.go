@@ -45,12 +45,12 @@ func (b berryProgression) testChance() bool {
 }
 
 // When given a value between 0 and 1 it maps the result
-// to a growth chance based on the equation 0.00008e^(10x)
+// to a growth chance based on the equation 0.01e^(5x)
 //
 // This equation maps 0 -> 0 and 1 -> 1 but the change is
 // very steep towards the end of the time
 func mapTimeToChance(time float64) float64 {
-	return 0.00008 * math.Pow(math.E, time*10)
+	return 0.01 * math.Pow(math.E, time*5)
 }
 
 func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgression) {
@@ -137,7 +137,7 @@ func (b Berry) GetZ() int {
 
 const (
 	// Berries gets ticked once every `berryTickInterval`.
-	berryTickInterval = TPGM * MinsPerHour * HoursPerDay
+	berryTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
 )
 
 func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
@@ -149,6 +149,7 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
 		b.randomTickCooldown = timeLeftInInterval + throughNext
 	}
+	// fmt.Println("Next", time+Time(b.randomTickCooldown))
 }
 
 func (b *Berry) Update(time Time) {
