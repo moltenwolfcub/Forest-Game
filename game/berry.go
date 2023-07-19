@@ -2,6 +2,7 @@ package game
 
 import (
 	"image"
+	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -42,6 +43,15 @@ func (b berryProgression) testChance() bool {
 	return rand.Intn(1000) < int(b.Chance*1000)
 }
 
+// When given a value between 0 and 1 it maps the result
+// to a growth chance based on the equation 0.000047e^(10x)
+//
+// This equation maps 0 -> 0 and 1 -> 1 but the change is
+// very steep towards the end of the time
+func mapTimeToChance(time float64) float64 {
+	return 0.000047 * math.Pow(math.E, time*10)
+}
+
 func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgression) {
 	month := time.GetMonth()
 
@@ -50,13 +60,14 @@ func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgress
 	hoursPerMonth := DaysPerMonth * HoursPerDay
 	hours := totalHours % hoursPerMonth
 	hoursThroughMonth := float64(hours) / float64(hoursPerMonth)
+	growthChance := mapTimeToChance(hoursThroughMonth)
 
 	switch b {
 	case 1:
 		if month == 1 {
 			p := berryProgression{
 				NextPhase: 2,
-				Chance:    hoursThroughMonth,
+				Chance:    growthChance,
 			}
 
 			progressions = append(progressions, p)
