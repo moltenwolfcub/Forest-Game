@@ -45,12 +45,12 @@ func (b berryProgression) testChance() bool {
 }
 
 // When given a value between 0 and 1 it maps the result
-// to a growth chance based on the equation 0.000047e^(10x)
+// to a growth chance based on the equation 0.00008e^(10x)
 //
 // This equation maps 0 -> 0 and 1 -> 1 but the change is
 // very steep towards the end of the time
 func mapTimeToChance(time float64) float64 {
-	return 0.000047 * math.Pow(math.E, time*10)
+	return 0.00008 * math.Pow(math.E, time*10)
 }
 
 func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgression) {
