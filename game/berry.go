@@ -59,26 +59,100 @@ func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgress
 	totalMins := int(time) / TPGM
 	totalHours := totalMins / MinsPerHour
 	hoursPerMonth := DaysPerMonth * HoursPerDay
-	hours := totalHours % hoursPerMonth
-	hoursThroughMonth := float64(hours) / float64(hoursPerMonth)
-	growthChance := mapTimeToChance(hoursThroughMonth)
+	hoursThroughMonth := totalHours % hoursPerMonth
+	percentThroughMonth := float64(hoursThroughMonth) / float64(hoursPerMonth)
 
 	switch b {
 	case 1:
 		if month == 1 {
 			p := berryProgression{
 				NextPhase: 2,
-				Chance:    growthChance,
+				Chance:    mapTimeToChance(percentThroughMonth),
 			}
 
 			progressions = append(progressions, p)
 		}
 	case 2:
+		percentThrough := float64(hoursThroughMonth) / float64(2*hoursPerMonth)
+
+		if month == 2 {
+			p := berryProgression{
+				NextPhase: 3,
+				Chance:    mapTimeToChance(percentThrough),
+			}
+
+			progressions = append(progressions, p)
+		} else if month == 3 {
+			p := berryProgression{
+				NextPhase: 3,
+				Chance:    mapTimeToChance(percentThrough + 0.5),
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 3:
+		percentThrough := float64(hoursThroughMonth) / float64(2*hoursPerMonth)
+
+		if month == 4 {
+			p := berryProgression{
+				NextPhase: 4,
+				Chance:    mapTimeToChance(percentThrough),
+			}
+
+			progressions = append(progressions, p)
+		} else if month == 5 {
+			p := berryProgression{
+				NextPhase: 4,
+				Chance:    mapTimeToChance(percentThrough + 0.5),
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 4:
+		percentThrough := float64(hoursThroughMonth) / float64(2*hoursPerMonth)
+
+		if month == 6 {
+			p := berryProgression{
+				NextPhase: 5,
+				Chance:    mapTimeToChance(percentThrough),
+			}
+
+			progressions = append(progressions, p)
+		} else if month == 7 {
+			p := berryProgression{
+				NextPhase: 5,
+				Chance:    mapTimeToChance(percentThrough + 0.5),
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 5:
+		if month == 8 {
+			p := berryProgression{
+				NextPhase: 6,
+				Chance:    mapTimeToChance(percentThroughMonth),
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 6:
+		if month == 1 {
+			p := berryProgression{
+				NextPhase: 7,
+				Chance:    mapTimeToChance(percentThroughMonth),
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 7:
+		if month == 2 {
+			p := berryProgression{
+				NextPhase: 4,
+				Chance:    mapTimeToChance(percentThroughMonth),
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 8:
 	default:
 		panic("not a valid berry phase")
