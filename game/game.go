@@ -4,6 +4,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
 const (
@@ -54,7 +55,8 @@ func NewGame() Game {
 		},
 	}
 	g.timeHud = TextElement{
-		Contents: g.time.String(),
+		Contents:  g.time.String(),
+		Alignment: TopCentre,
 	}
 	return g
 }
@@ -145,7 +147,20 @@ func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight i
 func (g *Game) Run() error {
 	ebiten.SetWindowSize(960, 540)
 	ebiten.SetWindowTitle("Chill Forest Game")
+	ebiten.SetWindowIcon([]image.Image{icon16, icon22, icon24, icon32, icon48, icon64, icon128, icon256, icon512})
 	ebiten.SetTPS(TPS)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	return ebiten.RunGame(g)
 }
+
+var (
+	icon16  *ebiten.Image = assets.LoadPNG(assets.Icon16)
+	icon22  *ebiten.Image = assets.LoadPNG(assets.Icon22)
+	icon24  *ebiten.Image = assets.LoadPNG(assets.Icon24)
+	icon32  *ebiten.Image = assets.LoadPNG(assets.Icon32)
+	icon48  *ebiten.Image = assets.LoadPNG(assets.Icon48)
+	icon64  *ebiten.Image = assets.LoadPNG(assets.Icon64)
+	icon128 *ebiten.Image = assets.LoadPNG(assets.Icon128)
+	icon256 *ebiten.Image = assets.LoadPNG(assets.Icon256)
+	icon512 *ebiten.Image = assets.LoadPNG(assets.Icon512)
+)

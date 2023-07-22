@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"image/color"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -56,7 +55,7 @@ func (r River) findBounds(layer GameContext) image.Rectangle {
 func (r River) DrawAt(screen *ebiten.Image, pos image.Point) {
 	for _, rect := range r.GetHitbox(Render) {
 		rectImg := ebiten.NewImage(rect.Dx(), rect.Dy())
-		rectImg.Fill(color.RGBA{72, 122, 173, 255})
+		rectImg.Fill(RiverColor)
 
 		lineartImg, ops := ApplyLineart(rectImg, r, rect)
 		ops.GeoM.Translate(float64(pos.X), float64(pos.Y))

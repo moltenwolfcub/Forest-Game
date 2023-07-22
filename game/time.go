@@ -3,6 +3,10 @@ package game
 import (
 	"fmt"
 	"math"
+
+	"github.com/moltenwolfcub/Forest-Game/args"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //  Minute
@@ -33,38 +37,81 @@ const (
 	TPGM = TPS
 
 	DAYLEN = TPGM * 60 * 20
+
+	MinsPerHour   = 60
+	HoursPerDay   = 20
+	DaysPerMonth  = 10
+	MonthsPerYear = 8
+
+	SolsticeMonthsOffset = 1
 )
+
+type Season int
+
+const (
+	Spring Season = iota
+	Summer
+	Autumn
+	Winter
+)
+
+// Returns a Season from a month in the year.
+// The parsed month should be 1-indexed so 0 in invalid.
+//
+// Any value provided outside of the range 1-8 will panic
+func GetSeason(monthInYear int) Season {
+	switch monthInYear {
+	case 1, 2:
+		return Spring
+	case 3, 4:
+		return Summer
+	case 5, 6:
+		return Autumn
+	case 7, 8:
+		return Winter
+	default:
+		panic(fmt.Sprintf("Can't figure out season from month: %d. Season.GetSeason only accepts values in the range 1-8 inclusive.", monthInYear))
+	}
+}
+
+func (s Season) String() string {
+	switch s {
+	case Spring:
+		return "spring"
+	case Summer:
+		return "summer"
+	case Autumn:
+		return "autumn"
+	case Winter:
+		return "winter"
+	default:
+		return "error"
+	}
+}
 
 type Time int
 
 func (t *Time) Tick() {
-	*t++
+	*t += Time(args.TimeRateFlag)
 }
 
-// func (t Time) Minutes() int {
-// 	return int((t / TPGM) % 60)
-// }
-// func (t Time) Hours() int {
-// 	return (t.Minutes() / 60) % 20
-// }
-// func (t Time) Days() int {
-// 	return (t.Hours() / 20) % 10
-// }
-// func (t Time) Months() int {
-// 	return (t.Days() / 10) % 2
-// }
-// func (t Time) Seasons() int {
-// 	return (t.Months() / 2) % 4
-// }
-// func (t Time) Years() int {
-// 	return t.Seasons() / 4
-// }
-
 func (t Time) String() string {
-	minutes := (t / TPGM) % 60
-	hours := (t / TPGM / 60) % 20
+	totalMins := t / TPGM
+	totalHours := totalMins / MinsPerHour
+	totalDays := totalHours / HoursPerDay
+	totalMonths := totalDays / DaysPerMonth
+	totalYears := totalMonths / MonthsPerYear
 
-	return fmt.Sprintf("%02d:%02d", hours, minutes)
+	//+1 cause humans start from 1 with these things
+	mins := totalMins % MinsPerHour
+	hours := totalHours % HoursPerDay
+	days := totalDays%DaysPerMonth + 1
+	months := totalMonths%MonthsPerYear + 1
+	years := totalYears
+
+	season := cases.Title(language.AmericanEnglish).String(GetSeason(int(months)).String())
+
+	return fmt.Sprintf("%s %d/%d/%d %02d:%02d", season, days, months, years, hours, mins)
 }
 
 // Returns the number of minutes through the day it currently is

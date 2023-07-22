@@ -1,7 +1,6 @@
 package game
 
 import (
-	"bytes"
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -9,18 +8,8 @@ import (
 )
 
 var (
-	treeImage *ebiten.Image
+	treeImage *ebiten.Image = assets.LoadPNG(assets.TreePng)
 )
-
-func init() {
-	var err error
-	treeDecoded, _, err := image.Decode(bytes.NewReader(assets.TreePng))
-	if err != nil {
-		panic(err)
-	}
-
-	treeImage = ebiten.NewImageFromImage(treeDecoded)
-}
 
 type Tree struct {
 	hitbox image.Rectangle
