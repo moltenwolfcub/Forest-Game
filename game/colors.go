@@ -10,5 +10,5 @@ var (
 
 	InclineColor = color.RGBA{117, 88, 69, 255}
 	RiverColor   = color.RGBA{72, 122, 173, 255}
-	LineartColor = color.RGBA{0, 0, 0, 255}
+	LineartColor = color.RGBA{26, 26, 26, 255}
 )
