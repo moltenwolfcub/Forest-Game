@@ -53,7 +53,14 @@ func mapTimeToChance(time float64) float64 {
 	return 0.01 * math.Pow(math.E, time*5)
 }
 
-func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgression) {
+const (
+	deathChance = 0.25
+	deathYear   = 5
+)
+
+func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression) {
+	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
+
 	month := time.GetMonth()
 
 	totalMins := int(time) / TPGM
@@ -126,11 +133,30 @@ func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgress
 
 			progressions = append(progressions, p)
 		}
+
+		if yearsThroughLife == deathYear && month >= 3 || yearsThroughLife > deathYear {
+			p := berryProgression{
+				NextPhase: 8,
+				Chance:    deathChance,
+			}
+
+			progressions = append(progressions, p)
+		}
+
 	case 5:
 		if month == 8 {
 			p := berryProgression{
 				NextPhase: 6,
 				Chance:    mapTimeToChance(percentThroughMonth),
+			}
+
+			progressions = append(progressions, p)
+		}
+
+		if yearsThroughLife == deathYear && month >= 3 || yearsThroughLife > deathYear {
+			p := berryProgression{
+				NextPhase: 8,
+				Chance:    deathChance,
 			}
 
 			progressions = append(progressions, p)
@@ -144,11 +170,29 @@ func (b berryPhase) CheckForProgression(time Time) (progressions []berryProgress
 
 			progressions = append(progressions, p)
 		}
+
+		if yearsThroughLife == deathYear && month >= 3 || yearsThroughLife > deathYear {
+			p := berryProgression{
+				NextPhase: 8,
+				Chance:    deathChance,
+			}
+
+			progressions = append(progressions, p)
+		}
 	case 7:
 		if month == 2 {
 			p := berryProgression{
 				NextPhase: 4,
 				Chance:    mapTimeToChance(percentThroughMonth),
+			}
+
+			progressions = append(progressions, p)
+		}
+
+		if yearsThroughLife == 5 && month >= deathYear || yearsThroughLife > deathYear {
+			p := berryProgression{
+				NextPhase: 8,
+				Chance:    deathChance,
 			}
 
 			progressions = append(progressions, p)
@@ -164,11 +208,13 @@ type Berry struct {
 	phase              berryPhase
 	pos                image.Point
 	randomTickCooldown int
+	plantedTime        Time
 }
 
 func NewBerry(time Time) Berry {
 	created := Berry{
-		phase: 1,
+		phase:       1,
+		plantedTime: time,
 	}
 	created.SetCooldown(time, true)
 
@@ -231,13 +277,15 @@ func (b *Berry) Update(time Time) {
 
 	if b.randomTickCooldown <= 0 {
 		// fmt.Print("Random Tick, ")
-		progression := b.phase.CheckForProgression(time)
+		progression := b.phase.CheckForProgression(time, int(time-b.plantedTime))
 
 		for _, p := range progression {
 			// fmt.Println(p.Chance)
 			if p.testChance() && p.NextPhase != 0 {
 				b.phase = p.NextPhase
-				// fmt.Println("Grew", time)
+				// if p.NextPhase == 8 {
+				// 	fmt.Println("Died", time)
+				// }
 				break
 			}
 		}
