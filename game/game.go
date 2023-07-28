@@ -53,7 +53,7 @@ func NewGame() Game {
 			}},
 		},
 	}
-	g.berries = []Berry{NewBerry(g.time)}
+	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
 
 	g.timeHud = TextElement{
 		Contents:  g.time.String(),

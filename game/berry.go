@@ -292,11 +292,12 @@ type Berry struct {
 	plantedTime        Time
 }
 
-func NewBerry(time Time) Berry {
+func NewBerry(position image.Point, time Time) Berry {
 	created := Berry{
 		phase:       1,
 		plantedTime: time,
 		variant:     berryVariant(rand.Intn(3)),
+		pos:         position,
 	}
 	created.SetCooldown(time, true)
 
