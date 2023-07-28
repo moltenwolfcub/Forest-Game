@@ -6,26 +6,77 @@ import (
 
 var (
 	//go:embed player.png
-	PlayerPng []byte
+	playerBytes []byte
 	//go:embed tree.png
-	TreePng []byte
+	treeBytes []byte
 
 	//go:embed icon/icon16.png
-	Icon16 []byte
+	icon16Bytes []byte
 	//go:embed icon/icon22.png
-	Icon22 []byte
+	icon22Bytes []byte
 	//go:embed icon/icon24.png
-	Icon24 []byte
+	icon24Bytes []byte
 	//go:embed icon/icon32.png
-	Icon32 []byte
+	icon32Bytes []byte
 	//go:embed icon/icon48.png
-	Icon48 []byte
+	icon48Bytes []byte
 	//go:embed icon/icon64.png
-	Icon64 []byte
+	icon64Bytes []byte
 	//go:embed icon/icon128.png
-	Icon128 []byte
+	icon128Bytes []byte
 	//go:embed icon/icon256.png
-	Icon256 []byte
+	icon256Bytes []byte
 	//go:embed icon/icon512.png
-	Icon512 []byte
+	icon512Bytes []byte
+
+	//go:embed berries/light1.png
+	lightBerries1Bytes []byte
+	//go:embed berries/light2.png
+	lightBerries2Bytes []byte
+	//go:embed berries/light3.png
+	lightBerries3Bytes []byte
+	//go:embed berries/light4.png
+	lightBerries4Bytes []byte
+	//go:embed berries/light5.png
+	lightBerries5Bytes []byte
+	//go:embed berries/light6.png
+	lightBerries6Bytes []byte
+	//go:embed berries/light7.png
+	lightBerries7Bytes []byte
+	//go:embed berries/light8.png
+	lightBerries8Bytes []byte
+
+	//go:embed berries/mid1.png
+	midBerries1Bytes []byte
+	//go:embed berries/mid2.png
+	midBerries2Bytes []byte
+	//go:embed berries/mid3.png
+	midBerries3Bytes []byte
+	//go:embed berries/mid4.png
+	midBerries4Bytes []byte
+	//go:embed berries/mid5.png
+	midBerries5Bytes []byte
+	//go:embed berries/mid6.png
+	midBerries6Bytes []byte
+	//go:embed berries/mid7.png
+	midBerries7Bytes []byte
+	//go:embed berries/mid8.png
+	midBerries8Bytes []byte
+
+	//go:embed berries/dark1.png
+	darkBerries1Bytes []byte
+	//go:embed berries/dark2.png
+	darkBerries2Bytes []byte
+	//go:embed berries/dark3.png
+	darkBerries3Bytes []byte
+	//go:embed berries/dark4.png
+	darkBerries4Bytes []byte
+	//go:embed berries/dark5.png
+	darkBerries5Bytes []byte
+	//go:embed berries/dark6.png
+	darkBerries6Bytes []byte
+	//go:embed berries/dark7.png
+	darkBerries7Bytes []byte
+	//go:embed berries/dark8.png
+	darkBerries8Bytes []byte
 )

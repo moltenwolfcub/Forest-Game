@@ -10,10 +10,6 @@ import (
 	"github.com/moltenwolfcub/Forest-Game/assets"
 )
 
-var (
-	playerImage *ebiten.Image = assets.LoadPNG(assets.PlayerPng)
-)
-
 const (
 	playerMoveSpeed float64 = 11.5
 )
@@ -27,7 +23,7 @@ type Player struct {
 }
 
 func NewPlayer() Player {
-	width, height := playerImage.Bounds().Size().X, playerImage.Bounds().Size().Y
+	width, height := assets.Player.Bounds().Size().X, assets.Player.Bounds().Size().Y
 	return Player{
 		hitbox: image.Rectangle{
 			Min: image.Point{-100, -100},
@@ -41,7 +37,7 @@ func (p Player) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options := ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
-	screen.DrawImage(playerImage, &options)
+	screen.DrawImage(assets.Player, &options)
 }
 
 func (p Player) Overlaps(layer GameContext, other []image.Rectangle) bool {

@@ -26,6 +26,7 @@ type Game struct {
 	inclines []Incline
 	rivers   []River
 	trees    []Tree
+	berries  []Berry
 }
 
 func NewGame() Game {
@@ -38,9 +39,7 @@ func NewGame() Game {
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
 
-		trees: []Tree{
-			// NewTree(),
-		},
+		trees: []Tree{},
 		inclines: []Incline{
 			{NewBasicTerrainElement(0, 0, 1024, 256)},
 			{NewBasicTerrainElement(1024, -128, 448, 256)},
@@ -54,6 +53,8 @@ func NewGame() Game {
 			}},
 		},
 	}
+	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
+
 	g.timeHud = TextElement{
 		Contents:  g.time.String(),
 		Alignment: TopCentre,
@@ -90,6 +91,10 @@ func (g *Game) Update() error {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
+	for i := range g.berries {
+		g.berries[i].Update(g.time)
+	}
+
 	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
@@ -124,6 +129,9 @@ func (g Game) Draw(screen *ebiten.Image) {
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))
 	}
+	for _, berry := range g.berries {
+		mapElements = append(mapElements, DepthAwareDrawable(berry))
+	}
 	for _, incline := range g.inclines {
 		mapElements = append(mapElements, DepthAwareDrawable(incline))
 	}
@@ -147,20 +155,12 @@ func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight i
 func (g *Game) Run() error {
 	ebiten.SetWindowSize(960, 540)
 	ebiten.SetWindowTitle("Chill Forest Game")
-	ebiten.SetWindowIcon([]image.Image{icon16, icon22, icon24, icon32, icon48, icon64, icon128, icon256, icon512})
+	ebiten.SetWindowIcon([]image.Image{
+		assets.Icon16, assets.Icon22, assets.Icon24,
+		assets.Icon32, assets.Icon48, assets.Icon64,
+		assets.Icon128, assets.Icon256, assets.Icon512,
+	})
 	ebiten.SetTPS(TPS)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	return ebiten.RunGame(g)
 }
-
-var (
-	icon16  *ebiten.Image = assets.LoadPNG(assets.Icon16)
-	icon22  *ebiten.Image = assets.LoadPNG(assets.Icon22)
-	icon24  *ebiten.Image = assets.LoadPNG(assets.Icon24)
-	icon32  *ebiten.Image = assets.LoadPNG(assets.Icon32)
-	icon48  *ebiten.Image = assets.LoadPNG(assets.Icon48)
-	icon64  *ebiten.Image = assets.LoadPNG(assets.Icon64)
-	icon128 *ebiten.Image = assets.LoadPNG(assets.Icon128)
-	icon256 *ebiten.Image = assets.LoadPNG(assets.Icon256)
-	icon512 *ebiten.Image = assets.LoadPNG(assets.Icon512)
-)
