@@ -26,6 +26,7 @@ type Game struct {
 	inclines []Incline
 	rivers   []River
 	trees    []Tree
+	berries  []Berry
 }
 
 func NewGame() Game {
@@ -38,9 +39,7 @@ func NewGame() Game {
 		time:     Time(TPGM * 60 * startTime),
 		keys:     NewKeybinds(),
 
-		trees: []Tree{
-			// NewTree(),
-		},
+		trees: []Tree{},
 		inclines: []Incline{
 			{NewBasicTerrainElement(0, 0, 1024, 256)},
 			{NewBasicTerrainElement(1024, -128, 448, 256)},
@@ -54,6 +53,8 @@ func NewGame() Game {
 			}},
 		},
 	}
+	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
+
 	g.timeHud = TextElement{
 		Contents:  g.time.String(),
 		Alignment: TopCentre,
@@ -90,6 +91,10 @@ func (g *Game) Update() error {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
+	for i := range g.berries {
+		g.berries[i].Update(g.time)
+	}
+
 	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
@@ -123,6 +128,9 @@ func (g Game) Draw(screen *ebiten.Image) {
 	}
 	for _, tree := range g.trees {
 		mapElements = append(mapElements, DepthAwareDrawable(tree))
+	}
+	for _, berry := range g.berries {
+		mapElements = append(mapElements, DepthAwareDrawable(berry))
 	}
 	for _, incline := range g.inclines {
 		mapElements = append(mapElements, DepthAwareDrawable(incline))
