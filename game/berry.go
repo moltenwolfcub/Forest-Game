@@ -280,88 +280,88 @@ func (b Berry) GetTexture() *ebiten.Image {
 	case 1:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark1
+			return assets.Berries.GetTexture("berries/dark1")
 		case Medium:
-			return assets.BerriesMid1
+			return assets.Berries.GetTexture("berries/mid1")
 		case Light:
-			return assets.BerriesLight1
+			return assets.Berries.GetTexture("berries/light1")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 2:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark2
+			return assets.Berries.GetTexture("berries/dark2")
 		case Medium:
-			return assets.BerriesMid2
+			return assets.Berries.GetTexture("berries/mid2")
 		case Light:
-			return assets.BerriesLight2
+			return assets.Berries.GetTexture("berries/light2")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 3:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark3
+			return assets.Berries.GetTexture("berries/dark3")
 		case Medium:
-			return assets.BerriesMid3
+			return assets.Berries.GetTexture("berries/mid3")
 		case Light:
-			return assets.BerriesLight3
+			return assets.Berries.GetTexture("berries/light3")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 4:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark4
+			return assets.Berries.GetTexture("berries/dark4")
 		case Medium:
-			return assets.BerriesMid4
+			return assets.Berries.GetTexture("berries/mid4")
 		case Light:
-			return assets.BerriesLight4
+			return assets.Berries.GetTexture("berries/light4")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 5:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark5
+			return assets.Berries.GetTexture("berries/dark5")
 		case Medium:
-			return assets.BerriesMid5
+			return assets.Berries.GetTexture("berries/mid5")
 		case Light:
-			return assets.BerriesLight5
+			return assets.Berries.GetTexture("berries/light5")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 6:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark6
+			return assets.Berries.GetTexture("berries/dark6")
 		case Medium:
-			return assets.BerriesMid6
+			return assets.Berries.GetTexture("berries/mid6")
 		case Light:
-			return assets.BerriesLight6
+			return assets.Berries.GetTexture("berries/light6")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 7:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark7
+			return assets.Berries.GetTexture("berries/dark7")
 		case Medium:
-			return assets.BerriesMid7
+			return assets.Berries.GetTexture("berries/mid7")
 		case Light:
-			return assets.BerriesLight7
+			return assets.Berries.GetTexture("berries/light7")
 		default:
 			panic("not a valid berry variant")
 		}
 	case 8:
 		switch variant {
 		case Dark:
-			return assets.BerriesDark8
+			return assets.Berries.GetTexture("berries/dark8")
 		case Medium:
-			return assets.BerriesMid8
+			return assets.Berries.GetTexture("berries/mid8")
 		case Light:
-			return assets.BerriesLight8
+			return assets.Berries.GetTexture("berries/light8")
 		default:
 			panic("not a valid berry variant")
 		}
@@ -380,7 +380,7 @@ func (b *Berry) Update(time Time) {
 		for _, p := range progression {
 			// fmt.Println(p.Chance)
 			if p.testChance() && p.NextPhase != 0 {
-				b.state.UpdateValue("agee", p.NextPhase)
+				b.state.UpdateValue("age", p.NextPhase)
 				// fmt.Println("progressed")
 				// fmt.Println(b.state.GetValue("age"))
 				// if p.NextPhase == 8 {

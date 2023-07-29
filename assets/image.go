@@ -36,30 +36,40 @@ var (
 	Icon256 *ebiten.Image = LoadPNG("icon/icon256")
 	Icon512 *ebiten.Image = LoadPNG("icon/icon512")
 
-	BerriesLight1 *ebiten.Image = LoadPNG("berries/light1")
-	BerriesLight2 *ebiten.Image = LoadPNG("berries/light2")
-	BerriesLight3 *ebiten.Image = LoadPNG("berries/light3")
-	BerriesLight4 *ebiten.Image = LoadPNG("berries/light4")
-	BerriesLight5 *ebiten.Image = LoadPNG("berries/light5")
-	BerriesLight6 *ebiten.Image = LoadPNG("berries/light6")
-	BerriesLight7 *ebiten.Image = LoadPNG("berries/light7")
-	BerriesLight8 *ebiten.Image = LoadPNG("berries/light8")
-
-	BerriesMid1 *ebiten.Image = LoadPNG("berries/mid1")
-	BerriesMid2 *ebiten.Image = LoadPNG("berries/mid2")
-	BerriesMid3 *ebiten.Image = LoadPNG("berries/mid3")
-	BerriesMid4 *ebiten.Image = LoadPNG("berries/mid4")
-	BerriesMid5 *ebiten.Image = LoadPNG("berries/mid5")
-	BerriesMid6 *ebiten.Image = LoadPNG("berries/mid6")
-	BerriesMid7 *ebiten.Image = LoadPNG("berries/mid7")
-	BerriesMid8 *ebiten.Image = LoadPNG("berries/mid8")
-
-	BerriesDark1 *ebiten.Image = LoadPNG("berries/dark1")
-	BerriesDark2 *ebiten.Image = LoadPNG("berries/dark2")
-	BerriesDark3 *ebiten.Image = LoadPNG("berries/dark3")
-	BerriesDark4 *ebiten.Image = LoadPNG("berries/dark4")
-	BerriesDark5 *ebiten.Image = LoadPNG("berries/dark5")
-	BerriesDark6 *ebiten.Image = LoadPNG("berries/dark6")
-	BerriesDark7 *ebiten.Image = LoadPNG("berries/dark7")
-	BerriesDark8 *ebiten.Image = LoadPNG("berries/dark8")
+	Berries BerryCache = NewBerryCache()
 )
+
+type BerryCache struct {
+	cache map[string]*ebiten.Image
+}
+
+func NewBerryCache() BerryCache {
+	return BerryCache{
+		cache: make(map[string]*ebiten.Image),
+	}
+}
+
+func (b *BerryCache) GetTexture(id string) *ebiten.Image {
+	img, ok := b.cache[id]
+	if ok {
+		return img
+	}
+	img = LoadPNG(id)
+	b.cache[id] = img
+	return img
+}
+
+func (b BerryCache) String() string {
+	str := "["
+	length := len(b.cache)
+	i := 1
+
+	for k := range b.cache {
+		str += k
+		if i < length {
+			str += ", "
+		}
+		i++
+	}
+	return str + "]"
+}
