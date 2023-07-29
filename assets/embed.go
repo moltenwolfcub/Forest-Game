@@ -5,6 +5,6 @@ import (
 )
 
 var (
-	//go:embed berries icon player.png tree.png
+	//go:embed textures
 	textures embed.FS
 )
