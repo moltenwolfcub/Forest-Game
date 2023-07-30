@@ -18,102 +18,7 @@ const (
 	Dark
 )
 
-type berryPhase uint8
-
-func (b berryPhase) GetTexture(variant berryVariant) *ebiten.Image {
-	switch b {
-	case 1:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark1
-		case Medium:
-			return assets.BerriesMid1
-		case Light:
-			return assets.BerriesLight1
-		default:
-			panic("not a valid berry variant")
-		}
-	case 2:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark2
-		case Medium:
-			return assets.BerriesMid2
-		case Light:
-			return assets.BerriesLight2
-		default:
-			panic("not a valid berry variant")
-		}
-	case 3:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark3
-		case Medium:
-			return assets.BerriesMid3
-		case Light:
-			return assets.BerriesLight3
-		default:
-			panic("not a valid berry variant")
-		}
-	case 4:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark4
-		case Medium:
-			return assets.BerriesMid4
-		case Light:
-			return assets.BerriesLight4
-		default:
-			panic("not a valid berry variant")
-		}
-	case 5:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark5
-		case Medium:
-			return assets.BerriesMid5
-		case Light:
-			return assets.BerriesLight5
-		default:
-			panic("not a valid berry variant")
-		}
-	case 6:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark6
-		case Medium:
-			return assets.BerriesMid6
-		case Light:
-			return assets.BerriesLight6
-		default:
-			panic("not a valid berry variant")
-		}
-	case 7:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark7
-		case Medium:
-			return assets.BerriesMid7
-		case Light:
-			return assets.BerriesLight7
-		default:
-			panic("not a valid berry variant")
-		}
-	case 8:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark8
-		case Medium:
-			return assets.BerriesMid8
-		case Light:
-			return assets.BerriesLight8
-		default:
-			panic("not a valid berry variant")
-		}
-	default:
-		panic("not a valid berry phase")
-	}
-}
+type berryPhase int
 
 type berryProgression struct {
 	NextPhase berryPhase
@@ -313,13 +218,13 @@ func (b Berry) Origin(GameContext) image.Point {
 }
 
 func (b Berry) Size(GameContext) image.Point {
-	return b.phase.GetTexture(b.variant).Bounds().Size()
+	return b.GetTexture(b.variant, b.phase).Bounds().Size()
 }
 
 func (b Berry) GetHitbox(layer GameContext) []image.Rectangle {
 	width := b.Size(layer).X
 	height := b.Size(layer).Y
-	offsetRect := b.phase.GetTexture(b.variant).Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
+	offsetRect := b.GetTexture(b.variant, b.phase).Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
 	return []image.Rectangle{offsetRect}
 }
 
@@ -331,7 +236,7 @@ func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 	options.GeoM.Translate(-float64(width/2), -float64(height))
 
-	screen.DrawImage(b.phase.GetTexture(b.variant), &options)
+	screen.DrawImage(b.GetTexture(b.variant, b.phase), &options)
 }
 
 func (b Berry) GetZ() int {
@@ -353,6 +258,101 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 		b.randomTickCooldown = timeLeftInInterval + throughNext
 	}
 	// fmt.Println("Next", time+Time(b.randomTickCooldown))
+}
+
+func (b Berry) GetTexture(variant berryVariant, phase berryPhase) *ebiten.Image {
+	switch phase {
+	case 1:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark1
+		case Medium:
+			return assets.BerriesMid1
+		case Light:
+			return assets.BerriesLight1
+		default:
+			panic("not a valid berry variant")
+		}
+	case 2:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark2
+		case Medium:
+			return assets.BerriesMid2
+		case Light:
+			return assets.BerriesLight2
+		default:
+			panic("not a valid berry variant")
+		}
+	case 3:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark3
+		case Medium:
+			return assets.BerriesMid3
+		case Light:
+			return assets.BerriesLight3
+		default:
+			panic("not a valid berry variant")
+		}
+	case 4:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark4
+		case Medium:
+			return assets.BerriesMid4
+		case Light:
+			return assets.BerriesLight4
+		default:
+			panic("not a valid berry variant")
+		}
+	case 5:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark5
+		case Medium:
+			return assets.BerriesMid5
+		case Light:
+			return assets.BerriesLight5
+		default:
+			panic("not a valid berry variant")
+		}
+	case 6:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark6
+		case Medium:
+			return assets.BerriesMid6
+		case Light:
+			return assets.BerriesLight6
+		default:
+			panic("not a valid berry variant")
+		}
+	case 7:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark7
+		case Medium:
+			return assets.BerriesMid7
+		case Light:
+			return assets.BerriesLight7
+		default:
+			panic("not a valid berry variant")
+		}
+	case 8:
+		switch variant {
+		case Dark:
+			return assets.BerriesDark8
+		case Medium:
+			return assets.BerriesMid8
+		case Light:
+			return assets.BerriesLight8
+		default:
+			panic("not a valid berry variant")
+		}
+	default:
+		panic("not a valid berry phase")
+	}
 }
 
 func (b *Berry) Update(time Time) {
