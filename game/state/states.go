@@ -17,12 +17,12 @@ func (s State) GetProperty(str string) *Property {
 	}
 	panic(fmt.Sprintf("Couldn't get property %s from %s", str, s))
 }
-func (s State) GetValue(str string) any {
+func (s State) GetValue(str string) string {
 	prop := s.GetProperty(str)
 	return prop.getValue()
 }
 
-func (s State) UpdateValue(str string, val any) {
+func (s State) UpdateValue(str string, val string) {
 	prop := s.GetProperty(str)
 	prop.setValue(val)
 }

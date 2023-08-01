@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image"
 	"math"
 	"math/rand"
@@ -20,6 +21,10 @@ const (
 )
 
 type berryPhase int
+
+func (b berryPhase) String() string {
+	return fmt.Sprintf("%d", b)
+}
 
 type berryProgression struct {
 	NextPhase berryPhase
@@ -204,8 +209,8 @@ func NewBerry(position image.Point, time Time) Berry {
 	}
 	stateBuilder := state.StateBuilder{}
 	stateBuilder.Add(
-		state.NewProperty("age", berryPhase(1)),
-		state.NewProperty("variant", berryVariant(rand.Intn(3))),
+		state.NewProperty("age", berryPhase(1).String()),
+		state.NewProperty("variant", fmt.Sprint(rand.Intn(3))),
 	)
 
 	created.state = stateBuilder.Build()
@@ -267,14 +272,8 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 }
 
 func (b Berry) GetTexture() *ebiten.Image {
-	phase, ok := b.state.GetValue("age").(berryPhase)
-	if !ok {
-		panic("Berry's State 'age' should be of type 'berryPhase'")
-	}
-	variant, ok := b.state.GetValue("variant").(berryVariant)
-	if !ok {
-		panic("Berry's State 'variant' should be of type 'berryVariant'")
-	}
+	phase := state.GetIntFromState[berryPhase](b.state, "age")
+	variant := state.GetIntFromState[berryVariant](b.state, "variant")
 
 	switch phase {
 	case 1:
@@ -375,12 +374,14 @@ func (b *Berry) Update(time Time) {
 
 	if b.randomTickCooldown <= 0 {
 		// fmt.Print("Random Tick, ")
-		progression := b.state.GetValue("age").(berryPhase).CheckForProgression(time, int(time-b.plantedTime))
+
+		currentPhase := state.GetIntFromState[berryPhase](b.state, "age")
+		progression := currentPhase.CheckForProgression(time, int(time-b.plantedTime))
 
 		for _, p := range progression {
 			// fmt.Println(p.Chance)
 			if p.testChance() && p.NextPhase != 0 {
-				b.state.UpdateValue("age", p.NextPhase)
+				b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
 				// fmt.Println("progressed")
 				// fmt.Println(b.state.GetValue("age"))
 				// if p.NextPhase == 8 {

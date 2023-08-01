@@ -6,11 +6,11 @@ import (
 )
 
 type Property struct {
-	value any
+	value string
 	name  string
 }
 
-func NewProperty(name string, Val any) Property {
+func NewProperty(name string, Val string) Property {
 	return Property{
 		name:  name,
 		value: Val,
@@ -37,11 +37,11 @@ func (p Property) matchesName(str string) bool {
 	return p.name == str
 }
 
-func (p Property) getValue() any {
+func (p Property) getValue() string {
 	return p.value
 }
 
-func (p *Property) setValue(val any) {
+func (p *Property) setValue(val string) {
 	p.value = val
 }
 
