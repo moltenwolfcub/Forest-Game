@@ -26,24 +26,6 @@ func (b berryPhase) String() string {
 	return fmt.Sprintf("%d", b)
 }
 
-type berryProgression struct {
-	NextPhase berryPhase
-	Chance    float64
-}
-
-func (b berryProgression) testChance() bool {
-	return rand.Intn(1000) < int(b.Chance*1000)
-}
-
-// When given a value between 0 and 1 it maps the result
-// to a growth chance based on the equation 0.01e^(5x)
-//
-// This equation maps 0 -> 0 and 1 -> 1 but the change is
-// very steep towards the end of the time
-func mapTimeToChance(time float64) float64 {
-	return 0.01 * math.Pow(math.E, time*5)
-}
-
 const (
 	deathChance = 0.25
 	deathYear   = 5
@@ -195,6 +177,24 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 	return
 }
 
+// When given a value between 0 and 1 it maps the result
+// to a growth chance based on the equation 0.01e^(5x)
+//
+// This equation maps 0 -> 0 and 1 -> 1 but the change is
+// very steep towards the end of the time
+func mapTimeToChance(time float64) float64 {
+	return 0.01 * math.Pow(math.E, time*5)
+}
+
+type berryProgression struct {
+	NextPhase berryPhase
+	Chance    float64
+}
+
+func (b berryProgression) testChance() bool {
+	return rand.Intn(1000) < int(b.Chance*1000)
+}
+
 type Berry struct {
 	state              state.State
 	pos                image.Point
@@ -258,18 +258,6 @@ const (
 	// Berries gets ticked once every `berryTickInterval`.
 	berryTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
 )
-
-func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
-	timeLeftInInterval := berryTickInterval - (int(time) % berryTickInterval)
-	if tickOnThis {
-		throughThis := rand.Intn(int(float64(timeLeftInInterval) * 0.95))
-		b.randomTickCooldown = throughThis
-	} else {
-		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
-		b.randomTickCooldown = timeLeftInInterval + throughNext
-	}
-	// fmt.Println("Next", time+Time(b.randomTickCooldown))
-}
 
 func (b Berry) GetTexture() *ebiten.Image {
 	phase := state.GetIntFromState[berryPhase](b.state, "age")
@@ -367,6 +355,18 @@ func (b Berry) GetTexture() *ebiten.Image {
 	default:
 		panic("not a valid berry phase")
 	}
+}
+
+func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
+	timeLeftInInterval := berryTickInterval - (int(time) % berryTickInterval)
+	if tickOnThis {
+		throughThis := rand.Intn(int(float64(timeLeftInInterval) * 0.95))
+		b.randomTickCooldown = throughThis
+	} else {
+		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
+		b.randomTickCooldown = timeLeftInInterval + throughNext
+	}
+	// fmt.Println("Next", time+Time(b.randomTickCooldown))
 }
 
 func (b *Berry) Update(time Time) {
