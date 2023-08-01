@@ -1,6 +1,9 @@
 package state
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type State struct {
 	properties []Property
@@ -44,7 +47,13 @@ type StateBuilder struct {
 }
 
 func StateBuilderFromStr(str string) StateBuilder {
-	panic("Not Implemented")
+	builder := StateBuilder{}
+
+	props := strings.Split(str, ",")
+	for _, str := range props {
+		builder.Add(PropertyFromString(strings.TrimSpace(str)))
+	}
+	return builder
 }
 
 func (s *StateBuilder) Add(prop ...Property) *StateBuilder {

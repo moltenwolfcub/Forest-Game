@@ -1,6 +1,9 @@
 package state
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Property struct {
 	value any
@@ -13,6 +16,19 @@ func NewProperty(name string, Val any) Property {
 		value: Val,
 	}
 }
+func PropertyFromString(str string) Property {
+	parts := strings.Split(str, "=")
+	partLen := len(parts)
+	if partLen < 2 {
+		panic(fmt.Sprintf("Incorrect property string: %s. Properties should be in the format of <Name>=<Value>", str))
+	}
+	if partLen > 2 {
+		panic(fmt.Sprintf("Only one equals sign should be used in a property string: %s. Properties should be in the format of <Name>=<Value>", str))
+	}
+
+	return NewProperty(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
+}
+
 func (s Property) String() string {
 	return fmt.Sprintf("%s=%v", s.name, s.value)
 }
