@@ -20,6 +20,32 @@ const (
 	Dark
 )
 
+func berryVariantFromStr(str string) berryVariant {
+	switch str {
+	case "light":
+		return Light
+	case "mid":
+		return Medium
+	case "dark":
+		return Dark
+	default:
+		panic(fmt.Sprintf("Unkown berryVariant: %s", str))
+	}
+}
+
+func (b berryVariant) String() string {
+	switch b {
+	case Light:
+		return "light"
+	case Medium:
+		return "mid"
+	case Dark:
+		return "dark"
+	default:
+		panic("Unknown berryVariant")
+	}
+}
+
 type berryPhase int
 
 func (b berryPhase) String() string {
@@ -210,7 +236,7 @@ func NewBerry(position image.Point, time Time) Berry {
 	stateBuilder := state.StateBuilder{}
 	stateBuilder.Add(
 		state.NewProperty("age", berryPhase(1).String()),
-		state.NewProperty("variant", fmt.Sprint(rand.Intn(3))),
+		state.NewProperty("variant", berryVariant(rand.Intn(3)).String()),
 	)
 
 	created.state = stateBuilder.Build()
@@ -261,7 +287,7 @@ const (
 
 func (b Berry) GetTexture() *ebiten.Image {
 	phase := state.GetIntFromState[berryPhase](b.state, "age")
-	variant := state.GetIntFromState[berryVariant](b.state, "variant")
+	variant := berryVariantFromStr(b.state.GetValue("variant"))
 
 	switch phase {
 	case 1:
@@ -370,6 +396,8 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 }
 
 func (b *Berry) Update(time Time) {
+	// fmt.Println(b.state)
+
 	b.randomTickCooldown -= args.TimeRateFlag
 
 	if b.randomTickCooldown <= 0 {
