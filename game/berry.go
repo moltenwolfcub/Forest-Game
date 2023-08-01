@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/assets"
+	"github.com/moltenwolfcub/Forest-Game/game/state"
 )
 
 type berryVariant int
@@ -190,8 +191,7 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 }
 
 type Berry struct {
-	phase              berryPhase
-	variant            berryVariant
+	state              state.State
 	pos                image.Point
 	randomTickCooldown int
 	plantedTime        Time
@@ -199,11 +199,17 @@ type Berry struct {
 
 func NewBerry(position image.Point, time Time) Berry {
 	created := Berry{
-		phase:       1,
 		plantedTime: time,
-		variant:     berryVariant(rand.Intn(3)),
 		pos:         position,
 	}
+	stateBuilder := state.StateBuilder{}
+	stateBuilder.Add(
+		state.NewProperty("age", berryPhase(1)),
+		state.NewProperty("variant", berryVariant(rand.Intn(3))),
+	)
+
+	created.state = stateBuilder.Build()
+
 	created.SetCooldown(time, true)
 
 	return created
@@ -218,13 +224,13 @@ func (b Berry) Origin(GameContext) image.Point {
 }
 
 func (b Berry) Size(GameContext) image.Point {
-	return b.GetTexture(b.variant, b.phase).Bounds().Size()
+	return b.GetTexture().Bounds().Size()
 }
 
 func (b Berry) GetHitbox(layer GameContext) []image.Rectangle {
 	width := b.Size(layer).X
 	height := b.Size(layer).Y
-	offsetRect := b.GetTexture(b.variant, b.phase).Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
+	offsetRect := b.GetTexture().Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
 	return []image.Rectangle{offsetRect}
 }
 
@@ -236,7 +242,7 @@ func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 	options.GeoM.Translate(-float64(width/2), -float64(height))
 
-	screen.DrawImage(b.GetTexture(b.variant, b.phase), &options)
+	screen.DrawImage(b.GetTexture(), &options)
 }
 
 func (b Berry) GetZ() int {
@@ -260,7 +266,16 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 	// fmt.Println("Next", time+Time(b.randomTickCooldown))
 }
 
-func (b Berry) GetTexture(variant berryVariant, phase berryPhase) *ebiten.Image {
+func (b Berry) GetTexture() *ebiten.Image {
+	phase, ok := b.state.GetValue("age").(berryPhase)
+	if !ok {
+		panic("Berry's State 'age' should be of type 'berryPhase'")
+	}
+	variant, ok := b.state.GetValue("variant").(berryVariant)
+	if !ok {
+		panic("Berry's State 'variant' should be of type 'berryVariant'")
+	}
+
 	switch phase {
 	case 1:
 		switch variant {
@@ -360,12 +375,14 @@ func (b *Berry) Update(time Time) {
 
 	if b.randomTickCooldown <= 0 {
 		// fmt.Print("Random Tick, ")
-		progression := b.phase.CheckForProgression(time, int(time-b.plantedTime))
+		progression := b.state.GetValue("age").(berryPhase).CheckForProgression(time, int(time-b.plantedTime))
 
 		for _, p := range progression {
 			// fmt.Println(p.Chance)
 			if p.testChance() && p.NextPhase != 0 {
-				b.phase = p.NextPhase
+				b.state.UpdateValue("agee", p.NextPhase)
+				// fmt.Println("progressed")
+				// fmt.Println(b.state.GetValue("age"))
 				// if p.NextPhase == 8 {
 				// 	fmt.Println("Died", time)
 				// }
