@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"image"
 	"math"
 	"math/rand"
@@ -8,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/assets"
+	"github.com/moltenwolfcub/Forest-Game/game/state"
 )
 
 type berryVariant int
@@ -18,119 +20,36 @@ const (
 	Dark
 )
 
-type berryPhase uint8
-
-func (b berryPhase) GetTexture(variant berryVariant) *ebiten.Image {
-	switch b {
-	case 1:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark1
-		case Medium:
-			return assets.BerriesMid1
-		case Light:
-			return assets.BerriesLight1
-		default:
-			panic("not a valid berry variant")
-		}
-	case 2:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark2
-		case Medium:
-			return assets.BerriesMid2
-		case Light:
-			return assets.BerriesLight2
-		default:
-			panic("not a valid berry variant")
-		}
-	case 3:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark3
-		case Medium:
-			return assets.BerriesMid3
-		case Light:
-			return assets.BerriesLight3
-		default:
-			panic("not a valid berry variant")
-		}
-	case 4:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark4
-		case Medium:
-			return assets.BerriesMid4
-		case Light:
-			return assets.BerriesLight4
-		default:
-			panic("not a valid berry variant")
-		}
-	case 5:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark5
-		case Medium:
-			return assets.BerriesMid5
-		case Light:
-			return assets.BerriesLight5
-		default:
-			panic("not a valid berry variant")
-		}
-	case 6:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark6
-		case Medium:
-			return assets.BerriesMid6
-		case Light:
-			return assets.BerriesLight6
-		default:
-			panic("not a valid berry variant")
-		}
-	case 7:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark7
-		case Medium:
-			return assets.BerriesMid7
-		case Light:
-			return assets.BerriesLight7
-		default:
-			panic("not a valid berry variant")
-		}
-	case 8:
-		switch variant {
-		case Dark:
-			return assets.BerriesDark8
-		case Medium:
-			return assets.BerriesMid8
-		case Light:
-			return assets.BerriesLight8
-		default:
-			panic("not a valid berry variant")
-		}
+func berryVariantFromStr(str string) berryVariant {
+	switch str {
+	case "light":
+		return Light
+	case "mid":
+		return Medium
+	case "dark":
+		return Dark
 	default:
-		panic("not a valid berry phase")
+		panic(fmt.Sprintf("Unkown berryVariant: %s", str))
 	}
 }
 
-type berryProgression struct {
-	NextPhase berryPhase
-	Chance    float64
+func (b berryVariant) String() string {
+	switch b {
+	case Light:
+		return "light"
+	case Medium:
+		return "mid"
+	case Dark:
+		return "dark"
+	default:
+		panic("Unknown berryVariant")
+	}
 }
 
-func (b berryProgression) testChance() bool {
-	return rand.Intn(1000) < int(b.Chance*1000)
-}
+type berryPhase int
 
-// When given a value between 0 and 1 it maps the result
-// to a growth chance based on the equation 0.01e^(5x)
-//
-// This equation maps 0 -> 0 and 1 -> 1 but the change is
-// very steep towards the end of the time
-func mapTimeToChance(time float64) float64 {
-	return 0.01 * math.Pow(math.E, time*5)
+func (b berryPhase) String() string {
+	return fmt.Sprintf("%d", b)
 }
 
 const (
@@ -284,9 +203,26 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 	return
 }
 
+// When given a value between 0 and 1 it maps the result
+// to a growth chance based on the equation 0.01e^(5x)
+//
+// This equation maps 0 -> 0 and 1 -> 1 but the change is
+// very steep towards the end of the time
+func mapTimeToChance(time float64) float64 {
+	return 0.01 * math.Pow(math.E, time*5)
+}
+
+type berryProgression struct {
+	NextPhase berryPhase
+	Chance    float64
+}
+
+func (b berryProgression) testChance() bool {
+	return rand.Intn(1000) < int(b.Chance*1000)
+}
+
 type Berry struct {
-	phase              berryPhase
-	variant            berryVariant
+	state              state.State
 	pos                image.Point
 	randomTickCooldown int
 	plantedTime        Time
@@ -294,11 +230,17 @@ type Berry struct {
 
 func NewBerry(position image.Point, time Time) Berry {
 	created := Berry{
-		phase:       1,
 		plantedTime: time,
-		variant:     berryVariant(rand.Intn(3)),
 		pos:         position,
 	}
+	stateBuilder := state.StateBuilder{}
+	stateBuilder.Add(
+		state.NewProperty("age", berryPhase(1).String()),
+		state.NewProperty("variant", berryVariant(rand.Intn(3)).String()),
+	)
+
+	created.state = stateBuilder.Build()
+
 	created.SetCooldown(time, true)
 
 	return created
@@ -313,13 +255,13 @@ func (b Berry) Origin(GameContext) image.Point {
 }
 
 func (b Berry) Size(GameContext) image.Point {
-	return b.phase.GetTexture(b.variant).Bounds().Size()
+	return b.GetTexture().Bounds().Size()
 }
 
 func (b Berry) GetHitbox(layer GameContext) []image.Rectangle {
 	width := b.Size(layer).X
 	height := b.Size(layer).Y
-	offsetRect := b.phase.GetTexture(b.variant).Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
+	offsetRect := b.GetTexture().Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
 	return []image.Rectangle{offsetRect}
 }
 
@@ -331,7 +273,7 @@ func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 	options.GeoM.Translate(-float64(width/2), -float64(height))
 
-	screen.DrawImage(b.phase.GetTexture(b.variant), &options)
+	screen.DrawImage(b.GetTexture(), &options)
 }
 
 func (b Berry) GetZ() int {
@@ -343,6 +285,11 @@ const (
 	berryTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
 )
 
+func (b Berry) GetTexture() *ebiten.Image {
+	texturePath := assets.BerryStates.GetTexturePath(b.state.ToTextureKey())
+	return assets.Berries.GetTexture(texturePath)
+}
+
 func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 	timeLeftInInterval := berryTickInterval - (int(time) % berryTickInterval)
 	if tickOnThis {
@@ -352,23 +299,19 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
 		b.randomTickCooldown = timeLeftInInterval + throughNext
 	}
-	// fmt.Println("Next", time+Time(b.randomTickCooldown))
 }
 
 func (b *Berry) Update(time Time) {
 	b.randomTickCooldown -= args.TimeRateFlag
 
 	if b.randomTickCooldown <= 0 {
-		// fmt.Print("Random Tick, ")
-		progression := b.phase.CheckForProgression(time, int(time-b.plantedTime))
+
+		currentPhase := state.GetIntFromState[berryPhase](b.state, "age")
+		progression := currentPhase.CheckForProgression(time, int(time-b.plantedTime))
 
 		for _, p := range progression {
-			// fmt.Println(p.Chance)
 			if p.testChance() && p.NextPhase != 0 {
-				b.phase = p.NextPhase
-				// if p.NextPhase == 8 {
-				// 	fmt.Println("Died", time)
-				// }
+				b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
 				break
 			}
 		}
