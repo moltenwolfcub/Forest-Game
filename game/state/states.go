@@ -92,34 +92,3 @@ func (s StateBuilder) Build() State {
 	newState := State(s)
 	return newState
 }
-
-// type BerryState struct {
-// 	age     IntegerProperty
-// 	variant EnumProperty[BerryVariant]
-// }
-
-// type ObjectState struct {
-// }
-
-// type StateDefinition[O any] struct {
-// 	owner            O
-// 	propertiesByName map[string]any
-// 	states           []ObjectState
-// 	prop             Property[any]
-// }
-
-// type StateDefinitionBuilder struct {
-// }
-
-// type SyntheticBerry struct {
-// 	stateDefinition StateDefinition[Berry]
-
-// 	age IntegerProperty
-// 	// variant EnumProperty[BerryVariant]
-// }
-
-// func (obj SyntheticBerry) RegisterStateDef(*StateDefinitionBuilder) {
-// 	S := StateDefinition[any]{
-// 		prop: NewIntegerProperty("test", 0, 5),
-// 	}
-// }

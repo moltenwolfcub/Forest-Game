@@ -299,29 +299,19 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
 		b.randomTickCooldown = timeLeftInInterval + throughNext
 	}
-	// fmt.Println("Next", time+Time(b.randomTickCooldown))
 }
 
 func (b *Berry) Update(time Time) {
-	// fmt.Println(b.state)
-
 	b.randomTickCooldown -= args.TimeRateFlag
 
 	if b.randomTickCooldown <= 0 {
-		// fmt.Print("Random Tick, ")
 
 		currentPhase := state.GetIntFromState[berryPhase](b.state, "age")
 		progression := currentPhase.CheckForProgression(time, int(time-b.plantedTime))
 
 		for _, p := range progression {
-			// fmt.Println(p.Chance)
 			if p.testChance() && p.NextPhase != 0 {
 				b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
-				// fmt.Println("progressed")
-				// fmt.Println(b.state.GetValue("age"))
-				// if p.NextPhase == 8 {
-				// 	fmt.Println("Died", time)
-				// }
 				break
 			}
 		}
