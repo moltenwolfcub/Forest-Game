@@ -1,0 +1,30 @@
+{
+	"states": {
+		"age=1, variant=dark": "berries/dark1",
+		"age=2, variant=dark": "berries/dark2",
+		"age=3, variant=dark": "berries/dark3",
+		"age=4, variant=dark": "berries/dark4",
+		"age=5, variant=dark": "berries/dark5",
+		"age=6, variant=dark": "berries/dark6",
+		"age=7, variant=dark": "berries/dark7",
+		"age=8, variant=dark": "berries/dark8",
+	
+		"age=1, variant=mid": "berries/mid1",
+		"age=2, variant=mid": "berries/mid2",
+		"age=3, variant=mid": "berries/mid3",
+		"age=4, variant=mid": "berries/mid4",
+		"age=5, variant=mid": "berries/mid5",
+		"age=6, variant=mid": "berries/mid6",
+		"age=7, variant=mid": "berries/mid7",
+		"age=8, variant=mid": "berries/mid8",
+	
+		"age=1, variant=light": "berries/light1",
+		"age=2, variant=light": "berries/light2",
+		"age=3, variant=light": "berries/light3",
+		"age=4, variant=light": "berries/light4",
+		"age=5, variant=light": "berries/light5",
+		"age=6, variant=light": "berries/light6",
+		"age=7, variant=light": "berries/light7",
+		"age=8, variant=light": "berries/light8"
+	}
+}

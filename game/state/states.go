@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -25,6 +26,32 @@ func (s State) GetValue(str string) string {
 func (s State) UpdateValue(str string, val string) {
 	prop := s.GetProperty(str)
 	prop.setValue(val)
+}
+
+func (s State) ToTextureKey() string {
+	sorted := s.properties
+	sort.SliceStable(sorted, func(i, j int) bool {
+		names := []string{
+			sorted[i].name,
+			sorted[j].name,
+		}
+
+		sort.Strings(names)
+		return names[0] == sorted[i].name
+	})
+
+	str := ""
+	length := len(sorted)
+	i := 1
+
+	for _, k := range sorted {
+		str += k.String()
+		if i < length {
+			str += ", "
+		}
+		i++
+	}
+	return str
 }
 
 func (s State) String() string {
