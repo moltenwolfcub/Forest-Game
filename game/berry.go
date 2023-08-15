@@ -70,137 +70,65 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 
 	switch b {
 	case 1:
-		if month == 1 {
-			p := berryProgression{
-				NextPhase: 2,
-				Chance:    mapTimeToChance(percentThroughMonth),
-			}
-
-			progressions = append(progressions, p)
-		}
+		progressions = b.oneMonthProgression(progressions, month, 1, percentThroughMonth)
 	case 2:
-		percentThrough := float64(hoursThroughMonth) / float64(2*hoursPerMonth)
-
-		if month == 2 {
-			p := berryProgression{
-				NextPhase: 3,
-				Chance:    mapTimeToChance(percentThrough),
-			}
-
-			progressions = append(progressions, p)
-		} else if month == 3 {
-			p := berryProgression{
-				NextPhase: 3,
-				Chance:    mapTimeToChance(percentThrough + 0.5),
-			}
-
-			progressions = append(progressions, p)
-		}
+		progressions = b.twoMonthProgression(progressions, month, 2, float64(hoursThroughMonth), float64(hoursPerMonth))
 	case 3:
-		percentThrough := float64(hoursThroughMonth) / float64(2*hoursPerMonth)
-
-		if month == 4 {
-			p := berryProgression{
-				NextPhase: 4,
-				Chance:    mapTimeToChance(percentThrough),
-			}
-
-			progressions = append(progressions, p)
-		} else if month == 5 {
-			p := berryProgression{
-				NextPhase: 4,
-				Chance:    mapTimeToChance(percentThrough + 0.5),
-			}
-
-			progressions = append(progressions, p)
-		}
+		progressions = b.twoMonthProgression(progressions, month, 4, float64(hoursThroughMonth), float64(hoursPerMonth))
 	case 4:
-		percentThrough := float64(hoursThroughMonth) / float64(2*hoursPerMonth)
-
-		if month == 6 {
-			p := berryProgression{
-				NextPhase: 5,
-				Chance:    mapTimeToChance(percentThrough),
-			}
-
-			progressions = append(progressions, p)
-		} else if month == 7 {
-			p := berryProgression{
-				NextPhase: 5,
-				Chance:    mapTimeToChance(percentThrough + 0.5),
-			}
-
-			progressions = append(progressions, p)
-		}
-
-		if yearsThroughLife == deathYear && month >= 3 || yearsThroughLife > deathYear {
-			p := berryProgression{
-				NextPhase: 8,
-				Chance:    deathChance,
-			}
-
-			progressions = append(progressions, p)
-		}
-
+		progressions = b.twoMonthProgression(progressions, month, 6, float64(hoursThroughMonth), float64(hoursPerMonth))
 	case 5:
-		if month == 8 {
-			p := berryProgression{
-				NextPhase: 6,
-				Chance:    mapTimeToChance(percentThroughMonth),
-			}
-
-			progressions = append(progressions, p)
-		}
-
-		if yearsThroughLife == deathYear && month >= 3 || yearsThroughLife > deathYear {
-			p := berryProgression{
-				NextPhase: 8,
-				Chance:    deathChance,
-			}
-
-			progressions = append(progressions, p)
-		}
+		progressions = b.oneMonthProgression(progressions, month, 8, percentThroughMonth)
 	case 6:
-		if month == 1 {
-			p := berryProgression{
-				NextPhase: 7,
-				Chance:    mapTimeToChance(percentThroughMonth),
-			}
-
-			progressions = append(progressions, p)
-		}
-
-		if yearsThroughLife == deathYear && month >= 3 || yearsThroughLife > deathYear {
-			p := berryProgression{
-				NextPhase: 8,
-				Chance:    deathChance,
-			}
-
-			progressions = append(progressions, p)
-		}
+		progressions = b.oneMonthProgression(progressions, month, 1, percentThroughMonth)
 	case 7:
-		if month == 2 {
-			p := berryProgression{
-				NextPhase: 4,
-				Chance:    mapTimeToChance(percentThroughMonth),
-			}
-
-			progressions = append(progressions, p)
-		}
-
-		if yearsThroughLife == 5 && month >= deathYear || yearsThroughLife > deathYear {
-			p := berryProgression{
-				NextPhase: 8,
-				Chance:    deathChance,
-			}
-
-			progressions = append(progressions, p)
-		}
+		progressions = b.oneMonthProgression(progressions, month, 2, percentThroughMonth, 4)
 	case 8:
 	default:
 		panic("not a valid berry phase")
 	}
+	progressions = b.deathProgression(progressions, yearsThroughLife, month)
+
 	return
+}
+func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, chance float64, next ...berryPhase) []berryProgression {
+	var nextPhase berryPhase
+	if len(next) > 0 {
+		nextPhase = next[0]
+	} else {
+		nextPhase = b + 1
+	}
+
+	if month == growthMonth {
+		p := berryProgression{
+			NextPhase: nextPhase,
+			Chance:    mapTimeToChance(chance),
+		}
+
+		progressions = append(progressions, p)
+	}
+
+	return progressions
+}
+func (b berryPhase) twoMonthProgression(progressions []berryProgression, month int, growthStart int, hoursThroughMonth float64, hoursPerMonth float64) []berryProgression {
+	percentThrough := hoursThroughMonth / (2 * hoursPerMonth)
+
+	progressions = b.oneMonthProgression(progressions, month, growthStart, percentThrough)
+	progressions = b.oneMonthProgression(progressions, month, growthStart+1, percentThrough+0.5)
+
+	return progressions
+}
+func (b berryPhase) deathProgression(progressions []berryProgression, years int, month int) []berryProgression {
+	if years == deathYear && month >= 3 || years > deathYear {
+		p := berryProgression{
+			NextPhase: 8,
+			Chance:    deathChance,
+		}
+
+		progressions = append(progressions, p)
+	}
+
+	return progressions
 }
 
 // When given a value between 0 and 1 it maps the result
