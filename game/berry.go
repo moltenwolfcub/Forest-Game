@@ -60,29 +60,24 @@ const (
 func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression) {
 	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
-	month := time.GetMonth()
-
-	totalMins := int(time) / TPGM
-	totalHours := totalMins / MinsPerHour
-	hoursPerMonth := DaysPerMonth * HoursPerDay
-	hoursThroughMonth := totalHours % hoursPerMonth
-	percentThroughMonth := float64(hoursThroughMonth) / float64(hoursPerMonth)
+	month := time.MonthsThroughYear()
+	throughMonth := time.ThroughMonth()
 
 	switch b {
 	case 1:
-		progressions = b.oneMonthProgression(progressions, month, 1, percentThroughMonth)
+		progressions = b.oneMonthProgression(progressions, month, 1, throughMonth)
 	case 2:
-		progressions = b.twoMonthProgression(progressions, month, 2, float64(hoursThroughMonth), float64(hoursPerMonth))
+		progressions = b.twoMonthProgression(progressions, month, 2, throughMonth)
 	case 3:
-		progressions = b.twoMonthProgression(progressions, month, 4, float64(hoursThroughMonth), float64(hoursPerMonth))
+		progressions = b.twoMonthProgression(progressions, month, 4, throughMonth)
 	case 4:
-		progressions = b.twoMonthProgression(progressions, month, 6, float64(hoursThroughMonth), float64(hoursPerMonth))
+		progressions = b.twoMonthProgression(progressions, month, 6, throughMonth)
 	case 5:
-		progressions = b.oneMonthProgression(progressions, month, 8, percentThroughMonth)
+		progressions = b.oneMonthProgression(progressions, month, 8, throughMonth)
 	case 6:
-		progressions = b.oneMonthProgression(progressions, month, 1, percentThroughMonth)
+		progressions = b.oneMonthProgression(progressions, month, 1, throughMonth)
 	case 7:
-		progressions = b.oneMonthProgression(progressions, month, 2, percentThroughMonth, 4)
+		progressions = b.oneMonthProgression(progressions, month, 2, throughMonth, 4)
 	case 8:
 	default:
 		panic("not a valid berry phase")
@@ -91,7 +86,7 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 
 	return
 }
-func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, chance float64, next ...berryPhase) []berryProgression {
+func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
 	var nextPhase berryPhase
 	if len(next) > 0 {
 		nextPhase = next[0]
@@ -102,7 +97,7 @@ func (b berryPhase) oneMonthProgression(progressions []berryProgression, month i
 	if month == growthMonth {
 		p := berryProgression{
 			NextPhase: nextPhase,
-			Chance:    mapTimeToChance(chance),
+			Chance:    mapTimeToChance(throughMonth),
 		}
 
 		progressions = append(progressions, p)
@@ -110,8 +105,8 @@ func (b berryPhase) oneMonthProgression(progressions []berryProgression, month i
 
 	return progressions
 }
-func (b berryPhase) twoMonthProgression(progressions []berryProgression, month int, growthStart int, hoursThroughMonth float64, hoursPerMonth float64) []berryProgression {
-	percentThrough := hoursThroughMonth / (2 * hoursPerMonth)
+func (b berryPhase) twoMonthProgression(progressions []berryProgression, month int, growthStart int, throughMonth float64) []berryProgression {
+	percentThrough := throughMonth / 2
 
 	progressions = b.oneMonthProgression(progressions, month, growthStart, percentThrough)
 	progressions = b.oneMonthProgression(progressions, month, growthStart+1, percentThrough+0.5)

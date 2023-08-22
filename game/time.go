@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"golang.org/x/text/cases"
@@ -36,12 +35,13 @@ import (
 const (
 	TPGM = TPS
 
-	DAYLEN = TPGM * 60 * 20
-
 	MinsPerHour   = 60
 	HoursPerDay   = 20
 	DaysPerMonth  = 10
 	MonthsPerYear = 8
+
+	hoursPerMonth = HoursPerDay * DaysPerMonth
+	ticksPerDay   = TPGM * MinsPerHour * HoursPerDay
 
 	SolsticeMonthsOffset = 1
 )
@@ -114,27 +114,32 @@ func (t Time) String() string {
 	return fmt.Sprintf("%s %d/%d/%d %02d:%02d", season, days, months, years, hours, mins)
 }
 
-// Returns the number of minutes through the day it currently is
-func (t Time) GetTimeInDay() int {
-	ticks := math.Mod(float64(t), DAYLEN)
-	minutes := ticks / TPGM
-
-	return int(minutes)
+func (t Time) ThroughMonth() float64 {
+	return float64(t.HoursThroughMonth()) / float64(hoursPerMonth)
+}
+func (t Time) ThroughDay() float64 {
+	return float64(t.TicksThroughDay()) / float64(ticksPerDay)
 }
 
-func (t Time) GetMonth() int {
-	totalMins := t / TPGM
-	totalHours := totalMins / MinsPerHour
-	totalDays := totalHours / HoursPerDay
-	totalMonths := totalDays / DaysPerMonth
-	months := totalMonths%MonthsPerYear + 1
-	return int(months)
+func (t Time) Hours() int {
+	return int(float64(t) / TPGM / MinsPerHour)
+}
+func (t Time) Days() int {
+	return int(float64(t.Hours()) / HoursPerDay)
+}
+func (t Time) Months() int {
+	return int(float64(t.Days()) / DaysPerMonth)
 }
 
-// func (t Time) GetDayThroughMonth() int {
-// 	totalMins := t / TPGM
-// 	totalHours := totalMins / MinsPerHour
-// 	totalDays := totalHours / HoursPerDay
-// 	days := totalDays%DaysPerMonth + 1
-// 	return int(days)
-// }
+func (t Time) TicksThroughDay() int {
+	return int(t) % ticksPerDay
+}
+func (t Time) HoursThroughMonth() int {
+	return t.Hours() % (hoursPerMonth)
+}
+func (t Time) DaysThroughYear() int {
+	return t.Days() % (DaysPerMonth * MonthsPerYear)
+}
+func (t Time) MonthsThroughYear() int {
+	return t.Months()%MonthsPerYear + 1
+}

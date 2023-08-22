@@ -9,20 +9,19 @@ import (
 const transitionTime = 1.0
 
 func GetAmbientLight(time Time) color.Color {
-	currentDay := int(math.Floor(float64(time) / TPGM / MinsPerHour / HoursPerDay))
-	moddedDay := currentDay % (DaysPerMonth * MonthsPerYear)
+	day := time.DaysThroughYear()
 
-	sunriseStart, sunriseEnd := getSunriseTime(moddedDay)
-	sunsetStart, sunsetEnd := getSunsetTime(moddedDay)
+	sunriseStart, sunriseEnd := getSunriseTime(day)
+	sunsetStart, sunsetEnd := getSunsetTime(day)
 
-	currentHour := math.Mod(float64(time)/TPGM/MinsPerHour, HoursPerDay)
+	hour := time.ThroughDay() * HoursPerDay
 
-	if currentHour > sunriseEnd && currentHour < sunsetStart {
+	if hour > sunriseEnd && hour < sunsetStart {
 		return DayAmbientLightColor
-	} else if currentHour < sunriseStart || currentHour > sunsetEnd {
+	} else if hour < sunriseStart || hour > sunsetEnd {
 		return NightAmbientLightColor
 	} else {
-		return getPartialLighting(currentHour, sunriseStart, sunsetStart)
+		return getPartialLighting(hour, sunriseStart, sunsetStart)
 	}
 }
 
