@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -164,9 +163,9 @@ func (l lineartEnd) getCheckEnd(rect image.Rectangle) (point image.Point) {
 func (l lineartEnd) minMax(pos float64, potentialNew float64) (newPos float64) {
 	switch l {
 	case startSide:
-		newPos = math.Max(pos, potentialNew)
+		newPos = max(pos, potentialNew)
 	case endSide:
-		newPos = math.Min(pos, potentialNew)
+		newPos = min(pos, potentialNew)
 	}
 	return
 }

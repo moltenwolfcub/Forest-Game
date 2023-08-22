@@ -43,10 +43,10 @@ func (r River) findBounds(layer GameContext) image.Rectangle {
 	minX, minY := math.MaxFloat64, math.MaxFloat64
 	maxX, maxY := -math.MaxFloat64, -math.MaxFloat64
 	for _, seg := range r.GetHitbox(layer) {
-		minX = math.Min(float64(seg.Min.X), minX)
-		minY = math.Min(float64(seg.Min.Y), minY)
-		maxX = math.Max(float64(seg.Max.X), maxX)
-		maxY = math.Max(float64(seg.Max.Y), maxY)
+		minX = min(float64(seg.Min.X), minX)
+		minY = min(float64(seg.Min.Y), minY)
+		maxX = max(float64(seg.Max.X), maxX)
+		maxY = max(float64(seg.Max.Y), maxY)
 	}
 	bounds := image.Rect(int(minX), int(minY), int(maxX), int(maxY))
 	return bounds
