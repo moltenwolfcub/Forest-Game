@@ -18,7 +18,7 @@ type Game struct {
 	view Viewport
 
 	renderer Renderer
-	keys     Keybinds
+	input    InputHandler
 
 	timeHud TextElement
 	player  Player
@@ -33,11 +33,10 @@ func NewGame() Game {
 	startTime := 10
 
 	g := Game{
-		player:   NewPlayer(),
 		view:     NewViewport(),
 		renderer: NewRenderer(),
+		input:    NewInputHandler(),
 		time:     Time(TPGM * 60 * startTime),
-		keys:     NewKeybinds(),
 
 		trees: []Tree{},
 		inclines: []Incline{
@@ -53,6 +52,8 @@ func NewGame() Game {
 			}},
 		},
 	}
+	g.player = NewPlayer(&g)
+
 	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
 
 	g.timeHud = TextElement{
@@ -95,31 +96,9 @@ func (g *Game) Update() error {
 		g.berries[i].Update(g.time)
 	}
 
-	g.HandleInput()
 	g.player.Update(collideables, climbables, rivers)
 	g.view.UpdatePosition(g.player)
 	return nil
-}
-
-func (g *Game) HandleInput() {
-	var delta = image.Point{0, 0}
-
-	if g.keys.Forwards.Triggered() {
-		delta.Y -= 1
-	}
-	if g.keys.Backwards.Triggered() {
-		delta.Y += 1
-	}
-	if g.keys.Left.Triggered() {
-		delta.X -= 1
-	}
-	if g.keys.Right.Triggered() {
-		delta.X += 1
-	}
-	g.player.Delta = delta
-
-	g.player.Climbing = g.keys.Climb.Triggered()
-	g.player.RiverJumping = g.keys.RiverJump.Triggered()
 }
 
 func (g Game) Draw(screen *ebiten.Image) {

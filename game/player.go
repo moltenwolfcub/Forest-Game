@@ -15,16 +15,15 @@ const (
 )
 
 type Player struct {
-	Delta            image.Point
+	game             *Game
 	hitbox           image.Rectangle
-	Climbing         bool
-	RiverJumping     bool
 	currentMoveSpeed float64
 }
 
-func NewPlayer() Player {
+func NewPlayer(game *Game) Player {
 	width, height := assets.Player.Bounds().Size().X, assets.Player.Bounds().Size().Y
 	return Player{
+		game: game,
 		hitbox: image.Rectangle{
 			Min: image.Point{-100, -100},
 			Max: image.Point{width - 100, height - 100},
@@ -97,7 +96,7 @@ func (p *Player) Update(collidables []HasHitbox, climbables []Climbable, rivers 
 }
 
 func (p *Player) handleInteractions(interactables []HasHitbox) {
-	if p.RiverJumping {
+	if p.game.input.IsJumping() {
 
 		newPos, found := p.GetSmallestJump(interactables)
 
@@ -227,7 +226,7 @@ func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64
 
 func (p *Player) tryClimb(currentClimable Climbable) {
 	if currentClimable != nil {
-		if p.Climbing {
+		if p.game.input.IsClimbing() {
 			p.hitbox = p.hitbox.Sub(image.Point{
 				Y: int(p.currentMoveSpeed),
 			})
@@ -255,8 +254,8 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 	steps := int(scalar)
 	stepSize := scalar / float64(steps)
 
-	x := image.Point{X: int(float64(p.Delta.X) * stepSize)}
-	y := image.Point{Y: int(float64(p.Delta.Y) * stepSize)}
+	x := image.Point{X: int(float64(-p.game.input.LeftImpulse()) * stepSize)}
+	y := image.Point{Y: int(float64(-p.game.input.ForwardsImpulse()) * stepSize)}
 
 	climbingPreMove := p.findCurrentClimable(climbables) == nil
 
@@ -272,11 +271,11 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 			continue
 		}
 		p.hitbox = p.hitbox.Add(y)
-		if p.Climbing && p.findCurrentClimable(climbables) != nil && y.Y <= 0 {
+		if p.game.input.IsClimbing() && p.findCurrentClimable(climbables) != nil && y.Y <= 0 {
 			//if hitting the bottom of a climbable while trying to climb don't fix collisions
 			continue
 		}
-		if !p.Climbing && p.findCurrentClimable(climbables) != nil && y.Y >= 0 {
+		if !p.game.input.IsClimbing() && p.findCurrentClimable(climbables) != nil && y.Y >= 0 {
 			//if hitting the top of a climbable and not climbing don't fix collisions
 			continue
 		}
