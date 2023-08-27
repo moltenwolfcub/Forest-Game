@@ -86,19 +86,23 @@ func (p Player) GetZ() int {
 	return 0
 }
 
-func (p *Player) Update(collidables []HasHitbox, climbables []Climbable, rivers []HasHitbox) {
-	currentClimeable := p.findCurrentClimable(climbables)
-	p.currentMoveSpeed = p.calculateMovementSpeed(currentClimeable)
+func (p *Player) Update() {
+	p.currentMoveSpeed = p.calculateMovementSpeed()
 
-	p.movePlayer(collidables, climbables)
-	p.tryClimb(currentClimeable)
-	p.handleInteractions(rivers)
+	p.movePlayer()
+	p.tryClimb()
+	p.handleInteractions()
 }
 
-func (p *Player) handleInteractions(interactables []HasHitbox) {
+func (p *Player) handleInteractions() {
 	if p.game.input.IsJumping() {
 
-		newPos, found := p.GetSmallestJump(interactables)
+		rivers := []HasHitbox{}
+		for _, river := range p.game.rivers {
+			rivers = append(rivers, HasHitbox(river))
+		}
+
+		newPos, found := p.GetSmallestJump(rivers)
 
 		if found {
 			p.hitbox = p.hitbox.Sub(p.hitbox.Min).Add(newPos)
@@ -217,15 +221,17 @@ func updateJumpIfSmaller(before image.Point, new image.Point, dist *float64, poi
 	}
 }
 
-func (p Player) calculateMovementSpeed(currentClimable Climbable) (speed float64) {
-	if currentClimable == nil {
+func (p Player) calculateMovementSpeed() (speed float64) {
+	currentClimbable := p.findCurrentClimbable()
+
+	if currentClimbable == nil {
 		return playerMoveSpeed
 	}
-	return playerMoveSpeed * currentClimable.GetClimbSpeed()
+	return playerMoveSpeed * currentClimbable.GetClimbSpeed()
 }
 
-func (p *Player) tryClimb(currentClimable Climbable) {
-	if currentClimable != nil {
+func (p *Player) tryClimb() {
+	if p.findCurrentClimbable() != nil {
 		if p.game.input.IsClimbing() {
 			p.hitbox = p.hitbox.Sub(image.Point{
 				Y: int(p.currentMoveSpeed),
@@ -238,7 +244,13 @@ func (p *Player) tryClimb(currentClimable Climbable) {
 	}
 }
 
-func (p Player) findCurrentClimable(climbables []Climbable) (found Climbable) {
+func (p Player) findCurrentClimbable() (found Climbable) {
+
+	climbables := []Climbable{}
+	for _, incline := range p.game.inclines {
+		climbables = append(climbables, Climbable(incline))
+	}
+
 	for _, c := range climbables {
 		if c.Overlaps(Collision, p.GetHitbox(Collision)) {
 			found = c
@@ -248,7 +260,7 @@ func (p Player) findCurrentClimable(climbables []Climbable) (found Climbable) {
 	return
 }
 
-func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
+func (p *Player) movePlayer() {
 	scalar := p.currentMoveSpeed
 
 	steps := int(scalar)
@@ -257,33 +269,40 @@ func (p *Player) movePlayer(collidables []HasHitbox, climbables []Climbable) {
 	x := image.Point{X: int(float64(-p.game.input.LeftImpulse()) * stepSize)}
 	y := image.Point{Y: int(float64(-p.game.input.ForwardsImpulse()) * stepSize)}
 
-	climbingPreMove := p.findCurrentClimable(climbables) == nil
+	climbingPreMove := p.findCurrentClimbable() == nil
 
 	for i := 0; i < steps; i++ {
 
 		p.hitbox = p.hitbox.Add(x)
 		if climbingPreMove {
-			p.fixCollisions(collidables, x)
+			p.fixCollisions(x)
 		}
 
-		if p.findCurrentClimable(climbables) != nil {
+		if p.findCurrentClimbable() != nil {
 			//if currently climbing or decending Y-input should be ignored
 			continue
 		}
 		p.hitbox = p.hitbox.Add(y)
-		if p.game.input.IsClimbing() && p.findCurrentClimable(climbables) != nil && y.Y <= 0 {
+		if p.game.input.IsClimbing() && p.findCurrentClimbable() != nil && y.Y <= 0 {
 			//if hitting the bottom of a climbable while trying to climb don't fix collisions
 			continue
 		}
-		if !p.game.input.IsClimbing() && p.findCurrentClimable(climbables) != nil && y.Y >= 0 {
+		if !p.game.input.IsClimbing() && p.findCurrentClimbable() != nil && y.Y >= 0 {
 			//if hitting the top of a climbable and not climbing don't fix collisions
 			continue
 		}
-		p.fixCollisions(collidables, y)
+		p.fixCollisions(y)
 	}
 }
 
-func (p *Player) fixCollisions(collidables []HasHitbox, direction image.Point) {
+func (p *Player) fixCollisions(direction image.Point) {
+	collidables := []HasHitbox{}
+	for _, incline := range p.game.inclines {
+		collidables = append(collidables, HasHitbox(incline))
+	}
+	for _, river := range p.game.rivers {
+		collidables = append(collidables, HasHitbox(river))
+	}
 	for _, c := range collidables {
 		if c.Overlaps(Collision, p.GetHitbox(Collision)) {
 			p.hitbox = p.hitbox.Sub(direction)

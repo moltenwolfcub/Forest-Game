@@ -71,23 +71,6 @@ func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Recta
 }
 
 func (g *Game) Update() error {
-	collideables := []HasHitbox{}
-	for _, incline := range g.inclines {
-		collideables = append(collideables, HasHitbox(incline))
-	}
-	for _, river := range g.rivers {
-		collideables = append(collideables, HasHitbox(river))
-	}
-
-	climbables := []Climbable{}
-	for _, incline := range g.inclines {
-		climbables = append(climbables, Climbable(incline))
-	}
-
-	rivers := []HasHitbox{}
-	for _, river := range g.rivers {
-		rivers = append(rivers, HasHitbox(river))
-	}
 
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
@@ -96,7 +79,7 @@ func (g *Game) Update() error {
 		g.berries[i].Update(g.time)
 	}
 
-	g.player.Update(collideables, climbables, rivers)
+	g.player.Update()
 	g.view.UpdatePosition(g.player)
 	return nil
 }
