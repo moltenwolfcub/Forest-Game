@@ -2,35 +2,10 @@ package game
 
 import (
 	"image"
-	"image/color"
-	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
-	"github.com/hajimehoshi/ebiten/v2/text"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/opentype"
+	"github.com/moltenwolfcub/Forest-Game/assets"
 )
-
-var (
-	drawFont font.Face
-)
-
-func init() {
-	loadedFont, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
-	if err != nil {
-		panic(err)
-	}
-
-	drawFont, err = opentype.NewFace(loadedFont, &opentype.FaceOptions{
-		Size:    24,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	})
-	if err != nil {
-		panic(err)
-	}
-}
 
 type TextAlignment int
 
@@ -44,10 +19,21 @@ const (
 )
 
 type TextElement struct {
-	Contents     string
-	pos          image.Point
-	cachedBounds image.Rectangle
-	Alignment    TextAlignment
+	Contents  string
+	Alignment TextAlignment
+	Font      assets.Font
+	pos       image.Point
+
+	runeCache map[rune]*ebiten.Image
+}
+
+func NewTextElement(contents string, alignment TextAlignment, font assets.Font) TextElement {
+	return TextElement{
+		Contents:  contents,
+		Alignment: alignment,
+		Font:      font,
+		runeCache: make(map[rune]*ebiten.Image),
+	}
 }
 
 func (t TextElement) Overlaps(layer GameContext, other []image.Rectangle) bool {
@@ -57,16 +43,45 @@ func (t TextElement) Origin(GameContext) image.Point {
 	return t.pos
 }
 func (t TextElement) Size(GameContext) image.Point {
-	return t.cachedBounds.Size()
+	return image.Pt(len(t.Contents)*t.Font.CharWidth, t.Font.CharHeight)
 }
 func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
-		t.cachedBounds.Add(t.pos),
+		{
+			Min: t.Origin(layer),
+			Max: t.Origin(layer).Add(t.Size(layer)),
+		},
 	}
 }
 
-func (t TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
-	text.Draw(screen, t.Contents, drawFont, pos.X, pos.Y, color.White)
+func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
+	glyphs := []*ebiten.Image{}
+	for _, c := range t.Contents {
+		cachedGlyph, ok := t.runeCache[c]
+		if ok {
+			glyphs = append(glyphs, cachedGlyph)
+			continue
+		}
+
+		coords := t.Font.GetRuneCoords(c)
+		rect := image.Rectangle{
+			Min: coords,
+			Max: coords.Add(image.Pt(t.Font.CharWidth, t.Font.CharHeight)),
+		}
+
+		glyph := assets.Fonts.GetTexture(t.Font.TexturePath).SubImage(rect).(*ebiten.Image)
+		t.runeCache[c] = glyph
+
+		glyphs = append(glyphs, glyph)
+	}
+
+	for i, glyph := range glyphs {
+		options := ebiten.DrawImageOptions{}
+		options.GeoM.Translate(float64(pos.X), float64(pos.Y))
+		options.GeoM.Translate(float64(i*t.Font.CharWidth), float64(-t.Font.CharHeight+t.Font.YShift))
+
+		screen.DrawImage(glyph, &options)
+	}
 }
 
 var (
@@ -74,11 +89,10 @@ var (
 )
 
 func (t *TextElement) Update() {
-	t.cachedBounds = text.BoundString(drawFont, t.Contents)
 	switch t.Alignment {
 	case TopCentre:
-		t.pos.Y = int(math.Abs(float64(drawFont.Metrics().CapHeight.Ceil()))) + 10
-		imgSize := t.cachedBounds.Dx()
+		t.pos.Y = t.Font.Height + 10
+		imgSize := len(t.Contents) * t.Font.CharWidth
 		t.pos.X = screenMiddleW - imgSize/2
 	}
 }

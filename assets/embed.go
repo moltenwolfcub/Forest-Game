@@ -10,4 +10,7 @@ var (
 
 	//go:embed states
 	states embed.FS
+
+	//go:embed fonts
+	fonts embed.FS
 )
