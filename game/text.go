@@ -5,15 +5,15 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 )
 
 var (
-	fontFace font.Face
+	drawFont font.Face
 )
 
 func init() {
@@ -22,7 +22,7 @@ func init() {
 		panic(err)
 	}
 
-	fontFace, err = opentype.NewFace(loadedFont, &opentype.FaceOptions{
+	drawFont, err = opentype.NewFace(loadedFont, &opentype.FaceOptions{
 		Size:    24,
 		DPI:     72,
 		Hinting: font.HintingFull,
@@ -66,7 +66,7 @@ func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 }
 
 func (t TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
-	text.Draw(screen, t.Contents, fontFace, pos.X, pos.Y, color.White)
+	text.Draw(screen, t.Contents, drawFont, pos.X, pos.Y, color.White)
 }
 
 var (
@@ -74,10 +74,10 @@ var (
 )
 
 func (t *TextElement) Update() {
-	t.cachedBounds = text.BoundString(fontFace, t.Contents)
+	t.cachedBounds = text.BoundString(drawFont, t.Contents)
 	switch t.Alignment {
 	case TopCentre:
-		t.pos.Y = int(math.Abs(float64(fontFace.Metrics().CapHeight.Ceil()))) + 10
+		t.pos.Y = int(math.Abs(float64(drawFont.Metrics().CapHeight.Ceil()))) + 10
 		imgSize := t.cachedBounds.Dx()
 		t.pos.X = screenMiddleW - imgSize/2
 	}
