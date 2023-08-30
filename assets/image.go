@@ -23,8 +23,8 @@ func LoadPNG(file string) *ebiten.Image {
 }
 
 var (
-	Player *ebiten.Image = LoadPNG("player")
-	Tree   *ebiten.Image = LoadPNG("tree")
+	Player *ebiten.Image = LoadPNG("entity/player")
+	Tree   *ebiten.Image = LoadPNG("object/tree")
 
 	Icon16  *ebiten.Image = LoadPNG("icon/icon16")
 	Icon22  *ebiten.Image = LoadPNG("icon/icon22")
