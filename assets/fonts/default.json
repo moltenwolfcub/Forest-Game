@@ -2,6 +2,7 @@
 	"height": 8,
 	"width": 8,
 	"y-shift": 0,
+	"spacing": 1,
 	"rows": 6,
 	"columns": 16,
 	"texture": "font/default",

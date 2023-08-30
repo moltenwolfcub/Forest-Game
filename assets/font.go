@@ -32,6 +32,7 @@ type Font struct {
 	CharHeight     int        `json:"height"`
 	CharWidth      int        `json:"width"`
 	YShift         int        `json:"y-shift"`
+	Spacing        int        `json:"spacing"`
 	Rows           int        `json:"rows"`
 	Cols           int        `json:"columns"`
 	TexturePath    string     `json:"texture"`

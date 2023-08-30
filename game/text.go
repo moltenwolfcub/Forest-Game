@@ -54,11 +54,6 @@ func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 	}
 }
 
-const (
-	//the number of pixels between each character
-	letterSpacing = 1
-)
-
 func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 	glyphs := []*ebiten.Image{}
 	for _, c := range t.Contents {
@@ -83,7 +78,7 @@ func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 	for i, glyph := range glyphs {
 		options := ebiten.DrawImageOptions{}
 		options.GeoM.Translate(float64(pos.X), float64(pos.Y))
-		options.GeoM.Translate(float64(i*(t.Font.CharWidth+letterSpacing)), float64(-t.Font.CharHeight+t.Font.YShift))
+		options.GeoM.Translate(float64(i*(t.Font.CharWidth+t.Font.Spacing)), float64(-t.Font.CharHeight+t.Font.YShift))
 
 		screen.DrawImage(glyph, &options)
 	}
