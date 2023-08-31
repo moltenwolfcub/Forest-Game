@@ -67,7 +67,7 @@ func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Recta
 	return
 }
 
-func (g *Game) Update() error {
+func (g *Game) Update() (err error) {
 
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
@@ -76,8 +76,14 @@ func (g *Game) Update() error {
 		g.berries[i].Update()
 	}
 
-	g.player.Update()
-	g.view.UpdatePosition(g.player)
+	err = g.player.Update()
+	if err != nil {
+		return err
+	}
+	err = g.view.UpdatePosition(g.player)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -104,7 +110,12 @@ func (g Game) Draw(screen *ebiten.Image) {
 		&g.timeHud,
 	}
 
-	screen.DrawImage(g.renderer.Render(mapElements, lights, hudElements), nil)
+	image, err := g.renderer.Render(mapElements, lights, hudElements)
+	if err != nil {
+		panic(err)
+	}
+
+	screen.DrawImage(image, nil)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {

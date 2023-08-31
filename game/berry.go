@@ -171,42 +171,76 @@ func NewBerry(game *Game, position image.Point) Berry {
 	return created
 }
 
-func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) bool {
+func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
 	return DefaultHitboxOverlaps(layer, b, other)
 }
 
-func (b Berry) Origin(GameContext) image.Point {
-	return b.pos
+func (b Berry) Origin(GameContext) (image.Point, error) {
+	return b.pos, nil
 }
 
-func (b Berry) Size(GameContext) image.Point {
-	return b.GetTexture().Bounds().Size()
+func (b Berry) Size(GameContext) (image.Point, error) {
+	texture, err := b.GetTexture()
+	if err != nil {
+		return image.Point{}, err
+	}
+	return texture.Bounds().Size(), nil
 }
 
-func (b Berry) GetHitbox(layer GameContext) []image.Rectangle {
-	width := b.Size(layer).X
-	height := b.Size(layer).Y
-	offsetRect := b.GetTexture().Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
-	return []image.Rectangle{offsetRect}
+func (b Berry) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
+	size, err := b.Size(layer)
+	if err != nil {
+		return nil, err
+	}
+	texture, err := b.GetTexture()
+	if err != nil {
+		return nil, err
+	}
+
+	width := size.X
+	height := size.Y
+	offsetRect := texture.Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
+	return []image.Rectangle{offsetRect}, nil
 }
 
-func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
-	width := b.Size(Render).X
-	height := b.Size(Render).Y
+func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) error {
+	size, err := b.Size(Render)
+	if err != nil {
+		return err
+	}
+	texture, err := b.GetTexture()
+	if err != nil {
+		return err
+	}
+
+	width := size.X
+	height := size.Y
 
 	options := ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 	options.GeoM.Translate(-float64(width/2), -float64(height))
 
-	screen.DrawImage(b.GetTexture(), &options)
+	screen.DrawImage(texture, &options)
+	return nil
 }
 
-func (b Berry) GetZ() int {
-	playerFeet := b.game.player.GetHitbox(Render)[0].Max.Y
-	if playerFeet >= b.GetHitbox(Render)[0].Max.Y {
-		return -1
+func (b Berry) GetZ() (int, error) {
+	playerHitbox, err := b.game.player.GetHitbox(Render)
+	if err != nil {
+		return 0, err
+	}
+
+	playerFeet := playerHitbox[0].Max.Y
+
+	hitbox, err := b.GetHitbox(Render)
+	if err != nil {
+		return 0, err
+	}
+
+	if playerFeet >= hitbox[0].Max.Y {
+		return -1, nil
 	} else {
-		return 1
+		return 1, nil
 	}
 }
 
@@ -215,9 +249,12 @@ const (
 	berryTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
 )
 
-func (b Berry) GetTexture() *ebiten.Image {
-	texturePath := assets.BerryStates.GetTexturePath(b.state.ToTextureKey())
-	return assets.Berries.GetTexture(texturePath)
+func (b Berry) GetTexture() (*ebiten.Image, error) {
+	texturePath, err := assets.BerryStates.GetTexturePath(b.state.ToTextureKey())
+	if err != nil {
+		return nil, err
+	}
+	return assets.Berries.GetTexture(texturePath), nil
 }
 
 func (b *Berry) SetCooldown(tickOnThisInterval bool) {

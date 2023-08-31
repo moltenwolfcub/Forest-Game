@@ -20,31 +20,27 @@ func NewTree() Tree {
 	}
 }
 
-func (t Tree) Overlaps(layer GameContext, other []image.Rectangle) bool {
+func (t Tree) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
 	return DefaultHitboxOverlaps(layer, t, other)
 }
-func (t Tree) Origin(GameContext) image.Point {
-	return t.hitbox.Min
+func (t Tree) Origin(GameContext) (image.Point, error) {
+	return t.hitbox.Min, nil
 }
-func (t Tree) Size(GameContext) image.Point {
-	return t.hitbox.Size()
+func (t Tree) Size(GameContext) (image.Point, error) {
+	return t.hitbox.Size(), nil
 }
-func (t Tree) GetHitbox(layer GameContext) []image.Rectangle {
-	return []image.Rectangle{
-		t.hitbox,
-	}
+func (t Tree) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
+	return []image.Rectangle{t.hitbox}, nil
 }
 
-func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) {
+func (t Tree) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	options := ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
 	screen.DrawImage(assets.Tree, &options)
+	return nil
 }
 
-func (t Tree) GetZ() int {
-	return -1
-}
-
-func (t *Tree) Update() {
+func (t Tree) GetZ() (int, error) {
+	return -1, nil
 }

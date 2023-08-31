@@ -2,7 +2,9 @@ package assets
 
 import (
 	"encoding/json"
-	"fmt"
+
+	"github.com/moltenwolfcub/Forest-Game/errors"
+	"golang.org/x/exp/maps"
 )
 
 func LoadTextureMapping(file string) Textures {
@@ -26,10 +28,10 @@ type Textures struct {
 	Mapping map[string]string `json:"states"`
 }
 
-func (t Textures) GetTexturePath(textureKey string) string {
+func (t Textures) GetTexturePath(textureKey string) (string, error) {
 	path, ok := t.Mapping[textureKey]
 	if ok {
-		return path
+		return path, nil
 	}
-	panic(fmt.Sprintf("TextureKey doesn't know how to handle texture key: %s\n\nKnown states are: %v", textureKey, t.Mapping))
+	return "", errors.NewUnknownTextureKeyError(textureKey, maps.Keys(t.Mapping))
 }

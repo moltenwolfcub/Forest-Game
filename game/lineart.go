@@ -14,7 +14,7 @@ var (
 // The image given should be a single rect out of the full object so that it can be
 // computed seperately. The new offset from the original image is also returned so the
 // image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
-func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*ebiten.Image, *ebiten.DrawImageOptions) {
+func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*ebiten.Image, *ebiten.DrawImageOptions, error) {
 
 	//image setup
 	imgOffset := ebiten.DrawImageOptions{}
@@ -31,20 +31,37 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
 
 	//line art
-	drawSide(img, thisSeg, fullObj, fullHorizontal, top)
-	drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
-	drawSide(img, thisSeg, fullObj, fullVertical, left)
-	drawSide(img, thisSeg, fullObj, fullVertical, right)
+	err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = drawSide(img, thisSeg, fullObj, fullVertical, left)
+	if err != nil {
+		return nil, nil, err
+	}
+	err = drawSide(img, thisSeg, fullObj, fullVertical, right)
+	if err != nil {
+		return nil, nil, err
+	}
 
-	return img, &imgOffset
+	return img, &imgOffset, nil
 }
 
-func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) {
-	start := getPointOnBounds(side, startSide, thisSeg, fullObj.GetHitbox(Render), edge)
-	end := getPointOnBounds(side, endSide, thisSeg, fullObj.GetHitbox(Render), edge)
+func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {
+	fullObjHitbox, err := fullObj.GetHitbox(Render)
+	if err != nil {
+		return err
+	}
+
+	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
+	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
 	diff := int(end - start)
 	if diff < lineartW {
-		return
+		return nil
 	}
 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
@@ -58,6 +75,7 @@ func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox
 
 	toDrawTo.DrawImage(partialSide, &lineartOptions)
 	partialSide.Dispose()
+	return nil
 }
 
 func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
