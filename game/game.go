@@ -56,10 +56,7 @@ func NewGame() Game {
 
 	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
 
-	g.timeHud = TextElement{
-		Contents:  g.time.String(),
-		Alignment: TopCentre,
-	}
+	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g
 }
 func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
@@ -104,7 +101,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 	lights := []Lightable{}
 
 	hudElements := []Drawable{
-		g.timeHud,
+		&g.timeHud,
 	}
 
 	screen.DrawImage(g.renderer.Render(g.view, g.time, mapElements, lights, hudElements), nil)

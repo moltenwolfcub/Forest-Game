@@ -36,35 +36,37 @@ var (
 	Icon256 *ebiten.Image = LoadPNG("icon/icon256")
 	Icon512 *ebiten.Image = LoadPNG("icon/icon512")
 
-	Berries BerryCache = NewBerryCache()
+	Berries TextureCache = NewTextureCache()
+
+	Fonts TextureCache = NewTextureCache()
 )
 
-type BerryCache struct {
+type TextureCache struct {
 	cache map[string]*ebiten.Image
 }
 
-func NewBerryCache() BerryCache {
-	return BerryCache{
+func NewTextureCache() TextureCache {
+	return TextureCache{
 		cache: make(map[string]*ebiten.Image),
 	}
 }
 
-func (b *BerryCache) GetTexture(id string) *ebiten.Image {
-	img, ok := b.cache[id]
+func (t *TextureCache) GetTexture(id string) *ebiten.Image {
+	img, ok := t.cache[id]
 	if ok {
 		return img
 	}
 	img = LoadPNG(id)
-	b.cache[id] = img
+	t.cache[id] = img
 	return img
 }
 
-func (b BerryCache) String() string {
+func (t TextureCache) String() string {
 	str := "["
-	length := len(b.cache)
+	length := len(t.cache)
 	i := 1
 
-	for k := range b.cache {
+	for k := range t.cache {
 		str += k
 		if i < length {
 			str += ", "
