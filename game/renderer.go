@@ -7,6 +7,8 @@ import (
 )
 
 type Renderer struct {
+	game *Game
+
 	layeredImage  *ebiten.Image
 	bgLayer       *ebiten.Image
 	mapLayer      *ebiten.Image
@@ -14,8 +16,10 @@ type Renderer struct {
 	hudLayer      *ebiten.Image
 }
 
-func NewRenderer() Renderer {
+func NewRenderer(game *Game) Renderer {
 	render := Renderer{
+		game: game,
+
 		layeredImage:  ebiten.NewImage(WindowWidth, WindowHeight),
 		bgLayer:       ebiten.NewImage(WindowWidth, WindowHeight),
 		mapLayer:      ebiten.NewImage(WindowWidth, WindowHeight),
@@ -26,12 +30,12 @@ func NewRenderer() Renderer {
 	return render
 }
 
-func (r *Renderer) Render(view Viewport, time Time, mapElements []DepthAwareDrawable, lights []Lightable, hudElements []Drawable) *ebiten.Image {
+func (r *Renderer) Render(mapElements []DepthAwareDrawable, lights []Lightable, hudElements []Drawable) *ebiten.Image {
 	r.pre()
 	r.bg()
-	r.main(view, mapElements)
-	r.lighting(view, time, lights)
-	r.hud(view, hudElements)
+	r.main(mapElements)
+	r.lighting(lights)
+	r.hud(hudElements)
 	r.post()
 
 	return r.layeredImage
@@ -60,24 +64,24 @@ func (r *Renderer) post() {
 func (r *Renderer) bg() {
 	r.bgLayer.Fill(BackgroundColor)
 }
-func (r *Renderer) main(view Viewport, elements []DepthAwareDrawable) {
+func (r *Renderer) main(elements []DepthAwareDrawable) {
 	sort.SliceStable(elements, func(i, j int) bool {
 		return elements[i].GetZ() < elements[j].GetZ()
 	})
 
 	for _, e := range elements {
-		view.DrawToMap(r.mapLayer, e)
+		r.game.view.DrawToMap(r.mapLayer, e)
 	}
 }
-func (r *Renderer) lighting(view Viewport, time Time, elements []Lightable) {
-	r.lightingLayer.Fill(GetAmbientLight(time))
+func (r *Renderer) lighting(elements []Lightable) {
+	r.lightingLayer.Fill(GetAmbientLight(r.game.time))
 
 	for _, e := range elements {
-		view.DrawToLighting(r.lightingLayer, e)
+		r.game.view.DrawToLighting(r.lightingLayer, e)
 	}
 }
-func (r *Renderer) hud(view Viewport, elements []Drawable) {
+func (r *Renderer) hud(elements []Drawable) {
 	for _, e := range elements {
-		view.DrawToHUD(r.hudLayer, e)
+		r.game.view.DrawToHUD(r.hudLayer, e)
 	}
 }

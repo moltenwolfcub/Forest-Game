@@ -29,14 +29,13 @@ type Game struct {
 	berries  []Berry
 }
 
-func NewGame() Game {
+func NewGame() *Game {
 	startTime := 10
 
-	g := Game{
-		view:     NewViewport(),
-		renderer: NewRenderer(),
-		input:    NewInputHandler(),
-		time:     Time(TPGM * 60 * startTime),
+	g := &Game{
+		view:  NewViewport(),
+		input: NewInputHandler(),
+		time:  Time(TPGM * 60 * startTime),
 
 		trees: []Tree{},
 		inclines: []Incline{
@@ -52,7 +51,8 @@ func NewGame() Game {
 			}},
 		},
 	}
-	g.player = NewPlayer(&g)
+	g.player = NewPlayer(g)
+	g.renderer = NewRenderer(g)
 
 	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
 
@@ -104,7 +104,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 		&g.timeHud,
 	}
 
-	screen.DrawImage(g.renderer.Render(g.view, g.time, mapElements, lights, hudElements), nil)
+	screen.DrawImage(g.renderer.Render(mapElements, lights, hudElements), nil)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
