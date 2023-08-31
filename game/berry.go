@@ -202,7 +202,12 @@ func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
 }
 
 func (b Berry) GetZ() int {
-	return 1
+	playerFeet := b.game.player.GetHitbox(Render)[0].Max.Y
+	if playerFeet >= b.GetHitbox(Render)[0].Max.Y {
+		return -1
+	} else {
+		return 1
+	}
 }
 
 const (
