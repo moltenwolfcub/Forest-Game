@@ -145,15 +145,17 @@ func (b berryProgression) testChance() bool {
 }
 
 type Berry struct {
+	game               *Game
 	state              state.State
 	pos                image.Point
 	randomTickCooldown int
 	plantedTime        Time
 }
 
-func NewBerry(position image.Point, time Time) Berry {
+func NewBerry(game *Game, position image.Point) Berry {
 	created := Berry{
-		plantedTime: time,
+		game:        game,
+		plantedTime: game.time,
 		pos:         position,
 	}
 	stateBuilder := state.StateBuilder{}
@@ -164,7 +166,7 @@ func NewBerry(position image.Point, time Time) Berry {
 
 	created.state = stateBuilder.Build()
 
-	created.SetCooldown(time, true)
+	created.SetCooldown(true)
 
 	return created
 }
@@ -213,9 +215,9 @@ func (b Berry) GetTexture() *ebiten.Image {
 	return assets.Berries.GetTexture(texturePath)
 }
 
-func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
-	timeLeftInInterval := berryTickInterval - (int(time) % berryTickInterval)
-	if tickOnThis {
+func (b *Berry) SetCooldown(tickOnThisInterval bool) {
+	timeLeftInInterval := berryTickInterval - (int(b.game.time) % berryTickInterval)
+	if tickOnThisInterval {
 		throughThis := rand.Intn(int(float64(timeLeftInInterval) * 0.95))
 		b.randomTickCooldown = throughThis
 	} else {
@@ -224,13 +226,13 @@ func (b *Berry) SetCooldown(time Time, tickOnThis bool) {
 	}
 }
 
-func (b *Berry) Update(time Time) {
+func (b *Berry) Update() {
 	b.randomTickCooldown -= args.TimeRateFlag
 
 	if b.randomTickCooldown <= 0 {
 
 		currentPhase := state.GetIntFromState[berryPhase](b.state, "age")
-		progression := currentPhase.CheckForProgression(time, int(time-b.plantedTime))
+		progression := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
 
 		for _, p := range progression {
 			if p.testChance() && p.NextPhase != 0 {
@@ -238,6 +240,6 @@ func (b *Berry) Update(time Time) {
 				break
 			}
 		}
-		b.SetCooldown(time, false)
+		b.SetCooldown(false)
 	}
 }

@@ -54,7 +54,7 @@ func NewGame() *Game {
 	g.player = NewPlayer(g)
 	g.renderer = NewRenderer(g)
 
-	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
+	g.berries = []Berry{NewBerry(g, image.Pt(256, -128))}
 
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g
@@ -73,7 +73,7 @@ func (g *Game) Update() error {
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
 	for i := range g.berries {
-		g.berries[i].Update(g.time)
+		g.berries[i].Update()
 	}
 
 	g.player.Update()
