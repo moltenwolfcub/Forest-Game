@@ -69,7 +69,11 @@ func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 			continue
 		}
 
-		coords := t.Font.GetRuneCoords(c)
+		coords, err := t.Font.GetRuneCoords(c)
+		if err != nil {
+			panic(err)
+		}
+
 		rect := image.Rectangle{
 			Min: coords,
 			Max: coords.Add(image.Pt(t.Font.CharWidth, t.Font.CharHeight)),

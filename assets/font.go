@@ -2,30 +2,44 @@ package assets
 
 import (
 	"encoding/json"
-	"fmt"
 	"image"
+
+	"github.com/moltenwolfcub/Forest-Game/errors"
 )
 
-func LoadFont(file string) Font {
+func LoadFont(file string) (Font, error) {
 	bytes, err := fonts.ReadFile("fonts/" + file + ".json")
 	if err != nil {
-		panic(err)
+		return Font{}, err
 	}
 
 	var font Font
 	if err = json.Unmarshal(bytes, &font); err != nil {
-		panic(err)
+		return Font{}, err
 	}
 
-	font.Validate()
-	font.UpdateResources()
+	if err = font.Validate(); err != nil {
+		return Font{}, err
+	}
+	if err = font.UpdateResources(); err != nil {
+		return Font{}, err
+	}
 
-	return font
+	return font, nil
 }
 
 var (
-	DefaultFont Font = LoadFont("default")
+	DefaultFont Font
 )
+
+func init() {
+	var err error
+	DefaultFont, err = LoadFont("default")
+
+	if err != nil {
+		panic(err)
+	}
+}
 
 // A monospace bitmap font
 type Font struct {
@@ -44,29 +58,31 @@ type Font struct {
 	unknown        image.Point
 }
 
-func (f Font) Validate() {
-	if l := len(f.UnicodeMapping); l != f.Rows {
-		panic(fmt.Sprintf("Font has the wrong number of rows defined in the mapping than expected. Found %d, Expected %d.", l, f.Rows))
+func (f Font) Validate() error {
+	if f.CharHeight <= 0 {
+		return errors.NewCharacterSizeError(errors.AxisVertical, f.CharHeight)
 	}
-	for i, row := range f.UnicodeMapping {
-		if l := len(row); l != f.Cols {
-			panic(fmt.Sprintf("Font has the wrong number of columns on row %d defined in the mapping than expected. Found %d, Expected %d.", i, l, f.Cols))
-		}
+	if f.CharWidth <= 0 {
+		return errors.NewCharacterSizeError(errors.AxisHorizontal, f.CharWidth)
 	}
 
 	if f.YShift > f.CharHeight {
-		panic(fmt.Sprintf("Font's Y-Shift %d is lower than the character height %d.", f.YShift, f.CharHeight))
+		return errors.NewBigYShiftError(f.YShift, f.CharHeight)
 	}
 
-	if f.CharHeight <= 0 {
-		panic(fmt.Sprintf("Font needs a Character height of 1 or more. Not %d.", f.CharHeight))
+	if l := len(f.UnicodeMapping); l != f.Rows {
+		return errors.NewIncorrectLineCountError(errors.AxisHorizontal, l, f.Rows)
 	}
-	if f.CharWidth <= 0 {
-		panic(fmt.Sprintf("Font needs a Character width of 1 or more. Not %d.", f.CharWidth))
+	for _, row := range f.UnicodeMapping {
+		if l := len(row); l != f.Cols {
+			return errors.NewIncorrectLineCountError(errors.AxisVertical, l, f.Cols)
+		}
 	}
+
+	return nil
 }
 
-func (f *Font) UpdateResources() {
+func (f *Font) UpdateResources() error {
 	f.Height = f.CharHeight - f.YShift
 
 	f.unicode2Coords = make(map[rune]image.Point)
@@ -80,7 +96,7 @@ func (f *Font) UpdateResources() {
 
 			if char == "unknown" {
 				if f.unknown.X != -1 {
-					panic("Can't have multiple unknowns defined.")
+					return errors.NewRepeatedCharacterDefinitionError(char)
 				}
 
 				f.unknown = image.Pt(x, y)
@@ -88,32 +104,33 @@ func (f *Font) UpdateResources() {
 			}
 			runeList := []rune(char)
 			if len(runeList) > 1 {
-				panic(fmt.Sprintf("%s isn't a valid unicode character or 'unknown'.", char))
+				return errors.NewInvalidCharacterError(char)
 			}
 
 			currentRune := runeList[0]
 			_, ok := f.unicode2Coords[currentRune]
 			if ok {
-				panic(fmt.Sprintf("Can't have multiple definitions of %v in a font.", currentRune))
+				return errors.NewRepeatedCharacterDefinitionError(string(currentRune))
 			}
 
 			f.unicode2Coords[currentRune] = image.Pt(x, y)
 		}
 	}
 	if f.unknown.X == -1 {
-		panic("Font requires an 'unknown' glyph for missing characters.")
+		return errors.NewMissingUnknownError()
 	}
 
+	return nil
 }
 
-func (f Font) GetRuneCoords(r rune) image.Point {
+func (f Font) GetRuneCoords(r rune) (image.Point, error) {
 	if f.unicode2Coords == nil {
-		panic("Can't get a rune from a font before calling `UpdateResources` atleast once.")
+		return image.Point{}, errors.NewRuneFromUnloadedResourcesError()
 	}
 
 	runeCoords, ok := f.unicode2Coords[r]
 	if !ok {
-		return image.Pt(f.unknown.X*f.CharWidth, f.unknown.Y*f.CharHeight)
+		return image.Pt(f.unknown.X*f.CharWidth, f.unknown.Y*f.CharHeight), nil
 	}
-	return image.Pt(runeCoords.X*f.CharWidth, runeCoords.Y*f.CharHeight)
+	return image.Pt(runeCoords.X*f.CharWidth, runeCoords.Y*f.CharHeight), nil
 }
