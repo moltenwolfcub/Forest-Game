@@ -22,16 +22,18 @@ type TextElement struct {
 	Contents  string
 	Alignment TextAlignment
 	Font      assets.Font
+	Scale     int
 	pos       image.Point
 
 	runeCache map[rune]*ebiten.Image
 }
 
-func NewTextElement(contents string, alignment TextAlignment, font assets.Font) TextElement {
+func NewTextElement(contents string, alignment TextAlignment, font assets.Font, scale int) TextElement {
 	return TextElement{
 		Contents:  contents,
 		Alignment: alignment,
 		Font:      font,
+		Scale:     scale,
 		runeCache: make(map[rune]*ebiten.Image),
 	}
 }
@@ -43,7 +45,7 @@ func (t TextElement) Origin(GameContext) image.Point {
 	return t.pos
 }
 func (t TextElement) Size(GameContext) image.Point {
-	return image.Pt(len(t.Contents)*t.Font.CharWidth, t.Font.CharHeight)
+	return image.Pt(int(float64(len(t.Contents)*t.Font.CharWidth)*t.getScalar()), int(float64(t.Font.CharHeight)*t.getScalar()))
 }
 func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 	return []image.Rectangle{
@@ -52,6 +54,10 @@ func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
 			Max: t.Origin(layer).Add(t.Size(layer)),
 		},
 	}
+}
+
+func (t TextElement) getScalar() float64 {
+	return float64(t.Scale) / float64(t.Font.CharHeight)
 }
 
 func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
@@ -75,10 +81,14 @@ func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 		glyphs = append(glyphs, glyph)
 	}
 
+	scalar := t.getScalar()
+
 	for i, glyph := range glyphs {
 		options := ebiten.DrawImageOptions{}
+		options.GeoM.Scale(float64(scalar), float64(scalar))
+
 		options.GeoM.Translate(float64(pos.X), float64(pos.Y))
-		options.GeoM.Translate(float64(i*(t.Font.CharWidth+t.Font.Spacing)), float64(-t.Font.CharHeight+t.Font.YShift))
+		options.GeoM.Translate(float64(i)*(float64(t.Font.CharWidth)*scalar+float64(t.Font.Spacing)), float64(-t.Font.CharHeight)*scalar+float64(t.Font.YShift))
 
 		screen.DrawImage(glyph, &options)
 	}
@@ -91,8 +101,8 @@ const (
 func (t *TextElement) Update() {
 	switch t.Alignment {
 	case TopCentre:
-		t.pos.Y = t.Font.Height + 10
-		imgSize := len(t.Contents) * t.Font.CharWidth
-		t.pos.X = screenMiddleW - imgSize/2
+		t.pos.Y = int(float64(t.Font.Height)*t.getScalar() + 10)
+		imgSize := float64(len(t.Contents)) * float64(t.Font.CharWidth) * t.getScalar()
+		t.pos.X = screenMiddleW - int(imgSize/2)
 	}
 }

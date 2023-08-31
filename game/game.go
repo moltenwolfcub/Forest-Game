@@ -56,7 +56,7 @@ func NewGame() Game {
 
 	g.berries = []Berry{NewBerry(image.Pt(256, -128), g.time)}
 
-	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont)
+	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g
 }
 func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
