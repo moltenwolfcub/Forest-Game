@@ -80,7 +80,7 @@ func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) error {
 
 		coords, err := t.Font.GetRuneCoords(c)
 		if err != nil {
-			panic(err)
+			return err
 		}
 
 		rect := image.Rectangle{

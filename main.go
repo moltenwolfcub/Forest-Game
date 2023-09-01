@@ -10,7 +10,11 @@ import (
 func main() {
 	args.ParseFlags()
 
-	gameInstance := game.NewGame()
+	gameInstance, err := game.NewGame()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if err := gameInstance.Run(); err != nil {
 		log.Fatal(err)
 	}

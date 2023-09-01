@@ -3,12 +3,14 @@ package game
 import (
 	"fmt"
 	"image"
+	"log"
 	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/assets"
+	"github.com/moltenwolfcub/Forest-Game/errors"
 	"github.com/moltenwolfcub/Forest-Game/game/state"
 )
 
@@ -20,16 +22,16 @@ const (
 	Dark
 )
 
-func berryVariantFromStr(str string) berryVariant {
+func berryVariantFromStr(str string) (berryVariant, error) {
 	switch str {
 	case "light":
-		return Light
+		return Light, nil
 	case "mid":
-		return Medium
+		return Medium, nil
 	case "dark":
-		return Dark
+		return Dark, nil
 	default:
-		panic(fmt.Sprintf("Unkown berryVariant: %s", str))
+		return 0, errors.NewUnknownBerryVariantError(str)
 	}
 }
 
@@ -42,7 +44,8 @@ func (b berryVariant) String() string {
 	case Dark:
 		return "dark"
 	default:
-		panic("Unknown berryVariant")
+		log.Println("WARNING: " + errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
+		return "VariantError"
 	}
 }
 
@@ -57,7 +60,7 @@ const (
 	deathYear   = 5
 )
 
-func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression) {
+func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression, err error) {
 	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
 	month := time.MonthsThroughYear()
@@ -80,10 +83,10 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 		progressions = b.oneMonthProgression(progressions, month, 2, throughMonth, 4)
 	case 8:
 	default:
-		panic("not a valid berry phase")
+		err = errors.NewInvalidBerryPhaseError(fmt.Sprintf("%v", b))
+		return
 	}
 	progressions = b.deathProgression(progressions, yearsThroughLife, month)
-
 	return
 }
 func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
@@ -152,13 +155,14 @@ type Berry struct {
 	plantedTime        Time
 }
 
-func NewBerry(game *Game, position image.Point) Berry {
+func NewBerry(game *Game, position image.Point) (Berry, error) {
 	created := Berry{
 		game:        game,
 		plantedTime: game.time,
 		pos:         position,
 	}
 	stateBuilder := state.StateBuilder{}
+
 	stateBuilder.Add(
 		state.NewProperty("age", berryPhase(1).String()),
 		state.NewProperty("variant", berryVariant(rand.Intn(3)).String()),
@@ -168,7 +172,7 @@ func NewBerry(game *Game, position image.Point) Berry {
 
 	created.SetCooldown(true)
 
-	return created
+	return created, nil
 }
 
 func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
@@ -278,7 +282,10 @@ func (b *Berry) Update() error {
 			return err
 		}
 
-		progression := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
+		progression, err := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
+		if err != nil {
+			return err
+		}
 
 		for _, p := range progression {
 			if p.testChance() && p.NextPhase != 0 {

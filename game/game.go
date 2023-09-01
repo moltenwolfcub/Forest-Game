@@ -29,7 +29,7 @@ type Game struct {
 	berries  []Berry
 }
 
-func NewGame() *Game {
+func NewGame() (*Game, error) {
 	startTime := 10
 
 	g := &Game{
@@ -54,10 +54,14 @@ func NewGame() *Game {
 	g.player = NewPlayer(g)
 	g.renderer = NewRenderer(g)
 
-	g.berries = []Berry{NewBerry(g, image.Pt(256, -128))}
+	berry, err := NewBerry(g, image.Pt(256, -128))
+	if err != nil {
+		return nil, err
+	}
+	g.berries = []Berry{berry}
 
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
-	return g
+	return g, nil
 }
 func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
 	returnVal = image.Rectangle{
