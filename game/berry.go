@@ -268,20 +268,28 @@ func (b *Berry) SetCooldown(tickOnThisInterval bool) {
 	}
 }
 
-func (b *Berry) Update() {
+func (b *Berry) Update() error {
 	b.randomTickCooldown -= args.TimeRateFlag
 
 	if b.randomTickCooldown <= 0 {
 
-		currentPhase := state.GetIntFromState[berryPhase](b.state, "age")
+		currentPhase, err := state.GetIntFromState[berryPhase](b.state, "age")
+		if err != nil {
+			return err
+		}
+
 		progression := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
 
 		for _, p := range progression {
 			if p.testChance() && p.NextPhase != 0 {
-				b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
+				err := b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
+				if err != nil {
+					return err
+				}
 				break
 			}
 		}
 		b.SetCooldown(false)
 	}
+	return nil
 }

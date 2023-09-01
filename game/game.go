@@ -73,7 +73,10 @@ func (g *Game) Update() (err error) {
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
 	for i := range g.berries {
-		g.berries[i].Update()
+		err = g.berries[i].Update()
+		if err != nil {
+			return err
+		}
 	}
 
 	err = g.player.Update()

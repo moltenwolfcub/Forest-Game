@@ -1,17 +1,23 @@
 package state
 
 import (
-	"fmt"
+	"reflect"
 	"strconv"
+
+	"github.com/moltenwolfcub/Forest-Game/errors"
 )
 
-func GetIntFromState[T ~int](s State, valName string) T {
-	valueStr := s.GetValue(valName)
+func GetIntFromState[T ~int](s State, valName string) (T, error) {
+	valueStr, err := s.GetValue(valName)
+	if err != nil {
+		return 0, err
+	}
+
 	value, err := strconv.Atoi(valueStr)
 	if err != nil {
-		panic(fmt.Sprintf("Cannot convert '%s' property to an integer", valName))
+		return 0, errors.NewPropertyConversionError(reflect.TypeOf(0), valName)
 	}
 
 	finalValue := T(value)
-	return finalValue
+	return finalValue, nil
 }
