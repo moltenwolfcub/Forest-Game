@@ -2,6 +2,7 @@ package game
 
 import (
 	"image"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/assets"
@@ -119,7 +120,7 @@ func (g Game) Draw(screen *ebiten.Image) {
 
 	image, err := g.renderer.Render(mapElements, lights, hudElements)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	screen.DrawImage(image, nil)

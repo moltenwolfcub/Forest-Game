@@ -2,6 +2,7 @@ package assets
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/moltenwolfcub/Forest-Game/errors"
 	"golang.org/x/exp/maps"
@@ -10,12 +11,12 @@ import (
 func LoadTextureMapping(file string) Textures {
 	bytes, err := states.ReadFile("states/" + file + ".json")
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	var state Textures
 	if err = json.Unmarshal(bytes, &state); err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	return state
 }

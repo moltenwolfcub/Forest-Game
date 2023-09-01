@@ -3,6 +3,7 @@ package assets
 import (
 	"encoding/json"
 	"image"
+	"log"
 
 	"github.com/moltenwolfcub/Forest-Game/errors"
 )
@@ -37,7 +38,7 @@ func init() {
 	DefaultFont, err = LoadFont("default")
 
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 }
 

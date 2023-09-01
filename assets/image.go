@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	_ "image/png"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -12,12 +13,12 @@ func LoadPNG(file string) *ebiten.Image {
 
 	embeddedImage, err := textures.ReadFile("textures/" + file + ".png")
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 
 	imageDecoded, _, err := image.Decode(bytes.NewReader(embeddedImage))
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	return ebiten.NewImageFromImage(imageDecoded)
 }
