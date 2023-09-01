@@ -2,7 +2,6 @@ package game
 
 import (
 	"image"
-	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/assets"
@@ -15,6 +14,8 @@ const (
 )
 
 type Game struct {
+	nextFrame *ebiten.Image
+
 	time Time
 	view Viewport
 
@@ -92,10 +93,17 @@ func (g *Game) Update() (err error) {
 	if err != nil {
 		return err
 	}
+
+	frame, err := g.GenerateFrame()
+	if err != nil {
+		return err
+	}
+	g.nextFrame = frame
+
 	return nil
 }
 
-func (g Game) Draw(screen *ebiten.Image) {
+func (g Game) GenerateFrame() (*ebiten.Image, error) {
 	mapElements := []DepthAwareDrawable{
 		g.player,
 	}
@@ -120,10 +128,13 @@ func (g Game) Draw(screen *ebiten.Image) {
 
 	image, err := g.renderer.Render(mapElements, lights, hudElements)
 	if err != nil {
-		log.Fatalln(err)
+		return nil, err
 	}
+	return image, nil
+}
 
-	screen.DrawImage(image, nil)
+func (g Game) Draw(screen *ebiten.Image) {
+	screen.DrawImage(g.nextFrame, nil)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {
