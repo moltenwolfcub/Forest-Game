@@ -268,6 +268,11 @@ func testJump(fullObj HasHitbox, jumpSeg image.Rectangle, makeJump func(image.Re
 	}
 
 	for overlaps {
+		overlaps, err = fullObj.Overlaps(Collision, []image.Rectangle{newRect})
+		if err != nil {
+			return image.Point{}, err
+		}
+
 		hitbox, err := fullObj.GetHitbox(Collision)
 		if err != nil {
 			return image.Point{}, err
