@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/errors"
@@ -114,7 +114,7 @@ func (t Time) String() string {
 	rawSeason, err := GetSeason(int(months))
 	var seasonStr string
 	if err != nil {
-		log.Println("WARNING: " + err.Error())
+		slog.Warn(err.Error())
 		seasonStr = "SeasonError"
 	} else {
 		seasonStr = rawSeason.String()

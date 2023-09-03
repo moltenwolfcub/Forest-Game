@@ -3,7 +3,7 @@ package game
 import (
 	"fmt"
 	"image"
-	"log"
+	"log/slog"
 	"math"
 	"math/rand"
 
@@ -44,7 +44,7 @@ func (b berryVariant) String() string {
 	case Dark:
 		return "dark"
 	default:
-		log.Println("WARNING: " + errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
+		slog.Warn(errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
 		return "VariantError"
 	}
 }
