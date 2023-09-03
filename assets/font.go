@@ -3,7 +3,6 @@ package assets
 import (
 	"encoding/json"
 	"image"
-	"log"
 
 	"github.com/moltenwolfcub/Forest-Game/errors"
 )
@@ -29,18 +28,17 @@ func LoadFont(file string) (Font, error) {
 	return font, nil
 }
 
-var (
-	DefaultFont Font
-)
-
-func init() {
-	var err error
-	DefaultFont, err = LoadFont("default")
-
+func MustLoadFont(file string) Font {
+	f, err := LoadFont(file)
 	if err != nil {
-		log.Fatalln(err)
+		panic("Failed to load font: " + err.Error())
 	}
+	return f
 }
+
+var (
+	DefaultFont Font = MustLoadFont("default")
+)
 
 // A monospace bitmap font
 type Font struct {

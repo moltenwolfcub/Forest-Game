@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"log/slog"
+	"os"
 
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/game"
@@ -12,10 +13,11 @@ func main() {
 
 	gameInstance, err := game.NewGame()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if err := gameInstance.Run(); err != nil {
-		log.Fatal(err)
+		slog.Error("Failed to execute tick: " + err.Error())
+		os.Exit(1)
 	}
 }
