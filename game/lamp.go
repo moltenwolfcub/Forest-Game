@@ -23,22 +23,20 @@ func NewLamp() Lamp {
 	return lamp
 }
 
-func (l Lamp) Overlaps(layer GameContext, other []image.Rectangle) bool {
+func (l Lamp) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
 	return DefaultHitboxOverlaps(layer, l, other)
 }
-func (l Lamp) Origin(GameContext) image.Point {
-	return l.hitbox.Min
+func (l Lamp) Origin(GameContext) (image.Point, error) {
+	return l.hitbox.Min, nil
 }
-func (l Lamp) Size(GameContext) image.Point {
-	return l.hitbox.Size()
+func (l Lamp) Size(GameContext) (image.Point, error) {
+	return l.hitbox.Size(), nil
 }
-func (l Lamp) GetHitbox(layer GameContext) []image.Rectangle {
-	return []image.Rectangle{
-		l.hitbox,
-	}
+func (l Lamp) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
+	return []image.Rectangle{l.hitbox}, nil
 }
 
-func (l Lamp) DrawLighting(lightingLayer *ebiten.Image, pos image.Point) {
+func (l Lamp) DrawLighting(lightingLayer *ebiten.Image, pos image.Point) error {
 	radius := 100
 	diameter := radius * 2
 
@@ -60,6 +58,7 @@ func (l Lamp) DrawLighting(lightingLayer *ebiten.Image, pos image.Point) {
 
 	lightingLayer.DrawImage(img, &options)
 	img.Dispose()
+	return nil
 }
 
 func lightingStrength(size int, x int, y int) uint8 {

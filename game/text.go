@@ -38,29 +38,38 @@ func NewTextElement(contents string, alignment TextAlignment, font assets.Font, 
 	}
 }
 
-func (t TextElement) Overlaps(layer GameContext, other []image.Rectangle) bool {
+func (t TextElement) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
 	return DefaultHitboxOverlaps(layer, t, other)
 }
-func (t TextElement) Origin(GameContext) image.Point {
-	return t.pos
+func (t TextElement) Origin(GameContext) (image.Point, error) {
+	return t.pos, nil
 }
-func (t TextElement) Size(GameContext) image.Point {
-	return image.Pt(int(float64(len(t.Contents)*t.Font.CharWidth)*t.getScalar()), int(float64(t.Font.CharHeight)*t.getScalar()))
+func (t TextElement) Size(GameContext) (image.Point, error) {
+	return image.Pt(int(float64(len(t.Contents)*t.Font.CharWidth)*t.getScalar()), int(float64(t.Font.CharHeight)*t.getScalar())), nil
 }
-func (t TextElement) GetHitbox(layer GameContext) []image.Rectangle {
+func (t TextElement) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
+	origin, err := t.Origin(layer)
+	if err != nil {
+		return nil, err
+	}
+	size, err := t.Size(layer)
+	if err != nil {
+		return nil, err
+	}
+
 	return []image.Rectangle{
 		{
-			Min: t.Origin(layer),
-			Max: t.Origin(layer).Add(t.Size(layer)),
+			Min: origin,
+			Max: origin.Add(size),
 		},
-	}
+	}, nil
 }
 
 func (t TextElement) getScalar() float64 {
 	return float64(t.Scale) / float64(t.Font.CharHeight)
 }
 
-func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
+func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	glyphs := []*ebiten.Image{}
 	for _, c := range t.Contents {
 		cachedGlyph, ok := t.runeCache[c]
@@ -69,7 +78,11 @@ func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 			continue
 		}
 
-		coords := t.Font.GetRuneCoords(c)
+		coords, err := t.Font.GetRuneCoords(c)
+		if err != nil {
+			return err
+		}
+
 		rect := image.Rectangle{
 			Min: coords,
 			Max: coords.Add(image.Pt(t.Font.CharWidth, t.Font.CharHeight)),
@@ -92,6 +105,7 @@ func (t *TextElement) DrawAt(screen *ebiten.Image, pos image.Point) {
 
 		screen.DrawImage(glyph, &options)
 	}
+	return nil
 }
 
 const (

@@ -3,12 +3,14 @@ package game
 import (
 	"fmt"
 	"image"
+	"log/slog"
 	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/assets"
+	"github.com/moltenwolfcub/Forest-Game/errors"
 	"github.com/moltenwolfcub/Forest-Game/game/state"
 )
 
@@ -20,16 +22,16 @@ const (
 	Dark
 )
 
-func berryVariantFromStr(str string) berryVariant {
+func berryVariantFromStr(str string) (berryVariant, error) {
 	switch str {
 	case "light":
-		return Light
+		return Light, nil
 	case "mid":
-		return Medium
+		return Medium, nil
 	case "dark":
-		return Dark
+		return Dark, nil
 	default:
-		panic(fmt.Sprintf("Unkown berryVariant: %s", str))
+		return 0, errors.NewUnknownBerryVariantError(str)
 	}
 }
 
@@ -42,7 +44,8 @@ func (b berryVariant) String() string {
 	case Dark:
 		return "dark"
 	default:
-		panic("Unknown berryVariant")
+		slog.Warn(errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
+		return "VariantError"
 	}
 }
 
@@ -57,7 +60,7 @@ const (
 	deathYear   = 5
 )
 
-func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression) {
+func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression, err error) {
 	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
 	month := time.MonthsThroughYear()
@@ -80,10 +83,10 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 		progressions = b.oneMonthProgression(progressions, month, 2, throughMonth, 4)
 	case 8:
 	default:
-		panic("not a valid berry phase")
+		err = errors.NewInvalidBerryPhaseError(fmt.Sprintf("%v", b))
+		return
 	}
 	progressions = b.deathProgression(progressions, yearsThroughLife, month)
-
 	return
 }
 func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
@@ -152,13 +155,14 @@ type Berry struct {
 	plantedTime        Time
 }
 
-func NewBerry(game *Game, position image.Point) Berry {
+func NewBerry(game *Game, position image.Point) (Berry, error) {
 	created := Berry{
 		game:        game,
 		plantedTime: game.time,
 		pos:         position,
 	}
 	stateBuilder := state.StateBuilder{}
+
 	stateBuilder.Add(
 		state.NewProperty("age", berryPhase(1).String()),
 		state.NewProperty("variant", berryVariant(rand.Intn(3)).String()),
@@ -168,45 +172,79 @@ func NewBerry(game *Game, position image.Point) Berry {
 
 	created.SetCooldown(true)
 
-	return created
+	return created, nil
 }
 
-func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) bool {
+func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
 	return DefaultHitboxOverlaps(layer, b, other)
 }
 
-func (b Berry) Origin(GameContext) image.Point {
-	return b.pos
+func (b Berry) Origin(GameContext) (image.Point, error) {
+	return b.pos, nil
 }
 
-func (b Berry) Size(GameContext) image.Point {
-	return b.GetTexture().Bounds().Size()
+func (b Berry) Size(GameContext) (image.Point, error) {
+	texture, err := b.GetTexture()
+	if err != nil {
+		return image.Point{}, err
+	}
+	return texture.Bounds().Size(), nil
 }
 
-func (b Berry) GetHitbox(layer GameContext) []image.Rectangle {
-	width := b.Size(layer).X
-	height := b.Size(layer).Y
-	offsetRect := b.GetTexture().Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
-	return []image.Rectangle{offsetRect}
+func (b Berry) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
+	size, err := b.Size(layer)
+	if err != nil {
+		return nil, err
+	}
+	texture, err := b.GetTexture()
+	if err != nil {
+		return nil, err
+	}
+
+	width := size.X
+	height := size.Y
+	offsetRect := texture.Bounds().Add(b.pos).Sub(image.Pt(width/2, height))
+	return []image.Rectangle{offsetRect}, nil
 }
 
-func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) {
-	width := b.Size(Render).X
-	height := b.Size(Render).Y
+func (b Berry) DrawAt(screen *ebiten.Image, pos image.Point) error {
+	size, err := b.Size(Render)
+	if err != nil {
+		return err
+	}
+	texture, err := b.GetTexture()
+	if err != nil {
+		return err
+	}
+
+	width := size.X
+	height := size.Y
 
 	options := ebiten.DrawImageOptions{}
 	options.GeoM.Translate(float64(pos.X), float64(pos.Y))
 	options.GeoM.Translate(-float64(width/2), -float64(height))
 
-	screen.DrawImage(b.GetTexture(), &options)
+	screen.DrawImage(texture, &options)
+	return nil
 }
 
-func (b Berry) GetZ() int {
-	playerFeet := b.game.player.GetHitbox(Render)[0].Max.Y
-	if playerFeet >= b.GetHitbox(Render)[0].Max.Y {
-		return -1
+func (b Berry) GetZ() (int, error) {
+	playerHitbox, err := b.game.player.GetHitbox(Render)
+	if err != nil {
+		return 0, err
+	}
+
+	playerFeet := playerHitbox[0].Max.Y
+
+	hitbox, err := b.GetHitbox(Render)
+	if err != nil {
+		return 0, err
+	}
+
+	if playerFeet >= hitbox[0].Max.Y {
+		return -1, nil
 	} else {
-		return 1
+		return 1, nil
 	}
 }
 
@@ -215,9 +253,12 @@ const (
 	berryTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
 )
 
-func (b Berry) GetTexture() *ebiten.Image {
-	texturePath := assets.BerryStates.GetTexturePath(b.state.ToTextureKey())
-	return assets.Berries.GetTexture(texturePath)
+func (b Berry) GetTexture() (*ebiten.Image, error) {
+	texturePath, err := assets.BerryStates.GetTexturePath(b.state.ToTextureKey())
+	if err != nil {
+		return nil, err
+	}
+	return assets.Berries.GetTexture(texturePath), nil
 }
 
 func (b *Berry) SetCooldown(tickOnThisInterval bool) {
@@ -231,20 +272,31 @@ func (b *Berry) SetCooldown(tickOnThisInterval bool) {
 	}
 }
 
-func (b *Berry) Update() {
+func (b *Berry) Update() error {
 	b.randomTickCooldown -= args.TimeRateFlag
 
 	if b.randomTickCooldown <= 0 {
 
-		currentPhase := state.GetIntFromState[berryPhase](b.state, "age")
-		progression := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
+		currentPhase, err := state.GetIntFromState[berryPhase](b.state, "age")
+		if err != nil {
+			return err
+		}
+
+		progression, err := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
+		if err != nil {
+			return err
+		}
 
 		for _, p := range progression {
 			if p.testChance() && p.NextPhase != 0 {
-				b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
+				err := b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
+				if err != nil {
+					return err
+				}
 				break
 			}
 		}
 		b.SetCooldown(false)
 	}
+	return nil
 }

@@ -14,6 +14,8 @@ const (
 )
 
 type Game struct {
+	nextFrame *ebiten.Image
+
 	time Time
 	view Viewport
 
@@ -29,7 +31,7 @@ type Game struct {
 	berries  []Berry
 }
 
-func NewGame() *Game {
+func NewGame() (*Game, error) {
 	startTime := 10
 
 	g := &Game{
@@ -54,10 +56,14 @@ func NewGame() *Game {
 	g.player = NewPlayer(g)
 	g.renderer = NewRenderer(g)
 
-	g.berries = []Berry{NewBerry(g, image.Pt(256, -128))}
+	berry, err := NewBerry(g, image.Pt(256, -128))
+	if err != nil {
+		return nil, err
+	}
+	g.berries = []Berry{berry}
 
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
-	return g
+	return g, nil
 }
 func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Rectangle) {
 	returnVal = image.Rectangle{
@@ -67,21 +73,37 @@ func NewBasicTerrainElement(x int, y int, dx int, dy int) (returnVal image.Recta
 	return
 }
 
-func (g *Game) Update() error {
+func (g *Game) Update() (err error) {
 
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
 	for i := range g.berries {
-		g.berries[i].Update()
+		err = g.berries[i].Update()
+		if err != nil {
+			return err
+		}
 	}
 
-	g.player.Update()
-	g.view.UpdatePosition(g.player)
+	err = g.player.Update()
+	if err != nil {
+		return err
+	}
+	err = g.view.UpdatePosition(g.player)
+	if err != nil {
+		return err
+	}
+
+	frame, err := g.GenerateFrame()
+	if err != nil {
+		return err
+	}
+	g.nextFrame = frame
+
 	return nil
 }
 
-func (g Game) Draw(screen *ebiten.Image) {
+func (g Game) GenerateFrame() (*ebiten.Image, error) {
 	mapElements := []DepthAwareDrawable{
 		g.player,
 	}
@@ -104,7 +126,15 @@ func (g Game) Draw(screen *ebiten.Image) {
 		&g.timeHud,
 	}
 
-	screen.DrawImage(g.renderer.Render(mapElements, lights, hudElements), nil)
+	image, err := g.renderer.Render(mapElements, lights, hudElements)
+	if err != nil {
+		return nil, err
+	}
+	return image, nil
+}
+
+func (g Game) Draw(screen *ebiten.Image) {
+	screen.DrawImage(g.nextFrame, nil)
 }
 
 func (g Game) Layout(actualWidth, actualHeight int) (screenWidth, screenHeight int) {

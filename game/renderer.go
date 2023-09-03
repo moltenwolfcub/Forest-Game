@@ -30,15 +30,27 @@ func NewRenderer(game *Game) Renderer {
 	return render
 }
 
-func (r *Renderer) Render(mapElements []DepthAwareDrawable, lights []Lightable, hudElements []Drawable) *ebiten.Image {
+func (r *Renderer) Render(mapElements []DepthAwareDrawable, lights []Lightable, hudElements []Drawable) (*ebiten.Image, error) {
 	r.pre()
 	r.bg()
-	r.main(mapElements)
-	r.lighting(lights)
-	r.hud(hudElements)
+	err := r.main(mapElements)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.lighting(lights)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.hud(hudElements)
+	if err != nil {
+		return nil, err
+	}
+
 	r.post()
 
-	return r.layeredImage
+	return r.layeredImage, nil
 }
 
 func (r *Renderer) pre() {
@@ -64,24 +76,50 @@ func (r *Renderer) post() {
 func (r *Renderer) bg() {
 	r.bgLayer.Fill(BackgroundColor)
 }
-func (r *Renderer) main(elements []DepthAwareDrawable) {
+func (r *Renderer) main(elements []DepthAwareDrawable) error {
+	var outerErr error
 	sort.SliceStable(elements, func(i, j int) bool {
-		return elements[i].GetZ() < elements[j].GetZ()
+		iz, err := elements[i].GetZ()
+		if err != nil {
+			outerErr = err
+		}
+
+		jz, err := elements[j].GetZ()
+		if err != nil {
+			outerErr = err
+		}
+
+		return iz < jz
 	})
+	if outerErr != nil {
+		return outerErr
+	}
 
 	for _, e := range elements {
-		r.game.view.DrawToMap(r.mapLayer, e)
+		err := r.game.view.DrawToMap(r.mapLayer, e)
+		if err != nil {
+			return nil
+		}
 	}
+	return nil
 }
-func (r *Renderer) lighting(elements []Lightable) {
+func (r *Renderer) lighting(elements []Lightable) error {
 	r.lightingLayer.Fill(GetAmbientLight(r.game.time))
 
 	for _, e := range elements {
-		r.game.view.DrawToLighting(r.lightingLayer, e)
+		err := r.game.view.DrawToLighting(r.lightingLayer, e)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
-func (r *Renderer) hud(elements []Drawable) {
+func (r *Renderer) hud(elements []Drawable) error {
 	for _, e := range elements {
-		r.game.view.DrawToHUD(r.hudLayer, e)
+		err := r.game.view.DrawToHUD(r.hudLayer, e)
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }

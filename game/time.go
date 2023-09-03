@@ -2,8 +2,10 @@ package game
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/moltenwolfcub/Forest-Game/args"
+	"github.com/moltenwolfcub/Forest-Game/errors"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -58,19 +60,19 @@ const (
 // Returns a Season from a month in the year.
 // The parsed month should be 1-indexed so 0 in invalid.
 //
-// Any value provided outside of the range 1-8 will panic
-func GetSeason(monthInYear int) Season {
+// Any value provided outside of the range 1-8 will return an error
+func GetSeason(monthInYear int) (Season, error) {
 	switch monthInYear {
 	case 1, 2:
-		return Spring
+		return Spring, nil
 	case 3, 4:
-		return Summer
+		return Summer, nil
 	case 5, 6:
-		return Autumn
+		return Autumn, nil
 	case 7, 8:
-		return Winter
+		return Winter, nil
 	default:
-		panic(fmt.Sprintf("Can't figure out season from month: %d. Season.GetSeason only accepts values in the range 1-8 inclusive.", monthInYear))
+		return 0, errors.NewSeasonOutOfBoundsError(monthInYear)
 	}
 }
 
@@ -109,7 +111,16 @@ func (t Time) String() string {
 	months := totalMonths%MonthsPerYear + 1
 	years := totalYears
 
-	season := cases.Title(language.AmericanEnglish).String(GetSeason(int(months)).String())
+	rawSeason, err := GetSeason(int(months))
+	var seasonStr string
+	if err != nil {
+		slog.Warn(err.Error())
+		seasonStr = "SeasonError"
+	} else {
+		seasonStr = rawSeason.String()
+	}
+
+	season := cases.Title(language.AmericanEnglish).String(seasonStr)
 
 	return fmt.Sprintf("%s %d/%d/%d %02d:%02d", season, days, months, years, hours, mins)
 }

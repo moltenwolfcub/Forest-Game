@@ -16,35 +16,38 @@ type Incline struct {
 	hitbox image.Rectangle
 }
 
-func (i Incline) Overlaps(layer GameContext, other []image.Rectangle) bool {
+func (i Incline) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
 	return DefaultHitboxOverlaps(layer, i, other)
 }
-func (i Incline) Origin(GameContext) image.Point {
-	return i.hitbox.Min
+func (i Incline) Origin(GameContext) (image.Point, error) {
+	return i.hitbox.Min, nil
 }
-func (i Incline) Size(GameContext) image.Point {
-	return i.hitbox.Size()
+func (i Incline) Size(GameContext) (image.Point, error) {
+	return i.hitbox.Size(), nil
 }
-func (i Incline) GetHitbox(layer GameContext) []image.Rectangle {
-	return []image.Rectangle{
-		i.hitbox,
-	}
+func (i Incline) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
+	return []image.Rectangle{i.hitbox}, nil
 }
 
-func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) {
+func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(InclineColor)
 
-	lineartImg, drawOps := ApplyLineart(img, i, i.hitbox)
+	lineartImg, drawOps, err := ApplyLineart(img, i, i.hitbox)
+	if err != nil {
+		return err
+	}
+
 	drawOps.GeoM.Translate(float64(pos.X), float64(pos.Y))
 
 	screen.DrawImage(lineartImg, drawOps)
 	img.Dispose()
 	lineartImg.Dispose()
+	return nil
 }
 
-func (i Incline) GetZ() int {
-	return -2
+func (i Incline) GetZ() (int, error) {
+	return -2, nil
 }
 
 func (i Incline) GetClimbSpeed() float64 {

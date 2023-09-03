@@ -8,33 +8,41 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func LoadPNG(file string) *ebiten.Image {
+func LoadPNG(file string) (*ebiten.Image, error) {
 
 	embeddedImage, err := textures.ReadFile("textures/" + file + ".png")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	imageDecoded, _, err := image.Decode(bytes.NewReader(embeddedImage))
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return ebiten.NewImageFromImage(imageDecoded)
+	return ebiten.NewImageFromImage(imageDecoded), nil
+}
+
+func MustLoadPNG(file string) *ebiten.Image {
+	img, err := LoadPNG(file)
+	if err != nil {
+		panic("Failed to load PNG: " + err.Error())
+	}
+	return img
 }
 
 var (
-	Player *ebiten.Image = LoadPNG("entity/player")
-	Tree   *ebiten.Image = LoadPNG("object/tree")
+	Player *ebiten.Image = MustLoadPNG("entity/player")
+	Tree   *ebiten.Image = MustLoadPNG("object/tree")
 
-	Icon16  *ebiten.Image = LoadPNG("icon/icon16")
-	Icon22  *ebiten.Image = LoadPNG("icon/icon22")
-	Icon24  *ebiten.Image = LoadPNG("icon/icon24")
-	Icon32  *ebiten.Image = LoadPNG("icon/icon32")
-	Icon48  *ebiten.Image = LoadPNG("icon/icon48")
-	Icon64  *ebiten.Image = LoadPNG("icon/icon64")
-	Icon128 *ebiten.Image = LoadPNG("icon/icon128")
-	Icon256 *ebiten.Image = LoadPNG("icon/icon256")
-	Icon512 *ebiten.Image = LoadPNG("icon/icon512")
+	Icon16  *ebiten.Image = MustLoadPNG("icon/icon16")
+	Icon22  *ebiten.Image = MustLoadPNG("icon/icon22")
+	Icon24  *ebiten.Image = MustLoadPNG("icon/icon24")
+	Icon32  *ebiten.Image = MustLoadPNG("icon/icon32")
+	Icon48  *ebiten.Image = MustLoadPNG("icon/icon48")
+	Icon64  *ebiten.Image = MustLoadPNG("icon/icon64")
+	Icon128 *ebiten.Image = MustLoadPNG("icon/icon128")
+	Icon256 *ebiten.Image = MustLoadPNG("icon/icon256")
+	Icon512 *ebiten.Image = MustLoadPNG("icon/icon512")
 
 	Berries TextureCache = NewTextureCache()
 
@@ -56,7 +64,7 @@ func (t *TextureCache) GetTexture(id string) *ebiten.Image {
 	if ok {
 		return img
 	}
-	img = LoadPNG(id)
+	img = MustLoadPNG(id)
 	t.cache[id] = img
 	return img
 }

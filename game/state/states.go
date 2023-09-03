@@ -1,31 +1,40 @@
 package state
 
 import (
-	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/moltenwolfcub/Forest-Game/errors"
 )
 
 type State struct {
 	properties []Property
 }
 
-func (s State) GetProperty(str string) *Property {
+func (s State) GetProperty(str string) (*Property, error) {
 	for i, p := range s.properties {
 		if p.matchesName(str) {
-			return &s.properties[i]
+			return &s.properties[i], nil
 		}
 	}
-	panic(fmt.Sprintf("Couldn't get property %s from %s", str, s))
+	return nil, errors.NewUnobtainablePropertyError(s.String(), str)
 }
-func (s State) GetValue(str string) string {
-	prop := s.GetProperty(str)
-	return prop.getValue()
+func (s State) GetValue(str string) (string, error) {
+	prop, err := s.GetProperty(str)
+	if err != nil {
+		return "", err
+	}
+	return prop.getValue(), nil
 }
 
-func (s State) UpdateValue(str string, val string) {
-	prop := s.GetProperty(str)
+func (s State) UpdateValue(str string, val string) error {
+	prop, err := s.GetProperty(str)
+	if err != nil {
+		return err
+	}
+
 	prop.setValue(val)
+	return nil
 }
 
 func (s State) ToTextureKey() string {
@@ -73,14 +82,19 @@ type StateBuilder struct {
 	properties []Property
 }
 
-func StateBuilderFromStr(str string) StateBuilder {
+func StateBuilderFromStr(str string) (StateBuilder, error) {
 	builder := StateBuilder{}
 
 	props := strings.Split(str, ",")
 	for _, str := range props {
-		builder.Add(PropertyFromString(strings.TrimSpace(str)))
+		property, err := PropertyFromString(strings.TrimSpace(str))
+		if err != nil {
+			return StateBuilder{}, err
+		}
+
+		builder.Add(property)
 	}
-	return builder
+	return builder, nil
 }
 
 func (s *StateBuilder) Add(prop ...Property) *StateBuilder {
