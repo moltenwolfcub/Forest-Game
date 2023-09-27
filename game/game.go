@@ -27,8 +27,8 @@ type Game struct {
 
 	inclines []*Incline
 	rivers   []*River
-	trees    []Tree
-	berries  []Berry
+	trees    []*Tree
+	berries  []*Berry
 }
 
 func NewGame() (*Game, error) {
@@ -39,7 +39,7 @@ func NewGame() (*Game, error) {
 		input: NewInputHandler(),
 		time:  Time(TPGM * 60 * startTime),
 
-		trees: []Tree{},
+		trees: []*Tree{},
 		inclines: []*Incline{
 			NewIncline(NewBasicTerrainElement(0, 0, 1024, 256)),
 			NewIncline(NewBasicTerrainElement(1024, -128, 448, 256)),
@@ -60,7 +60,7 @@ func NewGame() (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-	g.berries = []Berry{berry}
+	g.berries = []*Berry{berry}
 
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g, nil

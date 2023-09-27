@@ -155,7 +155,7 @@ type Berry struct {
 	plantedTime        Time
 }
 
-func NewBerry(game *Game, position image.Point) (Berry, error) {
+func NewBerry(game *Game, position image.Point) (*Berry, error) {
 	created := Berry{
 		game:        game,
 		plantedTime: game.time,
@@ -172,7 +172,7 @@ func NewBerry(game *Game, position image.Point) (Berry, error) {
 
 	created.SetCooldown(true)
 
-	return created, nil
+	return &created, nil
 }
 
 func (b Berry) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
