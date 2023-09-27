@@ -10,15 +10,26 @@ var (
 	lineartW = 10
 )
 
+type OffsetImage struct {
+	Image  *ebiten.Image
+	Offset image.Point
+}
+
+func (l *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) {
+	ops := ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
+	ops.GeoM.Translate(float64(l.Offset.X), float64(l.Offset.Y))
+
+	screen.DrawImage(l.Image, &ops)
+}
+
 // Takes an image and adds lineart to all sides of it before returning the new image.
 // The image given should be a single rect out of the full object so that it can be
 // computed seperately. The new offset from the original image is also returned so the
 // image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
-func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*ebiten.Image, *ebiten.DrawImageOptions, error) {
+func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*OffsetImage, error) {
 
 	//image setup
-	imgOffset := ebiten.DrawImageOptions{}
-	imgOffset.GeoM.Translate(-float64(lineartW)/2, -float64(lineartW)/2)
 	img := ebiten.NewImage(oldImgSeg.Bounds().Dx()+lineartW, oldImgSeg.Bounds().Dy()+lineartW)
 
 	//original image
@@ -33,22 +44,25 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	//line art
 	err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	err = drawSide(img, thisSeg, fullObj, fullVertical, left)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	err = drawSide(img, thisSeg, fullObj, fullVertical, right)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return img, &imgOffset, nil
+	return &OffsetImage{
+		Image:  img,
+		Offset: image.Pt(-lineartW/2, -lineartW/2),
+	}, nil
 }
 
 func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {

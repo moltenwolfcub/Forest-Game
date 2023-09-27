@@ -8,7 +8,15 @@ import (
 )
 
 type River struct {
-	hitbox []image.Rectangle
+	hitbox        []image.Rectangle
+	cachedTexture map[int]*OffsetImage
+}
+
+func NewRiver(hitbox ...image.Rectangle) *River {
+	return &River{
+		hitbox:        hitbox,
+		cachedTexture: make(map[int]*OffsetImage),
+	}
 }
 
 func (r River) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
@@ -64,27 +72,51 @@ func (r River) DrawAt(screen *ebiten.Image, pos image.Point) error {
 		return err
 	}
 
-	for _, rect := range hitbox {
-		rectImg := ebiten.NewImage(rect.Dx(), rect.Dy())
-		rectImg.Fill(RiverColor)
-
-		lineartImg, ops, err := ApplyLineart(rectImg, r, rect)
-		if err != nil {
-			return err
-		}
-		origin, err := r.Origin(Render)
-		if err != nil {
-			return err
+	for id := range hitbox {
+		texture, ok := r.cachedTexture[id]
+		if !ok || texture == nil {
+			err := r.generateTexture(id)
+			if err != nil {
+				return err
+			}
+			texture = r.cachedTexture[id]
 		}
 
-		ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
-		ops.GeoM.Translate(float64(rect.Min.X), float64(rect.Min.Y))
-		ops.GeoM.Translate(-float64(origin.X), -float64(origin.Y))
-		screen.DrawImage(lineartImg, ops)
-
-		rectImg.Dispose()
-		lineartImg.Dispose()
+		texture.DrawAt(screen, pos)
+		r.markTextureDirty(id)
 	}
+	return nil
+}
+
+func (r *River) markTextureDirty(id int) {
+	if r.cachedTexture[id] == nil {
+		return
+	}
+	r.cachedTexture[id].Image.Dispose()
+	r.cachedTexture[id] = nil
+}
+
+func (r *River) generateTexture(id int) error {
+	hitbox := r.hitbox[id]
+
+	img := ebiten.NewImage(hitbox.Dx(), hitbox.Dy())
+	img.Fill(RiverColor)
+
+	lineartImg, err := ApplyLineart(img, r, hitbox)
+	if err != nil {
+		return err
+	}
+	img.Dispose()
+
+	origin, err := r.Origin(Render)
+	if err != nil {
+		return err
+	}
+	offset := hitbox.Min.Sub(origin)
+	lineartImg.Offset = lineartImg.Offset.Add(offset)
+
+	r.cachedTexture[id] = lineartImg
+
 	return nil
 }
 

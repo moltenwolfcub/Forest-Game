@@ -25,8 +25,8 @@ type Game struct {
 	timeHud TextElement
 	player  Player
 
-	inclines []Incline
-	rivers   []River
+	inclines []*Incline
+	rivers   []*River
 	trees    []Tree
 	berries  []Berry
 }
@@ -40,17 +40,17 @@ func NewGame() (*Game, error) {
 		time:  Time(TPGM * 60 * startTime),
 
 		trees: []Tree{},
-		inclines: []Incline{
-			{NewBasicTerrainElement(0, 0, 1024, 256)},
-			{NewBasicTerrainElement(1024, -128, 448, 256)},
-			{NewBasicTerrainElement(1472, -256, 320, 256)},
+		inclines: []*Incline{
+			NewIncline(NewBasicTerrainElement(0, 0, 1024, 256)),
+			NewIncline(NewBasicTerrainElement(1024, -128, 448, 256)),
+			NewIncline(NewBasicTerrainElement(1472, -256, 320, 256)),
 		},
-		rivers: []River{
-			{hitbox: []image.Rectangle{
+		rivers: []*River{
+			NewRiver(
 				NewBasicTerrainElement(0, 448, 1024, 256),
 				NewBasicTerrainElement(768, 576, 768, 256),
 				NewBasicTerrainElement(1280, 768, 448, 256),
-			}},
+			),
 		},
 	}
 	g.player = NewPlayer(g)

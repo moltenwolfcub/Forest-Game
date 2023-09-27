@@ -14,6 +14,14 @@ type Climbable interface {
 
 type Incline struct {
 	hitbox image.Rectangle
+
+	cachedTexture *OffsetImage
+}
+
+func NewIncline(hitbox image.Rectangle) *Incline {
+	return &Incline{
+		hitbox: hitbox,
+	}
 }
 
 func (i Incline) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
@@ -29,20 +37,37 @@ func (i Incline) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
 	return []image.Rectangle{i.hitbox}, nil
 }
 
-func (i Incline) DrawAt(screen *ebiten.Image, pos image.Point) error {
+func (i *Incline) DrawAt(screen *ebiten.Image, pos image.Point) error {
+	if i.cachedTexture == nil {
+		err := i.generateTexture()
+		if err != nil {
+			return err
+		}
+	}
+
+	i.cachedTexture.DrawAt(screen, pos)
+	return nil
+}
+
+func (i *Incline) markTextureDirty() {
+	if i.cachedTexture == nil {
+		return
+	}
+	i.cachedTexture.Image.Dispose()
+	i.cachedTexture = nil
+}
+
+func (i *Incline) generateTexture() error {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(InclineColor)
 
-	lineartImg, drawOps, err := ApplyLineart(img, i, i.hitbox)
+	lineartImg, err := ApplyLineart(img, i, i.hitbox)
 	if err != nil {
 		return err
 	}
-
-	drawOps.GeoM.Translate(float64(pos.X), float64(pos.Y))
-
-	screen.DrawImage(lineartImg, drawOps)
 	img.Dispose()
-	lineartImg.Dispose()
+	i.cachedTexture = lineartImg
+
 	return nil
 }
 
