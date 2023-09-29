@@ -17,19 +17,19 @@ import (
 type berryVariant int
 
 const (
-	Light berryVariant = iota
-	Medium
-	Dark
+	Light1 berryVariant = iota
+	Light2
+	Light3
 )
 
 func berryVariantFromStr(str string) (berryVariant, error) {
 	switch str {
-	case "light":
-		return Light, nil
-	case "mid":
-		return Medium, nil
-	case "dark":
-		return Dark, nil
+	case "light1":
+		return Light1, nil
+	case "light2":
+		return Light2, nil
+	case "light3":
+		return Light3, nil
 	default:
 		return 0, errors.NewUnknownBerryVariantError(str)
 	}
@@ -37,12 +37,12 @@ func berryVariantFromStr(str string) (berryVariant, error) {
 
 func (b berryVariant) String() string {
 	switch b {
-	case Light:
-		return "light"
-	case Medium:
-		return "mid"
-	case Dark:
-		return "dark"
+	case Light1:
+		return "light1"
+	case Light2:
+		return "light2"
+	case Light3:
+		return "light3"
 	default:
 		slog.Warn(errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
 		return "VariantError"
