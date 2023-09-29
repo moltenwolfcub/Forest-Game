@@ -7,6 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/moltenwolfcub/Forest-Game/args"
 	"github.com/moltenwolfcub/Forest-Game/assets"
 	"github.com/moltenwolfcub/Forest-Game/errors"
 	"github.com/moltenwolfcub/Forest-Game/game/state"
@@ -47,46 +48,52 @@ func (m mushroomVariant) String() string {
 	}
 }
 
-// type berryPhase int
+type mushroomPhase int
 
-// func (b berryPhase) String() string {
-// 	return fmt.Sprintf("%d", b)
-// }
+func (m mushroomPhase) String() string {
+	return fmt.Sprintf("%d", m)
+}
 
 // const (
 // 	deathChance = 0.25
 // 	deathYear   = 5
 // )
 
-// func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions []berryProgression, err error) {
-// 	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
+func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progressions []mushroomProgression, err error) {
+	// yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
-// 	month := time.MonthsThroughYear()
-// 	throughMonth := time.ThroughMonth()
+	// month := time.MonthsThroughYear()
+	// throughMonth := time.ThroughMonth()
 
-// 	switch b {
-// 	case 1:
-// 		progressions = b.oneMonthProgression(progressions, month, 1, throughMonth)
-// 	case 2:
-// 		progressions = b.twoMonthProgression(progressions, month, 2, throughMonth)
-// 	case 3:
-// 		progressions = b.twoMonthProgression(progressions, month, 4, throughMonth)
-// 	case 4:
-// 		progressions = b.twoMonthProgression(progressions, month, 6, throughMonth)
-// 	case 5:
-// 		progressions = b.oneMonthProgression(progressions, month, 8, throughMonth)
-// 	case 6:
-// 		progressions = b.oneMonthProgression(progressions, month, 1, throughMonth)
-// 	case 7:
-// 		progressions = b.oneMonthProgression(progressions, month, 2, throughMonth, 4)
-// 	case 8:
-// 	default:
-// 		err = errors.NewInvalidBerryPhaseError(fmt.Sprintf("%v", b))
-// 		return
-// 	}
-// 	progressions = b.deathProgression(progressions, yearsThroughLife, month)
-// 	return
-// }
+	switch m {
+	case 1:
+		progressions = append(progressions, mushroomProgression{
+			NextPhase: mushroomPhase(2),
+			Chance:    0.1,
+		}) //m.oneMonthProgression(progressions, month, 1, throughMonth)
+	case 2:
+		progressions = append(progressions, mushroomProgression{
+			NextPhase: mushroomPhase(3),
+			Chance:    0.1,
+		}) //m.twoMonthProgression(progressions, month, 2, throughMonth)
+	case 3:
+		progressions = append(progressions, mushroomProgression{
+			NextPhase: mushroomPhase(4),
+			Chance:    0.1,
+		}) //m.twoMonthProgression(progressions, month, 4, throughMonth)
+	case 4:
+		progressions = append(progressions, mushroomProgression{
+			NextPhase: mushroomPhase(3),
+			Chance:    0.1,
+		}) //m.twoMonthProgression(progressions, month, 6, throughMonth)
+	default:
+		err = errors.NewInvalidMushroomPhaseError(fmt.Sprintf("%v", m))
+		return
+	}
+	// progressions = m.deathProgression(progressions, yearsThroughLife, month)
+	return
+}
+
 // func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
 // 	var nextPhase berryPhase
 // 	if len(next) > 0 {
@@ -136,20 +143,20 @@ func (m mushroomVariant) String() string {
 // 	return 0.01 * math.Pow(math.E, time*5)
 // }
 
-// type berryProgression struct {
-// 	NextPhase berryPhase
-// 	Chance    float64
-// }
+type mushroomProgression struct {
+	NextPhase mushroomPhase
+	Chance    float64
+}
 
-// func (b berryProgression) testChance() bool {
-// 	return rand.Intn(1000) < int(b.Chance*1000)
-// }
+func (m mushroomProgression) testChance() bool {
+	return rand.Intn(1000) < int(m.Chance*1000)
+}
 
 type Mushroom struct {
-	game  *Game
-	state state.State
-	pos   image.Point
-	// randomTickCooldown int
+	game               *Game
+	state              state.State
+	pos                image.Point
+	randomTickCooldown int
 	// plantedTime        Time
 }
 
@@ -162,13 +169,13 @@ func NewMushroom(game *Game, position image.Point) (*Mushroom, error) {
 	stateBuilder := state.StateBuilder{}
 
 	stateBuilder.Add(
-		state.NewProperty("age" /*berryPhase(1).String()*/, "1"),
+		state.NewProperty("age", mushroomPhase(1).String()),
 		state.NewProperty("variant", mushroomVariant(rand.Intn(3)).String()),
 	)
 
 	created.state = stateBuilder.Build()
 
-	// created.SetCooldown(true)
+	created.SetCooldown(true)
 
 	return &created, nil
 }
@@ -247,8 +254,8 @@ func (m Mushroom) GetZ() (int, error) {
 }
 
 const (
-// Berries gets ticked once every `berryTickInterval`.
-// berryTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
+	// Mushrooms gets ticked once every `mushroomTickInterval`.
+	mushroomTickInterval = TPGM * MinsPerHour * HoursPerDay / 2
 )
 
 func (m Mushroom) GetTexture() (*ebiten.Image, error) {
@@ -259,42 +266,42 @@ func (m Mushroom) GetTexture() (*ebiten.Image, error) {
 	return assets.Mushrooms.GetTexture(texturePath), nil
 }
 
-// func (b *Berry) SetCooldown(tickOnThisInterval bool) {
-// 	timeLeftInInterval := berryTickInterval - (int(b.game.time) % berryTickInterval)
-// 	if tickOnThisInterval {
-// 		throughThis := rand.Intn(int(float64(timeLeftInInterval) * 0.95))
-// 		b.randomTickCooldown = throughThis
-// 	} else {
-// 		throughNext := rand.Intn(int(float64(berryTickInterval) * 0.95))
-// 		b.randomTickCooldown = timeLeftInInterval + throughNext
-// 	}
-// }
+func (m *Mushroom) SetCooldown(tickOnThisInterval bool) {
+	timeLeftInInterval := mushroomTickInterval - (int(m.game.time) % mushroomTickInterval)
+	if tickOnThisInterval {
+		throughThis := rand.Intn(int(float64(timeLeftInInterval) * 0.95))
+		m.randomTickCooldown = throughThis
+	} else {
+		throughNext := rand.Intn(int(float64(mushroomTickInterval) * 0.95))
+		m.randomTickCooldown = timeLeftInInterval + throughNext
+	}
+}
 
-// func (b *Berry) Update() error {
-// 	b.randomTickCooldown -= args.TimeRateFlag
+func (m *Mushroom) Update() error {
+	m.randomTickCooldown -= args.TimeRateFlag
 
-// 	if b.randomTickCooldown <= 0 {
+	if m.randomTickCooldown <= 0 {
 
-// 		currentPhase, err := state.GetIntFromState[berryPhase](b.state, "age")
-// 		if err != nil {
-// 			return err
-// 		}
+		currentPhase, err := state.GetIntFromState[mushroomPhase](m.state, "age")
+		if err != nil {
+			return err
+		}
 
-// 		progression, err := currentPhase.CheckForProgression(b.game.time, int(b.game.time-b.plantedTime))
-// 		if err != nil {
-// 			return err
-// 		}
+		progression, err := currentPhase.CheckForProgression(m.game.time, 0) //int(m.game.time-m.plantedTime))
+		if err != nil {
+			return err
+		}
 
-// 		for _, p := range progression {
-// 			if p.testChance() && p.NextPhase != 0 {
-// 				err := b.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
-// 				if err != nil {
-// 					return err
-// 				}
-// 				break
-// 			}
-// 		}
-// 		b.SetCooldown(false)
-// 	}
-// 	return nil
-// }
+		for _, p := range progression {
+			if p.testChance() && p.NextPhase != 0 {
+				err := m.state.UpdateValue("age", fmt.Sprint(p.NextPhase))
+				if err != nil {
+					return err
+				}
+				break
+			}
+		}
+		m.SetCooldown(false)
+	}
+	return nil
+}

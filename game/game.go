@@ -85,8 +85,16 @@ func (g *Game) Update() (err error) {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
+
+	//TODO loops could be changed to `_, obj` idk tho
 	for i := range g.berries {
 		err = g.berries[i].Update()
+		if err != nil {
+			return err
+		}
+	}
+	for i := range g.mushrooms {
+		err = g.mushrooms[i].Update()
 		if err != nil {
 			return err
 		}

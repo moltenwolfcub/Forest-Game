@@ -43,3 +43,17 @@ func NewUnknownMushroomVariantError(variant string) UnknownMushroomVariantError 
 func (m UnknownMushroomVariantError) Error() string {
 	return fmt.Sprintf("Unkown mushroom variant: %s", m.variant)
 }
+
+type InvalidMushroomPhaseError struct {
+	phase string
+}
+
+func NewInvalidMushroomPhaseError(phase string) InvalidMushroomPhaseError {
+	return InvalidMushroomPhaseError{
+		phase: phase,
+	}
+}
+
+func (b InvalidMushroomPhaseError) Error() string {
+	return fmt.Sprintf("Not a valid mushroom phase: %s", b.phase)
+}
