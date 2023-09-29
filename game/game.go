@@ -25,10 +25,11 @@ type Game struct {
 	timeHud TextElement
 	player  Player
 
-	inclines []*Incline
-	rivers   []*River
-	trees    []*Tree
-	berries  []*Berry
+	inclines  []*Incline
+	rivers    []*River
+	trees     []*Tree
+	berries   []*Berry
+	mushrooms []*Mushroom
 }
 
 func NewGame() (*Game, error) {
@@ -61,6 +62,12 @@ func NewGame() (*Game, error) {
 		return nil, err
 	}
 	g.berries = []*Berry{berry}
+
+	mushroom, err := NewMushroom(g, image.Pt(512, -128))
+	if err != nil {
+		return nil, err
+	}
+	g.mushrooms = []*Mushroom{mushroom}
 
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g, nil
@@ -112,6 +119,9 @@ func (g Game) GenerateFrame() (*ebiten.Image, error) {
 	}
 	for _, berry := range g.berries {
 		mapElements = append(mapElements, DepthAwareDrawable(berry))
+	}
+	for _, mushroom := range g.mushrooms {
+		mapElements = append(mapElements, DepthAwareDrawable(mushroom))
 	}
 	for _, incline := range g.inclines {
 		mapElements = append(mapElements, DepthAwareDrawable(incline))

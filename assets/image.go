@@ -44,7 +44,8 @@ var (
 	Icon256 *ebiten.Image = MustLoadPNG("icon/icon256")
 	Icon512 *ebiten.Image = MustLoadPNG("icon/icon512")
 
-	Berries TextureCache = NewTextureCache()
+	Berries   TextureCache = NewTextureCache()
+	Mushrooms TextureCache = NewTextureCache()
 
 	Fonts TextureCache = NewTextureCache()
 )
