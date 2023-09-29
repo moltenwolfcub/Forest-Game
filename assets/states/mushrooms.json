@@ -1,0 +1,18 @@
+{
+	"states": {
+		"age=1, variant=light1": "object/mushrooms/light1_1",
+		"age=2, variant=light1": "object/mushrooms/light1_2",
+		"age=3, variant=light1": "object/mushrooms/light1_3",
+		"age=4, variant=light1": "object/mushrooms/light1_4",
+	
+		"age=1, variant=light2": "object/mushrooms/light2_1",
+		"age=2, variant=light2": "object/mushrooms/light2_2",
+		"age=3, variant=light2": "object/mushrooms/light2_3",
+		"age=4, variant=light2": "object/mushrooms/light2_4",
+	
+		"age=1, variant=light3": "object/mushrooms/light3_1",
+		"age=2, variant=light3": "object/mushrooms/light3_2",
+		"age=3, variant=light3": "object/mushrooms/light3_3",
+		"age=4, variant=light3": "object/mushrooms/light3_4"
+	}
+}

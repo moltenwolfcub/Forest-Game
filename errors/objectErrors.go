@@ -29,3 +29,17 @@ func NewInvalidBerryPhaseError(phase string) InvalidBerryPhaseError {
 func (b InvalidBerryPhaseError) Error() string {
 	return fmt.Sprintf("Not a valid berry phase: %s", b.phase)
 }
+
+type UnknownMushroomVariantError struct {
+	variant string
+}
+
+func NewUnknownMushroomVariantError(variant string) UnknownMushroomVariantError {
+	return UnknownMushroomVariantError{
+		variant: variant,
+	}
+}
+
+func (m UnknownMushroomVariantError) Error() string {
+	return fmt.Sprintf("Unkown mushroom variant: %s", m.variant)
+}

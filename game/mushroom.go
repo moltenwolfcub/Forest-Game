@@ -1,46 +1,51 @@
 package game
 
 import (
+	"fmt"
 	"image"
+	"log/slog"
+	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/moltenwolfcub/Forest-Game/assets"
+	"github.com/moltenwolfcub/Forest-Game/errors"
+	"github.com/moltenwolfcub/Forest-Game/game/state"
 )
 
-// type berryVariant int
+type mushroomVariant int
 
-// const (
-// 	Light berryVariant = iota
-// 	Medium
-// 	Dark
-// )
+const (
+	light1 mushroomVariant = iota
+	light2
+	light3
+)
 
-// func berryVariantFromStr(str string) (berryVariant, error) {
-// 	switch str {
-// 	case "light":
-// 		return Light, nil
-// 	case "mid":
-// 		return Medium, nil
-// 	case "dark":
-// 		return Dark, nil
-// 	default:
-// 		return 0, errors.NewUnknownBerryVariantError(str)
-// 	}
-// }
+func mushroomVariantFromStr(str string) (mushroomVariant, error) {
+	switch str {
+	case "light1":
+		return light1, nil
+	case "light2":
+		return light2, nil
+	case "light3":
+		return light3, nil
+	default:
+		return 0, errors.NewUnknownMushroomVariantError(str)
+	}
+}
 
-// func (b berryVariant) String() string {
-// 	switch b {
-// 	case Light:
-// 		return "light"
-// 	case Medium:
-// 		return "mid"
-// 	case Dark:
-// 		return "dark"
-// 	default:
-// 		slog.Warn(errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
-// 		return "VariantError"
-// 	}
-// }
+func (m mushroomVariant) String() string {
+	switch m {
+	case light1:
+		return "light1"
+	case light2:
+		return "light2"
+	case light3:
+		return "light3"
+	default:
+		slog.Warn(errors.NewUnknownMushroomVariantError((fmt.Sprintf("%d", int(m)))).Error())
+		return "VariantError"
+	}
+}
 
 // type berryPhase int
 
@@ -141,9 +146,9 @@ import (
 // }
 
 type Mushroom struct {
-	game *Game
-	// state              state.State
-	pos image.Point
+	game  *Game
+	state state.State
+	pos   image.Point
 	// randomTickCooldown int
 	// plantedTime        Time
 }
@@ -154,14 +159,14 @@ func NewMushroom(game *Game, position image.Point) (*Mushroom, error) {
 		// plantedTime: game.time,
 		pos: position,
 	}
-	// stateBuilder := state.StateBuilder{}
+	stateBuilder := state.StateBuilder{}
 
-	// stateBuilder.Add(
-	// 	state.NewProperty("age", berryPhase(1).String()),
-	// 	state.NewProperty("variant", berryVariant(rand.Intn(3)).String()),
-	// )
+	stateBuilder.Add(
+		state.NewProperty("age" /*berryPhase(1).String()*/, "1"),
+		state.NewProperty("variant", mushroomVariant(rand.Intn(3)).String()),
+	)
 
-	// created.state = stateBuilder.Build()
+	created.state = stateBuilder.Build()
 
 	// created.SetCooldown(true)
 
@@ -247,11 +252,11 @@ const (
 )
 
 func (m Mushroom) GetTexture() (*ebiten.Image, error) {
-	// texturePath, err := assets.MushroomStates.GetTexturePath(m.state.ToTextureKey())
-	// if err != nil {
-	// 	return nil, err
-	// }
-	return assets.Mushrooms.GetTexture("object/mushrooms/light1"), nil
+	texturePath, err := assets.MushroomStates.GetTexturePath(m.state.ToTextureKey())
+	if err != nil {
+		return nil, err
+	}
+	return assets.Mushrooms.GetTexture(texturePath), nil
 }
 
 // func (b *Berry) SetCooldown(tickOnThisInterval bool) {
