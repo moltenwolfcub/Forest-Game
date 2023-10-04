@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"log/slog"
+	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -62,30 +63,22 @@ func (m mushroomPhase) String() string {
 func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progressions []mushroomProgression, err error) {
 	// yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
-	// month := time.MonthsThroughYear()
-	// throughMonth := time.ThroughMonth()
+	month := time.MonthsThroughYear()
+	throughMonth := time.ThroughMonth()
 
 	switch m {
 	case 1:
-		progressions = append(progressions, mushroomProgression{
-			NextPhase: mushroomPhase(2),
-			Chance:    0.1,
-		}) //m.oneMonthProgression(progressions, month, 1, throughMonth)
+		//in month 6-7 increase
+		progressions = m.betweenMonthProgression(progressions, month, 6, throughMonth)
 	case 2:
-		progressions = append(progressions, mushroomProgression{
-			NextPhase: mushroomPhase(3),
-			Chance:    0.1,
-		}) //m.twoMonthProgression(progressions, month, 2, throughMonth)
+		// in month 8-1 increase
+		progressions = m.betweenMonthProgression(progressions, month, 8, throughMonth)
 	case 3:
-		progressions = append(progressions, mushroomProgression{
-			NextPhase: mushroomPhase(4),
-			Chance:    0.1,
-		}) //m.twoMonthProgression(progressions, month, 4, throughMonth)
+		// in month 1-2 increase
+		progressions = m.betweenMonthProgression(progressions, month, 1, throughMonth)
 	case 4:
-		progressions = append(progressions, mushroomProgression{
-			NextPhase: mushroomPhase(3),
-			Chance:    0.1,
-		}) //m.twoMonthProgression(progressions, month, 6, throughMonth)
+		// in month 2-3 back to 3
+		progressions = m.betweenMonthProgression(progressions, month, 2, throughMonth, 3)
 	default:
 		err = errors.NewInvalidMushroomPhaseError(fmt.Sprintf("%v", m))
 		return
@@ -94,33 +87,31 @@ func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progression
 	return
 }
 
-// func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
-// 	var nextPhase berryPhase
-// 	if len(next) > 0 {
-// 		nextPhase = next[0]
-// 	} else {
-// 		nextPhase = b + 1
-// 	}
+func (m mushroomPhase) betweenMonthProgression(progressions []mushroomProgression, currentMonth int, growthMonth int, timeThrough float64, next ...mushroomPhase) []mushroomProgression {
+	if !(currentMonth == growthMonth || currentMonth == growthMonth%8+1) {
+		return progressions
+	}
 
-// 	if month == growthMonth {
-// 		p := berryProgression{
-// 			NextPhase: nextPhase,
-// 			Chance:    mapTimeToChance(throughMonth),
-// 		}
+	var nextPhase mushroomPhase
+	if len(next) > 0 {
+		nextPhase = next[0]
+	} else {
+		nextPhase = m + 1
+	}
 
-// 		progressions = append(progressions, p)
-// 	}
+	if currentMonth != growthMonth {
+		timeThrough += 1
+	}
 
-// 	return progressions
-// }
-// func (b berryPhase) twoMonthProgression(progressions []berryProgression, month int, growthStart int, throughMonth float64) []berryProgression {
-// 	percentThrough := throughMonth / 2
+	progression := mushroomProgression{
+		NextPhase: nextPhase,
+		Chance:    mapMonthPairToChance(timeThrough),
+	}
+	progressions = append(progressions, progression)
 
-// 	progressions = b.oneMonthProgression(progressions, month, growthStart, percentThrough)
-// 	progressions = b.oneMonthProgression(progressions, month, growthStart+1, percentThrough+0.5)
+	return progressions
+}
 
-// 	return progressions
-// }
 // func (b berryPhase) deathProgression(progressions []berryProgression, years int, month int) []berryProgression {
 // 	if years == deathYear && month >= 3 || years > deathYear {
 // 		p := berryProgression{
@@ -134,14 +125,11 @@ func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progression
 // 	return progressions
 // }
 
-// When given a value between 0 and 1 it maps the result
-// to a growth chance based on the equation 0.01e^(5x)
-//
-// This equation maps 0 -> 0 and 1 -> 1 but the change is
-// very steep towards the end of the time
-// func mapTimeToChance(time float64) float64 {
-// 	return 0.01 * math.Pow(math.E, time*5)
-// }
+// When given a value between 0 and 2 it maps the result
+// to a growth chance based on the equation 0.06e^(2x)-0.1
+func mapMonthPairToChance(time float64) float64 {
+	return 0.01 * math.Pow(math.E, time*5)
+}
 
 type mushroomProgression struct {
 	NextPhase mushroomPhase
