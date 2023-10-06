@@ -82,6 +82,7 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 	case 7:
 		progressions = b.oneMonthProgression(progressions, month, 2, throughMonth, 4)
 	case 8:
+		return
 	default:
 		err = errors.NewInvalidBerryPhaseError(fmt.Sprintf("%v", b))
 		return
@@ -90,6 +91,10 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 	return
 }
 func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
+	if month != growthMonth {
+		return progressions
+	}
+
 	var nextPhase berryPhase
 	if len(next) > 0 {
 		nextPhase = next[0]
@@ -97,18 +102,19 @@ func (b berryPhase) oneMonthProgression(progressions []berryProgression, month i
 		nextPhase = b + 1
 	}
 
-	if month == growthMonth {
-		p := berryProgression{
-			NextPhase: nextPhase,
-			Chance:    mapTimeToChance(throughMonth),
-		}
-
-		progressions = append(progressions, p)
+	p := berryProgression{
+		NextPhase: nextPhase,
+		Chance:    mapTimeToChance(throughMonth),
 	}
+
+	progressions = append(progressions, p)
 
 	return progressions
 }
 func (b berryPhase) twoMonthProgression(progressions []berryProgression, month int, growthStart int, throughMonth float64) []berryProgression {
+	if month != growthStart && month != growthStart+1 {
+		return progressions
+	}
 	percentThrough := throughMonth / 2
 
 	progressions = b.oneMonthProgression(progressions, month, growthStart, percentThrough)
