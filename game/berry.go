@@ -82,6 +82,7 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 	case 7:
 		progressions = b.oneMonthProgression(progressions, month, 2, throughMonth, 4)
 	case 8:
+		return
 	default:
 		err = errors.NewInvalidBerryPhaseError(fmt.Sprintf("%v", b))
 		return

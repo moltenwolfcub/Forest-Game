@@ -55,13 +55,13 @@ func (m mushroomPhase) String() string {
 	return fmt.Sprintf("%d", m)
 }
 
-// const (
-// 	deathChance = 0.25
-// 	deathYear   = 5
-// )
+const (
+	mushroomDeathChance = 0.1
+	mushroomDeathYear   = 3
+)
 
 func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progressions []mushroomProgression, err error) {
-	// yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
+	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
 	month := time.MonthsThroughYear()
 	throughMonth := time.ThroughMonth()
@@ -77,13 +77,18 @@ func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progression
 		// in month 1-2 increase
 		progressions = m.betweenMonthProgression(progressions, month, 1, throughMonth)
 	case 4:
-		// in month 2-3 back to 3
-		progressions = m.betweenMonthProgression(progressions, month, 2, throughMonth, 3)
+		if yearsThroughLife >= mushroomDeathYear {
+			progressions = m.deathProgression(progressions)
+		} else {
+			// in month 2-3 back to 3
+			progressions = m.betweenMonthProgression(progressions, month, 2, throughMonth, 3)
+		}
+	case 5:
+		return
 	default:
 		err = errors.NewInvalidMushroomPhaseError(fmt.Sprintf("%v", m))
 		return
 	}
-	// progressions = m.deathProgression(progressions, yearsThroughLife, month)
 	return
 }
 
@@ -111,19 +116,16 @@ func (m mushroomPhase) betweenMonthProgression(progressions []mushroomProgressio
 
 	return progressions
 }
+func (m mushroomPhase) deathProgression(progressions []mushroomProgression) []mushroomProgression {
+	p := mushroomProgression{
+		NextPhase: 5,
+		Chance:    mushroomDeathChance,
+	}
 
-// func (b berryPhase) deathProgression(progressions []berryProgression, years int, month int) []berryProgression {
-// 	if years == deathYear && month >= 3 || years > deathYear {
-// 		p := berryProgression{
-// 			NextPhase: 8,
-// 			Chance:    deathChance,
-// 		}
+	progressions = append(progressions, p)
 
-// 		progressions = append(progressions, p)
-// 	}
-
-// 	return progressions
-// }
+	return progressions
+}
 
 // When given a value between 0 and 2 it maps the result
 // to a growth chance based on the equation 0.06e^(2x)-0.1
@@ -145,14 +147,14 @@ type Mushroom struct {
 	state              state.State
 	pos                image.Point
 	randomTickCooldown int
-	// plantedTime        Time
+	plantedTime        Time
 }
 
 func NewMushroom(game *Game, position image.Point) (*Mushroom, error) {
 	created := Mushroom{
-		game: game,
-		// plantedTime: game.time,
-		pos: position,
+		game:        game,
+		plantedTime: game.time,
+		pos:         position,
 	}
 	stateBuilder := state.StateBuilder{}
 
@@ -275,7 +277,7 @@ func (m *Mushroom) Update() error {
 			return err
 		}
 
-		progression, err := currentPhase.CheckForProgression(m.game.time, 0) //int(m.game.time-m.plantedTime))
+		progression, err := currentPhase.CheckForProgression(m.game.time, int(m.game.time-m.plantedTime))
 		if err != nil {
 			return err
 		}
