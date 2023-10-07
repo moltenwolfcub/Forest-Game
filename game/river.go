@@ -83,7 +83,6 @@ func (r River) DrawAt(screen *ebiten.Image, pos image.Point) error {
 		}
 
 		texture.DrawAt(screen, pos)
-		r.markTextureDirty(id)
 	}
 	return nil
 }
