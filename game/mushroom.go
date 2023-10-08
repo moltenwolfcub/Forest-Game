@@ -60,7 +60,7 @@ const (
 	mushroomDeathYear   = 3
 )
 
-func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progressions []mushroomProgression, err error) {
+func (m mushroomPhase) CheckForProgression(time Time, totalAge int, lastSporulation Time) (progressions []mushroomProgression, err error) {
 	yearsThroughLife := int(float64(totalAge) / TPGM / MinsPerHour / HoursPerDay / DaysPerMonth / MonthsPerYear)
 
 	month := time.MonthsThroughYear()
@@ -75,6 +75,11 @@ func (m mushroomPhase) CheckForProgression(time Time, totalAge int) (progression
 		progressions = m.betweenMonthProgression(progressions, month, 8, throughMonth)
 	case 3:
 		// in month 1-2 increase
+		// don't grow if already had a growth cycle this year from 4
+		if lastSporulation != -1 && (lastSporulation.Years() == time.Years()) {
+			return
+		}
+
 		progressions = m.betweenMonthProgression(progressions, month, 1, throughMonth)
 	case 4:
 		if yearsThroughLife >= mushroomDeathYear {
@@ -148,13 +153,15 @@ type Mushroom struct {
 	pos                image.Point
 	randomTickCooldown int
 	plantedTime        Time
+	lastSporulation    Time
 }
 
 func NewMushroom(game *Game, position image.Point) (*Mushroom, error) {
 	created := Mushroom{
-		game:        game,
-		plantedTime: game.time,
-		pos:         position,
+		game:            game,
+		plantedTime:     game.time,
+		pos:             position,
+		lastSporulation: -1,
 	}
 	stateBuilder := state.StateBuilder{}
 
@@ -277,7 +284,7 @@ func (m *Mushroom) Update() error {
 			return err
 		}
 
-		progression, err := currentPhase.CheckForProgression(m.game.time, int(m.game.time-m.plantedTime))
+		progression, err := currentPhase.CheckForProgression(m.game.time, int(m.game.time-m.plantedTime), m.lastSporulation)
 		if err != nil {
 			return err
 		}
@@ -288,6 +295,11 @@ func (m *Mushroom) Update() error {
 				if err != nil {
 					return err
 				}
+				if p.NextPhase == 4 {
+					m.lastSporulation = m.game.time
+					println(m.lastSporulation.String())
+				}
+
 				break
 			}
 		}

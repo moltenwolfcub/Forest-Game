@@ -141,6 +141,9 @@ func (t Time) Days() int {
 func (t Time) Months() int {
 	return int(float64(t.Days()) / DaysPerMonth)
 }
+func (t Time) Years() int {
+	return int(float64(t.Months()) / MonthsPerYear)
+}
 
 func (t Time) TicksThroughDay() int {
 	return int(t) % ticksPerDay
