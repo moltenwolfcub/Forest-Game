@@ -20,6 +20,17 @@ func Profile() func() {
 	}
 
 	fileNameDate := time.Now().Format("2006-01-02-15:04:05")
+	duplicateTestDate := fileNameDate
+	i := 0
+	for {
+		if _, err := os.Stat(fmt.Sprintf("%s/%s-info.log", logDir, duplicateTestDate)); errors.Is(err, os.ErrNotExist) {
+			fileNameDate = duplicateTestDate
+			break
+		} else {
+			i++
+			duplicateTestDate = fmt.Sprintf("%s-%d", fileNameDate, i)
+		}
+	}
 
 	fileCpu, fileLatestCpu := createLog(fileNameDate, "cpu", false)
 	fileMem, fileLatestMem := createLog(fileNameDate, "memory", false)
