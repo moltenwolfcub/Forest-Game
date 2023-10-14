@@ -47,9 +47,10 @@ func NewGame() (*Game, error) {
 		},
 		rivers: []*River{
 			NewRiver(
-				NewBasicTerrainElement(0, 448, 1024, 256),
-				NewBasicTerrainElement(768, 576, 768, 256),
-				NewBasicTerrainElement(1280, 768, 448, 256),
+				image.Pt(0, 0),
+				NewRiverSegment(NewBasicTerrainElement(0, 448, 1024, 256)),
+				NewRiverSegment(NewBasicTerrainElement(768, 576, 768, 256)),
+				NewRiverSegment(NewBasicTerrainElement(1280, 768, 448, 256)),
 			),
 		},
 	}
