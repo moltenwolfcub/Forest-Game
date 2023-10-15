@@ -15,12 +15,28 @@ type OffsetImage struct {
 	Offset image.Point
 }
 
-func (l *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
+func (o OffsetImage) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
+	return DefaultHitboxOverlaps(layer, o, other)
+}
+
+func (o OffsetImage) Origin(_ GameContext) (image.Point, error) {
+	return o.Offset, nil
+}
+
+func (o OffsetImage) Size(_ GameContext) (image.Point, error) {
+	return o.Image.Bounds().Size(), nil
+}
+
+func (o OffsetImage) GetHitbox(_ GameContext) ([]image.Rectangle, error) {
+	return []image.Rectangle{o.Image.Bounds()}, nil
+}
+
+func (o *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	ops := ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
-	ops.GeoM.Translate(float64(l.Offset.X), float64(l.Offset.Y))
+	ops.GeoM.Translate(float64(o.Offset.X), float64(o.Offset.Y))
 
-	screen.DrawImage(l.Image, &ops)
+	screen.DrawImage(o.Image, &ops)
 	return nil
 }
 
