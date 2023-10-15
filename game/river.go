@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/moltenwolfcub/Forest-Game/errors"
 )
 
 const (
@@ -17,10 +18,14 @@ type River struct {
 }
 
 func NewRiver(origin image.Point, segs ...*RiverSegment) *River {
-	return &River{
+	river := &River{
 		origin:   origin,
 		segments: segs,
 	}
+	for _, seg := range segs {
+		seg.parent = river
+	}
+	return river
 }
 
 func (r River) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
@@ -61,59 +66,19 @@ func (r River) GetHitbox(layer GameContext) ([]image.Rectangle, error) {
 	return hitboxes, nil
 }
 
-// needs to change when rendering is moved to the segments
-func (r River) DrawAt(screen *ebiten.Image, pos image.Point) error {
+func (r *River) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	for _, seg := range r.segments {
-		if seg.cachedTexture == nil {
-			img, err := r.generateTexture(seg)
-			if err != nil {
-				return err
-			}
-			seg.cachedTexture = img
-		}
-		texture := seg.cachedTexture
-
-		texture.DrawAt(screen, pos)
+		seg.DrawAt(screen, pos)
 	}
 	return nil
 }
-
-func (r *River) generateTexture(segment *RiverSegment) (*OffsetImage, error) {
-	hitbox := segment.hitbox //should be getHitbox() will change when moving rendering
-
-	img := ebiten.NewImage(hitbox.Dx(), hitbox.Dy())
-	img.Fill(RiverColor)
-
-	lineartImg, err := ApplyLineart(img, r, hitbox)
-	if err != nil {
-		return nil, err
-	}
-	img.Dispose()
-
-	origin, err := r.Origin(Render)
-	if err != nil {
-		return nil, err
-	}
-	offset := hitbox.Min.Sub(origin)
-	lineartImg.Offset = lineartImg.Offset.Add(offset)
-
-	return lineartImg, nil
-}
-
-// func (r *River) markTextureDirty(id int) {
-// 	if r.cachedTexture[id] == nil {
-// 		return
-// 	}
-// 	r.cachedTexture[id].Image.Dispose()
-// 	r.cachedTexture[id] = nil
-// }
 
 func (r River) GetZ() (int, error) {
 	return -3, nil
 }
 
 type RiverSegment struct {
-	// parent        *River
+	parent        *River
 	hitbox        image.Rectangle
 	cachedTexture *OffsetImage
 }
@@ -121,6 +86,7 @@ type RiverSegment struct {
 func NewRiverSegment(rect image.Rectangle) *RiverSegment {
 	return &RiverSegment{
 		hitbox:        rect,
+		parent:        nil,
 		cachedTexture: nil,
 	}
 }
@@ -154,4 +120,63 @@ func (r RiverSegment) GetHitbox(ctx GameContext) ([]image.Rectangle, error) {
 	default:
 		return []image.Rectangle{r.hitbox}, nil
 	}
+}
+
+func (r *RiverSegment) DrawAt(screen *ebiten.Image, pos image.Point) error {
+	if r.cachedTexture == nil {
+		img, err := r.generateTexture()
+		if err != nil {
+			return err
+		}
+		r.cachedTexture = img
+	}
+	texture := r.cachedTexture
+
+	texture.DrawAt(screen, pos)
+	return nil
+}
+
+func (r *RiverSegment) generateTexture() (*OffsetImage, error) {
+	//use full river if it has a parent else run use self as parent for stand alone use
+	var fullObj HasHitbox
+	if r.parent == nil {
+		fullObj = r
+	} else {
+		fullObj = r.parent
+	}
+
+	hitboxSet, err := r.GetHitbox(Render)
+	if err != nil {
+		return nil, err
+	}
+	if count := len(hitboxSet); count != 1 {
+		return nil, errors.NewMultiHitboxRiverSegmentError(count)
+	}
+	hitbox := hitboxSet[0]
+
+	img := ebiten.NewImage(hitbox.Dx(), hitbox.Dy())
+	img.Fill(RiverColor)
+
+	lineartImg, err := ApplyLineart(img, fullObj, hitbox)
+	if err != nil {
+		return nil, err
+	}
+	img.Dispose()
+
+	origin, err := fullObj.Origin(Render)
+	if err != nil {
+		return nil, err
+	}
+	offset := hitbox.Min.Sub(origin)
+	lineartImg.Offset = lineartImg.Offset.Add(offset)
+
+	return lineartImg, nil
+}
+
+func (r *RiverSegment) markTextureDirty(id int) {
+	if r.cachedTexture == nil {
+		return
+	}
+	r.cachedTexture.Image.Dispose()
+	r.cachedTexture = nil
 }
