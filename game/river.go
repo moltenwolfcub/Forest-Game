@@ -132,8 +132,7 @@ func (r *RiverSegment) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	}
 	texture := r.cachedTexture
 
-	texture.DrawAt(screen, pos)
-	return nil
+	return texture.DrawAt(screen, pos)
 }
 
 func (r *RiverSegment) generateTexture() (*OffsetImage, error) {
