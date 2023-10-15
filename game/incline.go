@@ -45,8 +45,7 @@ func (i *Incline) DrawAt(screen *ebiten.Image, pos image.Point) error {
 		}
 	}
 
-	i.cachedTexture.DrawAt(screen, pos)
-	return nil
+	return i.cachedTexture.DrawAt(screen, pos)
 }
 
 func (i *Incline) markTextureDirty() {

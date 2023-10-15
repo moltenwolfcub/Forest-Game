@@ -15,12 +15,13 @@ type OffsetImage struct {
 	Offset image.Point
 }
 
-func (l *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) {
+func (l *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	ops := ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
 	ops.GeoM.Translate(float64(l.Offset.X), float64(l.Offset.Y))
 
 	screen.DrawImage(l.Image, &ops)
+	return nil
 }
 
 // Takes an image and adds lineart to all sides of it before returning the new image.
