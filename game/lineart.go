@@ -44,21 +44,36 @@ func (o *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 // The image given should be a single rect out of the full object so that it can be
 // computed seperately. The new offset from the original image is also returned so the
 // image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
-func ApplyLineart(oldImgSeg *ebiten.Image) (*OffsetImage, error) {
+func ApplyLineart(blankImage *ebiten.Image, neighbours []image.Rectangle) (*OffsetImage, error) {
 
-	// //image setup
-	// img := ebiten.NewImage(oldImgSeg.Bounds().Dx()+lineartW, oldImgSeg.Bounds().Dy()+lineartW)
+	// image setup
+	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
 
-	// //original image
-	// oldImgOffset := ebiten.DrawImageOptions{}
-	// oldImgOffset.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
-	// img.DrawImage(oldImgSeg, &oldImgOffset)
+	// original image
+	ops := ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
+	img.DrawImage(blankImage, &ops)
 
-	// //line segments
-	// fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
-	// fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
+	// line segments
+	fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
+	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
 
-	// //line art
+	horizontalImg := ebiten.NewImage(fullHorizontal.Dx(), fullHorizontal.Dy())
+	horizontalImg.Fill(LineartColor)
+	verticalImg := ebiten.NewImage(fullVertical.Dx(), fullVertical.Dy())
+	verticalImg.Fill(LineartColor)
+
+	img.DrawImage(horizontalImg, nil)
+	ops = ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(0, float64(img.Bounds().Dy())-float64(lineartW))
+	img.DrawImage(horizontalImg, &ops)
+
+	img.DrawImage(verticalImg, nil)
+	ops = ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(img.Bounds().Dx())-float64(lineartW), 0)
+	img.DrawImage(verticalImg, &ops)
+
+	// line art
 	// err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
 	// if err != nil {
 	// 	return nil, err
@@ -77,8 +92,8 @@ func ApplyLineart(oldImgSeg *ebiten.Image) (*OffsetImage, error) {
 	// }
 
 	return &OffsetImage{
-		Image: oldImgSeg,
-		// Offset: image.Pt(-lineartW/2, -lineartW/2),
+		Image:  img,
+		Offset: image.Pt(-lineartW/2, -lineartW/2),
 	}, nil
 }
 

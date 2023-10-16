@@ -159,11 +159,11 @@ func (r *RiverSegment) generateTexture() (*OffsetImage, error) {
 	img := ebiten.NewImage(hitbox.Dx(), hitbox.Dy())
 	img.Fill(RiverColor)
 
-	lineartImg, err := ApplyLineart(img)
+	lineartImg, err := ApplyLineart(img, r.neighbours)
 	if err != nil {
 		return nil, err
 	}
-	// img.Dispose()
+	img.Dispose()
 
 	origin, err := fullObj.Origin(Render)
 	if err != nil {
