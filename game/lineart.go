@@ -44,8 +44,7 @@ func (o *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 // The image given should be a single rect out of the full object so that it can be
 // computed seperately. The new offset from the original image is also returned so the
 // image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
-func ApplyLineart(blankImage *ebiten.Image, neighbours []image.Rectangle) (*OffsetImage, error) {
-
+func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours []image.Rectangle) (*OffsetImage, error) {
 	// image setup
 	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
 
@@ -54,42 +53,23 @@ func ApplyLineart(blankImage *ebiten.Image, neighbours []image.Rectangle) (*Offs
 	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
 	img.DrawImage(blankImage, &ops)
 
-	// line segments
-	fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
-	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
-
-	horizontalImg := ebiten.NewImage(fullHorizontal.Dx(), fullHorizontal.Dy())
-	horizontalImg.Fill(LineartColor)
-	verticalImg := ebiten.NewImage(fullVertical.Dx(), fullVertical.Dy())
-	verticalImg.Fill(LineartColor)
-
-	img.DrawImage(horizontalImg, nil)
-	ops = ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(0, float64(img.Bounds().Dy())-float64(lineartW))
-	img.DrawImage(horizontalImg, &ops)
-
-	img.DrawImage(verticalImg, nil)
-	ops = ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(float64(img.Bounds().Dx())-float64(lineartW), 0)
-	img.DrawImage(verticalImg, &ops)
-
 	// line art
-	// err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = drawSide(img, thisSeg, fullObj, fullVertical, left)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// err = drawSide(img, thisSeg, fullObj, fullVertical, right)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err := drawSide(img, hitbox, top)
+	if err != nil {
+		return nil, err
+	}
+	err = drawSide(img, hitbox, bottom)
+	if err != nil {
+		return nil, err
+	}
+	err = drawSide(img, hitbox, left)
+	if err != nil {
+		return nil, err
+	}
+	err = drawSide(img, hitbox, right)
+	if err != nil {
+		return nil, err
+	}
 
 	return &OffsetImage{
 		Image:  img,
@@ -97,32 +77,52 @@ func ApplyLineart(blankImage *ebiten.Image, neighbours []image.Rectangle) (*Offs
 	}, nil
 }
 
-// func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {
-// 	fullObjHitbox, err := fullObj.GetHitbox(Render)
-// 	if err != nil {
-// 		return err
-// 	}
+func drawSide(toDrawTo *ebiten.Image, hitbox image.Rectangle, side lineartSide) error {
+	var lineart *ebiten.Image
 
-// 	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
-// 	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
-// 	diff := int(end - start)
-// 	if diff < lineartW {
-// 		return nil
-// 	}
-// 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
-// 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
-// 	partialSide.Fill(LineartColor)
+	if side.isHorizontal() {
+		lineart = ebiten.NewImage(toDrawTo.Bounds().Dx(), lineartW)
+	} else {
+		lineart = ebiten.NewImage(lineartW, toDrawTo.Bounds().Dy())
+	}
+	lineart.Fill(LineartColor)
 
-// 	lineartOptions := ebiten.DrawImageOptions{}
-// 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
-// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
-// 	offset = side.getOffset(toDrawTo.Bounds())
-// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+	ops := ebiten.DrawImageOptions{}
+	switch side {
+	case bottom:
+		ops.GeoM.Translate(0, float64(toDrawTo.Bounds().Dy()-lineartW))
+	case right:
+		ops.GeoM.Translate(float64(toDrawTo.Bounds().Dx()-lineartW), 0)
+	}
+	toDrawTo.DrawImage(lineart, &ops)
 
-// 	toDrawTo.DrawImage(partialSide, &lineartOptions)
-// 	partialSide.Dispose()
-// 	return nil
-// }
+	return nil
+
+	// 	fullObjHitbox, err := fullObj.GetHitbox(Render)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+
+	// 	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
+	// 	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
+	// 	diff := int(end - start)
+	// 	if diff < lineartW {
+	// 		return nil
+	// 	}
+	// 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
+	// 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
+	// 	partialSide.Fill(LineartColor)
+
+	// 	lineartOptions := ebiten.DrawImageOptions{}
+	// 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
+	// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+	// 	offset = side.getOffset(toDrawTo.Bounds())
+	// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+
+	// toDrawTo.DrawImage(partialSide, &lineartOptions)
+	// partialSide.Dispose()
+	// return nil
+}
 
 // func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
 // 	point = side.getAxis(end.getCheckStart(thisSeg))
@@ -147,14 +147,25 @@ func ApplyLineart(blankImage *ebiten.Image, neighbours []image.Rectangle) (*Offs
 // 	return
 // }
 
-// type lineartSide int
+type lineartSide int
 
-// const (
-// 	left lineartSide = iota
-// 	right
-// 	top
-// 	bottom
-// )
+const (
+	left lineartSide = iota
+	right
+	top
+	bottom
+)
+
+func (l lineartSide) isHorizontal() bool {
+	switch l {
+	case bottom, top:
+		return true
+	case left, right:
+		return false
+	default:
+		return false
+	}
+}
 
 // func (l lineartSide) getOffset(rect image.Rectangle) image.Point {
 // 	switch l {
