@@ -24,6 +24,7 @@ func NewRiver(origin image.Point, segs ...*RiverSegment) *River {
 	}
 	for _, seg := range segs {
 		seg.parent = river
+		seg.neighbours, _ = river.GetHitbox(Render)
 	}
 	return river
 }
@@ -81,6 +82,7 @@ type RiverSegment struct {
 	parent        *River
 	hitbox        image.Rectangle
 	cachedTexture *OffsetImage
+	neighbours    []image.Rectangle
 }
 
 func NewRiverSegment(rect image.Rectangle) *RiverSegment {
@@ -88,6 +90,7 @@ func NewRiverSegment(rect image.Rectangle) *RiverSegment {
 		hitbox:        rect,
 		parent:        nil,
 		cachedTexture: nil,
+		neighbours:    []image.Rectangle{},
 	}
 }
 
@@ -156,11 +159,11 @@ func (r *RiverSegment) generateTexture() (*OffsetImage, error) {
 	img := ebiten.NewImage(hitbox.Dx(), hitbox.Dy())
 	img.Fill(RiverColor)
 
-	lineartImg, err := ApplyLineart(img, fullObj, hitbox)
+	lineartImg, err := ApplyLineart(img)
 	if err != nil {
 		return nil, err
 	}
-	img.Dispose()
+	// img.Dispose()
 
 	origin, err := fullObj.Origin(Render)
 	if err != nil {

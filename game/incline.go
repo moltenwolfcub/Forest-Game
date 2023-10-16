@@ -60,12 +60,14 @@ func (i *Incline) generateTexture() error {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(InclineColor)
 
-	lineartImg, err := ApplyLineart(img, i, i.hitbox)
-	if err != nil {
-		return err
+	// lineartImg, err := ApplyLineart(img, i, i.hitbox)
+	// if err != nil {
+	// 	return err
+	// }
+	// img.Dispose()
+	i.cachedTexture = &OffsetImage{
+		Image: img,
 	}
-	img.Dispose()
-	i.cachedTexture = lineartImg
 
 	return nil
 }

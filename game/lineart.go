@@ -44,187 +44,187 @@ func (o *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 // The image given should be a single rect out of the full object so that it can be
 // computed seperately. The new offset from the original image is also returned so the
 // image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
-func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*OffsetImage, error) {
+func ApplyLineart(oldImgSeg *ebiten.Image) (*OffsetImage, error) {
 
-	//image setup
-	img := ebiten.NewImage(oldImgSeg.Bounds().Dx()+lineartW, oldImgSeg.Bounds().Dy()+lineartW)
+	// //image setup
+	// img := ebiten.NewImage(oldImgSeg.Bounds().Dx()+lineartW, oldImgSeg.Bounds().Dy()+lineartW)
 
-	//original image
-	oldImgOffset := ebiten.DrawImageOptions{}
-	oldImgOffset.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
-	img.DrawImage(oldImgSeg, &oldImgOffset)
+	// //original image
+	// oldImgOffset := ebiten.DrawImageOptions{}
+	// oldImgOffset.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
+	// img.DrawImage(oldImgSeg, &oldImgOffset)
 
-	//line segments
-	fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
-	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
+	// //line segments
+	// fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
+	// fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
 
-	//line art
-	err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
-	if err != nil {
-		return nil, err
-	}
-	err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
-	if err != nil {
-		return nil, err
-	}
-	err = drawSide(img, thisSeg, fullObj, fullVertical, left)
-	if err != nil {
-		return nil, err
-	}
-	err = drawSide(img, thisSeg, fullObj, fullVertical, right)
-	if err != nil {
-		return nil, err
-	}
+	// //line art
+	// err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// err = drawSide(img, thisSeg, fullObj, fullVertical, left)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// err = drawSide(img, thisSeg, fullObj, fullVertical, right)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &OffsetImage{
-		Image:  img,
-		Offset: image.Pt(-lineartW/2, -lineartW/2),
+		Image: oldImgSeg,
+		// Offset: image.Pt(-lineartW/2, -lineartW/2),
 	}, nil
 }
 
-func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {
-	fullObjHitbox, err := fullObj.GetHitbox(Render)
-	if err != nil {
-		return err
-	}
+// func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {
+// 	fullObjHitbox, err := fullObj.GetHitbox(Render)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
-	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
-	diff := int(end - start)
-	if diff < lineartW {
-		return nil
-	}
-	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
-	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
-	partialSide.Fill(LineartColor)
+// 	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
+// 	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
+// 	diff := int(end - start)
+// 	if diff < lineartW {
+// 		return nil
+// 	}
+// 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
+// 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
+// 	partialSide.Fill(LineartColor)
 
-	lineartOptions := ebiten.DrawImageOptions{}
-	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
-	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
-	offset = side.getOffset(toDrawTo.Bounds())
-	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+// 	lineartOptions := ebiten.DrawImageOptions{}
+// 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
+// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+// 	offset = side.getOffset(toDrawTo.Bounds())
+// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
 
-	toDrawTo.DrawImage(partialSide, &lineartOptions)
-	partialSide.Dispose()
-	return nil
-}
+// 	toDrawTo.DrawImage(partialSide, &lineartOptions)
+// 	partialSide.Dispose()
+// 	return nil
+// }
 
-func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
-	point = side.getAxis(end.getCheckStart(thisSeg))
+// func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
+// 	point = side.getAxis(end.getCheckStart(thisSeg))
 
-	offset := thisSeg.Min
-	switch side {
-	case bottom:
-		offset = offset.Add(image.Pt(0, thisSeg.Dy()-lineartW))
-	case right:
-		offset = offset.Add(image.Pt(thisSeg.Dx()-lineartW, 0))
-	}
-	offsetEdge := edge.Add(offset)
+// 	offset := thisSeg.Min
+// 	switch side {
+// 	case bottom:
+// 		offset = offset.Add(image.Pt(0, thisSeg.Dy()-lineartW))
+// 	case right:
+// 		offset = offset.Add(image.Pt(thisSeg.Dx()-lineartW, 0))
+// 	}
+// 	offsetEdge := edge.Add(offset)
 
-	for _, seg := range occluders {
-		if seg == thisSeg || !seg.Overlaps(offsetEdge) {
-			continue
-		}
-		if end.checkOnRightSide(side.getAxis(end.getCheckEnd(thisSeg)), side.getAxis(end.getCheckEnd(seg))) {
-			point = end.minMax(point, side.getAxis(end.getCheckEnd(seg)))
-		}
-	}
-	return
-}
+// 	for _, seg := range occluders {
+// 		if seg == thisSeg || !seg.Overlaps(offsetEdge) {
+// 			continue
+// 		}
+// 		if end.checkOnRightSide(side.getAxis(end.getCheckEnd(thisSeg)), side.getAxis(end.getCheckEnd(seg))) {
+// 			point = end.minMax(point, side.getAxis(end.getCheckEnd(seg)))
+// 		}
+// 	}
+// 	return
+// }
 
-type lineartSide int
+// type lineartSide int
 
-const (
-	left lineartSide = iota
-	right
-	top
-	bottom
-)
+// const (
+// 	left lineartSide = iota
+// 	right
+// 	top
+// 	bottom
+// )
 
-func (l lineartSide) getOffset(rect image.Rectangle) image.Point {
-	switch l {
-	case bottom:
-		return image.Pt(0, rect.Dy()-lineartW)
-	case right:
-		return image.Pt(rect.Dx()-lineartW, 0)
-	default:
-		return image.Point{}
-	}
-}
+// func (l lineartSide) getOffset(rect image.Rectangle) image.Point {
+// 	switch l {
+// 	case bottom:
+// 		return image.Pt(0, rect.Dy()-lineartW)
+// 	case right:
+// 		return image.Pt(rect.Dx()-lineartW, 0)
+// 	default:
+// 		return image.Point{}
+// 	}
+// }
 
-func (l lineartSide) getAxis(point image.Point) float64 {
-	if l == left || l == right {
-		return float64(point.Y)
-	} else if l == top || l == bottom {
-		return float64(point.X)
-	} else {
-		return 0
-	}
-}
-func (l lineartSide) getAxisPoint(point image.Point) image.Point {
-	if l == left || l == right {
-		return image.Pt(0, point.Y)
-	} else if l == top || l == bottom {
-		return image.Pt(point.X, 0)
-	} else {
-		return image.Point{}
-	}
-}
+// func (l lineartSide) getAxis(point image.Point) float64 {
+// 	if l == left || l == right {
+// 		return float64(point.Y)
+// 	} else if l == top || l == bottom {
+// 		return float64(point.X)
+// 	} else {
+// 		return 0
+// 	}
+// }
+// func (l lineartSide) getAxisPoint(point image.Point) image.Point {
+// 	if l == left || l == right {
+// 		return image.Pt(0, point.Y)
+// 	} else if l == top || l == bottom {
+// 		return image.Pt(point.X, 0)
+// 	} else {
+// 		return image.Point{}
+// 	}
+// }
 
-// returns the point if `l` is horizontal if it's vertical then
-// x and y get flipped in the point. Returns point of 0, 0 if
-// there is a problem
-func (l lineartSide) swapAxis(point image.Point) image.Point {
-	if l == left || l == right {
-		return point
-	} else if l == top || l == bottom {
-		return image.Pt(point.Y, point.X)
-	} else {
-		return image.Point{}
-	}
-}
+// // returns the point if `l` is horizontal if it's vertical then
+// // x and y get flipped in the point. Returns point of 0, 0 if
+// // there is a problem
+// func (l lineartSide) swapAxis(point image.Point) image.Point {
+// 	if l == left || l == right {
+// 		return point
+// 	} else if l == top || l == bottom {
+// 		return image.Pt(point.Y, point.X)
+// 	} else {
+// 		return image.Point{}
+// 	}
+// }
 
-type lineartEnd int
+// type lineartEnd int
 
-const (
-	startSide lineartEnd = iota
-	endSide
-)
+// const (
+// 	startSide lineartEnd = iota
+// 	endSide
+// )
 
-func (l lineartEnd) getCheckStart(rect image.Rectangle) (point image.Point) {
-	switch l {
-	case startSide:
-		point = rect.Min
-	case endSide:
-		point = rect.Max
-	}
-	return
-}
-func (l lineartEnd) getCheckEnd(rect image.Rectangle) (point image.Point) {
-	switch l {
-	case startSide:
-		point = rect.Max
-	case endSide:
-		point = rect.Min
-	}
-	return
-}
-func (l lineartEnd) minMax(pos float64, potentialNew float64) (newPos float64) {
-	switch l {
-	case startSide:
-		newPos = max(pos, potentialNew)
-	case endSide:
-		newPos = min(pos, potentialNew)
-	}
-	return
-}
-func (l lineartEnd) checkOnRightSide(this float64, other float64) bool {
-	switch l {
-	case startSide:
-		return other < this
-	case endSide:
-		return other > this
-	default:
-		return false
-	}
-}
+// func (l lineartEnd) getCheckStart(rect image.Rectangle) (point image.Point) {
+// 	switch l {
+// 	case startSide:
+// 		point = rect.Min
+// 	case endSide:
+// 		point = rect.Max
+// 	}
+// 	return
+// }
+// func (l lineartEnd) getCheckEnd(rect image.Rectangle) (point image.Point) {
+// 	switch l {
+// 	case startSide:
+// 		point = rect.Max
+// 	case endSide:
+// 		point = rect.Min
+// 	}
+// 	return
+// }
+// func (l lineartEnd) minMax(pos float64, potentialNew float64) (newPos float64) {
+// 	switch l {
+// 	case startSide:
+// 		newPos = max(pos, potentialNew)
+// 	case endSide:
+// 		newPos = min(pos, potentialNew)
+// 	}
+// 	return
+// }
+// func (l lineartEnd) checkOnRightSide(this float64, other float64) bool {
+// 	switch l {
+// 	case startSide:
+// 		return other < this
+// 	case endSide:
+// 		return other > this
+// 	default:
+// 		return false
+// 	}
+// }
