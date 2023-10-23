@@ -2,8 +2,10 @@ package game
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var (
@@ -54,19 +56,19 @@ func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours [
 	img.DrawImage(blankImage, &ops)
 
 	// line art
-	err := drawSide(img, hitbox, top)
+	err := drawSide(img, hitbox, neighbours, top)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, hitbox, bottom)
+	err = drawSide(img, hitbox, neighbours, bottom)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, hitbox, left)
+	err = drawSide(img, hitbox, neighbours, left)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, hitbox, right)
+	err = drawSide(img, hitbox, neighbours, right)
 	if err != nil {
 		return nil, err
 	}
@@ -77,32 +79,87 @@ func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours [
 	}, nil
 }
 
-func drawSide(toDrawTo *ebiten.Image, hitbox image.Rectangle, side lineartSide) error {
-	var lineart *ebiten.Image
-
-	if side.isHorizontal() {
-		lineart = ebiten.NewImage(toDrawTo.Bounds().Dx(), lineartW)
-	} else {
-		lineart = ebiten.NewImage(lineartW, toDrawTo.Bounds().Dy())
+func drawSide(toDrawTo *ebiten.Image, hitbox image.Rectangle, neighbours []image.Rectangle, side lineartSide) error {
+	originalSeg := image.Rectangle{
+		Min: toDrawTo.Bounds().Min.Add(image.Pt(lineartW/2, lineartW/2)),
+		Max: toDrawTo.Bounds().Max.Sub(image.Pt(lineartW/2, lineartW/2)),
 	}
-	lineart.Fill(LineartColor)
 
-	ops := ebiten.DrawImageOptions{}
+	var start image.Point
+
 	switch side {
+	case top:
+		start = originalSeg.Min
 	case bottom:
-		ops.GeoM.Translate(0, float64(toDrawTo.Bounds().Dy()-lineartW))
+		start = image.Pt(originalSeg.Min.X, originalSeg.Max.Y-1)
+	case left:
+		start = originalSeg.Min
 	case right:
-		ops.GeoM.Translate(float64(toDrawTo.Bounds().Dx()-lineartW), 0)
+		start = image.Pt(originalSeg.Max.X-1, originalSeg.Min.Y)
+	default:
+		return nil
 	}
-	toDrawTo.DrawImage(lineart, &ops)
+
+	var delta image.Point
+	if side.isHorizontal() {
+		delta = image.Pt(1, 0)
+	} else {
+		delta = image.Pt(0, 1)
+	}
+
+	current := start
+	for {
+		col := color.RGBA{0, 255, 0, 255}
+		// if overlaps, overlapRect := overlapsAny(current, neighbours); overlaps {
+		// 	var lineSeg *ebiten.Image
+		// 	lineSegOps := ebiten.DrawImageOptions{}
+		// 	if side.isHorizontal() {
+		// 		lineSeg := ebiten.NewImage(current.X-last.X, lineartW)
+		// 		lineSeg.Fill(LineartColor)
+
+		// 		lineSegOps.GeoM.Translate(0, -float64(lineartW)/2)
+		// 	}
+		// 	lineSegOps.GeoM.Translate(float64(last.X), float64(last.Y))
+		// 	toDrawTo.DrawImage(lineSeg, &lineSegOps)
+		// 	current.X = current.X + overlapRect.Dx()
+		// 	last = current
+		// }
+		vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), 1, col, false)
+		current = current.Add(delta)
+		if !current.In(originalSeg) {
+			break
+		}
+	}
 
 	return nil
-
+	// region comments
+	// var lineart *ebiten.Image
+	//
+	// if side.isHorizontal() {
+	// 	lineart = ebiten.NewImage(toDrawTo.Bounds().Dx(), lineartW)
+	// } else {
+	// 	lineart = ebiten.NewImage(lineartW, toDrawTo.Bounds().Dy())
+	// }
+	// lineart.Fill(LineartColor)
+	//
+	// ops := ebiten.DrawImageOptions{}
+	// switch side {
+	// case bottom:
+	// 	ops.GeoM.Translate(0, float64(toDrawTo.Bounds().Dy()-lineartW))
+	// case right:
+	// 	ops.GeoM.Translate(float64(toDrawTo.Bounds().Dx()-lineartW), 0)
+	// }
+	// toDrawTo.DrawImage(lineart, &ops)
+	//
+	// return nil
+	//
+	// VERY OLD STUFF BELOW
+	//
 	// 	fullObjHitbox, err := fullObj.GetHitbox(Render)
 	// 	if err != nil {
 	// 		return err
 	// 	}
-
+	//
 	// 	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
 	// 	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
 	// 	diff := int(end - start)
@@ -112,16 +169,26 @@ func drawSide(toDrawTo *ebiten.Image, hitbox image.Rectangle, side lineartSide) 
 	// 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
 	// 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
 	// 	partialSide.Fill(LineartColor)
-
+	//
 	// 	lineartOptions := ebiten.DrawImageOptions{}
 	// 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
 	// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
 	// 	offset = side.getOffset(toDrawTo.Bounds())
 	// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
-
+	//
 	// toDrawTo.DrawImage(partialSide, &lineartOptions)
 	// partialSide.Dispose()
 	// return nil
+	// endregion comments
+}
+
+func overlapsAny(point image.Point, rects []image.Rectangle) (bool, image.Rectangle) {
+	for _, rect := range rects {
+		if point.In(rect) {
+			return true, rect
+		}
+	}
+	return false, image.Rectangle{}
 }
 
 // func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {

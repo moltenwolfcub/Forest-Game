@@ -17,16 +17,24 @@ type River struct {
 	segments []*RiverSegment
 }
 
-func NewRiver(origin image.Point, segs ...*RiverSegment) *River {
+func NewRiver(origin image.Point, segs ...*RiverSegment) (*River, error) {
 	river := &River{
 		origin:   origin,
 		segments: segs,
 	}
 	for _, seg := range segs {
 		seg.parent = river
-		seg.neighbours, _ = river.GetHitbox(Render)
+		allRects, err := river.GetHitbox(Render)
+		if err != nil {
+			return nil, err
+		}
+		for _, rect := range allRects {
+			if !rect.Eq(seg.hitbox) {
+				seg.neighbours = append(seg.neighbours, rect)
+			}
+		}
 	}
-	return river
+	return river, nil
 }
 
 func (r River) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
