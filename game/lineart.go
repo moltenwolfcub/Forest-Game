@@ -110,10 +110,18 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	}
 
 	current := start
+	last := current
+	first := true
 	for {
 		col := color.RGBA{0, 255, 0, 255}
+		size := 1
 		if overlaps, _ := overlapsAny(current.Add(levelPos), neighbours); overlaps {
 			col = color.RGBA{255, 0, 0, 255}
+			if overlaps, _ := overlapsAny(last.Add(levelPos), neighbours); !overlaps || first {
+				col = color.RGBA{0, 0, 255, 255}
+				size = 5
+			}
+
 			// var lineSeg *ebiten.Image
 			// lineSegOps := ebiten.DrawImageOptions{}
 			// if side.isHorizontal() {
@@ -127,11 +135,13 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 			// current.X = current.X + overlapRect.Dx()
 			// last = current
 		}
-		vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), 1, col, false)
+		vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), float32(size), col, false)
+		last = current
 		current = current.Add(delta)
 		if !current.In(originalSeg) {
 			break
 		}
+		first = false
 	}
 
 	return nil
