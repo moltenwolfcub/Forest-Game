@@ -55,20 +55,22 @@ func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours [
 	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
 	img.DrawImage(blankImage, &ops)
 
+	levelPos := hitbox.Min.Sub(image.Pt(lineartW/2, lineartW/2))
+
 	// line art
-	err := drawSide(img, hitbox, neighbours, top)
+	err := drawSide(img, levelPos, neighbours, top)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, hitbox, neighbours, bottom)
+	err = drawSide(img, levelPos, neighbours, bottom)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, hitbox, neighbours, left)
+	err = drawSide(img, levelPos, neighbours, left)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, hitbox, neighbours, right)
+	err = drawSide(img, levelPos, neighbours, right)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +81,7 @@ func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours [
 	}, nil
 }
 
-func drawSide(toDrawTo *ebiten.Image, hitbox image.Rectangle, neighbours []image.Rectangle, side lineartSide) error {
+func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.Rectangle, side lineartSide) error {
 	originalSeg := image.Rectangle{
 		Min: toDrawTo.Bounds().Min.Add(image.Pt(lineartW/2, lineartW/2)),
 		Max: toDrawTo.Bounds().Max.Sub(image.Pt(lineartW/2, lineartW/2)),
@@ -110,20 +112,21 @@ func drawSide(toDrawTo *ebiten.Image, hitbox image.Rectangle, neighbours []image
 	current := start
 	for {
 		col := color.RGBA{0, 255, 0, 255}
-		// if overlaps, overlapRect := overlapsAny(current, neighbours); overlaps {
-		// 	var lineSeg *ebiten.Image
-		// 	lineSegOps := ebiten.DrawImageOptions{}
-		// 	if side.isHorizontal() {
-		// 		lineSeg := ebiten.NewImage(current.X-last.X, lineartW)
-		// 		lineSeg.Fill(LineartColor)
+		if overlaps, _ := overlapsAny(current.Add(levelPos), neighbours); overlaps {
+			col = color.RGBA{255, 0, 0, 255}
+			// var lineSeg *ebiten.Image
+			// lineSegOps := ebiten.DrawImageOptions{}
+			// if side.isHorizontal() {
+			// 	lineSeg := ebiten.NewImage(current.X-last.X, lineartW)
+			// 	lineSeg.Fill(LineartColor)
 
-		// 		lineSegOps.GeoM.Translate(0, -float64(lineartW)/2)
-		// 	}
-		// 	lineSegOps.GeoM.Translate(float64(last.X), float64(last.Y))
-		// 	toDrawTo.DrawImage(lineSeg, &lineSegOps)
-		// 	current.X = current.X + overlapRect.Dx()
-		// 	last = current
-		// }
+			// 	lineSegOps.GeoM.Translate(0, -float64(lineartW)/2)
+			// }
+			// lineSegOps.GeoM.Translate(float64(last.X), float64(last.Y))
+			// toDrawTo.DrawImage(lineSeg, &lineSegOps)
+			// current.X = current.X + overlapRect.Dx()
+			// last = current
+		}
 		vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), 1, col, false)
 		current = current.Add(delta)
 		if !current.In(originalSeg) {
