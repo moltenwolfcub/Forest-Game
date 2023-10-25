@@ -2,10 +2,8 @@ package game
 
 import (
 	"image"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var (
@@ -113,20 +111,48 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	last := current
 	// first := true
 	// first = first
+
+	lineStart := current
 	for {
-		col := color.RGBA{0, 255, 0, 255}
-		size := 1
-		if overlaps, _ := overlapsAny(current.Add(levelPos), neighbours); overlaps {
-			col = color.RGBA{255, 0, 0, 255}
-			if overlaps, overlapRect := overlapsAny(last.Add(levelPos), neighbours); overlaps {
+		// col := color.RGBA{0, 255, 0, 255}
+		// size := 1
+		if overlaps, overlapRect := overlapsAny(current.Add(levelPos), neighbours); overlaps {
+			//overlapping
+
+			// col = color.RGBA{255, 0, 0, 255}
+			if overlaps, _ := overlapsAny(last.Add(levelPos), neighbours); overlaps {
+				// if side.isHorizontal() {
+				// 	current.X = overlapRectInner.Sub(levelPos).Max.X
+				// } else {
+				// 	current.Y = overlapRectInner.Sub(levelPos).Max.Y
+				// }
+			} else {
+				//just started overlapping
+
+				//draw line
+				var lineSeg *ebiten.Image
+				if side.isHorizontal() {
+					lineSeg = ebiten.NewImage(last.X-lineStart.X, 1)
+				} else {
+					lineSeg = ebiten.NewImage(1, last.Y-lineStart.Y)
+				}
+				lineSeg.Fill(LineartColor)
+
+				lineSegOps := ebiten.DrawImageOptions{}
+				lineSegOps.GeoM.Translate(float64(lineStart.X), float64(lineStart.Y))
+				toDrawTo.DrawImage(lineSeg, &lineSegOps)
+
+				//jumpPast
 				if side.isHorizontal() {
 					current.X = overlapRect.Sub(levelPos).Max.X
 				} else {
 					current.Y = overlapRect.Sub(levelPos).Max.Y
 				}
-			} else {
-				col = color.RGBA{0, 0, 255, 255}
-				size = 5
+				//update lineStart
+				lineStart = current
+
+				// col = color.RGBA{0, 0, 255, 255}
+				// size = 5
 			}
 
 			// var lineSeg *ebiten.Image
@@ -142,10 +168,25 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 			// current.X = current.X + overlapRect.Dx()
 			// last = current
 		}
-		vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), float32(size), col, false)
+		// vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), float32(size), col, false)
 		last = current
 		current = current.Add(delta)
 		if !current.In(originalSeg) {
+			if last.Sub(lineStart).Eq(image.Pt(0, 0)) {
+				break
+			}
+
+			var lineSeg *ebiten.Image
+			if side.isHorizontal() {
+				lineSeg = ebiten.NewImage(last.X-lineStart.X, 1)
+			} else {
+				lineSeg = ebiten.NewImage(1, last.Y-lineStart.Y)
+			}
+			lineSeg.Fill(LineartColor)
+
+			lineSegOps := ebiten.DrawImageOptions{}
+			lineSegOps.GeoM.Translate(float64(lineStart.X), float64(lineStart.Y))
+			toDrawTo.DrawImage(lineSeg, &lineSegOps)
 			break
 		}
 		// first = false
