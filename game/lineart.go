@@ -109,8 +109,8 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 
 	current := start
 	last := current
-	// first := true
-	// first = first
+	first := true
+	first = first
 
 	lineStart := current
 	for {
@@ -118,6 +118,19 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 		// size := 1
 		if overlaps, overlapRect := overlapsAny(current.Add(levelPos), neighbours); overlaps {
 			//overlapping
+
+			if first {
+				//jumpPast
+				if side.isHorizontal() {
+					current.X = overlapRect.Sub(levelPos).Max.X
+				} else {
+					current.Y = overlapRect.Sub(levelPos).Max.Y
+				}
+				//update lineStart
+				lineStart = current
+
+				continue
+			}
 
 			// col = color.RGBA{255, 0, 0, 255}
 			if overlaps, _ := overlapsAny(last.Add(levelPos), neighbours); overlaps {
@@ -132,9 +145,9 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				//draw line
 				var lineSeg *ebiten.Image
 				if side.isHorizontal() {
-					lineSeg = ebiten.NewImage(last.X-lineStart.X, 1)
+					lineSeg = ebiten.NewImage(current.X-lineStart.X, 1)
 				} else {
-					lineSeg = ebiten.NewImage(1, last.Y-lineStart.Y)
+					lineSeg = ebiten.NewImage(1, current.Y-lineStart.Y)
 				}
 				lineSeg.Fill(LineartColor)
 
@@ -189,7 +202,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 			toDrawTo.DrawImage(lineSeg, &lineSegOps)
 			break
 		}
-		// first = false
+		first = false
 	}
 
 	return nil
