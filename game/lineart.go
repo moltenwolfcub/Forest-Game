@@ -117,9 +117,15 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 		size := 1
 		if overlaps, _ := overlapsAny(current.Add(levelPos), neighbours); overlaps {
 			col = color.RGBA{255, 0, 0, 255}
-			if overlaps, _ := overlapsAny(last.Add(levelPos), neighbours); !overlaps || first {
+			if overlaps, overlapRect := overlapsAny(last.Add(levelPos), neighbours); !overlaps || first {
 				col = color.RGBA{0, 0, 255, 255}
 				size = 5
+			} else {
+				if side.isHorizontal() {
+					current.X = overlapRect.Sub(levelPos).Max.X
+				} else {
+					current.Y = overlapRect.Sub(levelPos).Max.Y
+				}
 			}
 
 			// var lineSeg *ebiten.Image
