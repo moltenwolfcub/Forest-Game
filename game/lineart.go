@@ -144,14 +144,16 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 
 				//draw line
 				var lineSeg *ebiten.Image
+				lineSegOps := ebiten.DrawImageOptions{}
 				if side.isHorizontal() {
-					lineSeg = ebiten.NewImage(current.X-lineStart.X, 1)
+					lineSeg = ebiten.NewImage(current.X-lineStart.X, lineartW)
+					lineSegOps.GeoM.Translate(0, -float64(lineartW/2))
 				} else {
-					lineSeg = ebiten.NewImage(1, current.Y-lineStart.Y)
+					lineSeg = ebiten.NewImage(lineartW, current.Y-lineStart.Y)
+					lineSegOps.GeoM.Translate(-float64(lineartW/2), 0)
 				}
 				lineSeg.Fill(LineartColor)
 
-				lineSegOps := ebiten.DrawImageOptions{}
 				lineSegOps.GeoM.Translate(float64(lineStart.X), float64(lineStart.Y))
 				toDrawTo.DrawImage(lineSeg, &lineSegOps)
 
@@ -190,14 +192,16 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 			}
 
 			var lineSeg *ebiten.Image
+			lineSegOps := ebiten.DrawImageOptions{}
 			if side.isHorizontal() {
-				lineSeg = ebiten.NewImage(last.X-lineStart.X, 1)
+				lineSeg = ebiten.NewImage(last.X-lineStart.X, lineartW)
+				lineSegOps.GeoM.Translate(0, -float64(lineartW/2))
 			} else {
-				lineSeg = ebiten.NewImage(1, last.Y-lineStart.Y)
+				lineSeg = ebiten.NewImage(lineartW, last.Y-lineStart.Y)
+				lineSegOps.GeoM.Translate(-float64(lineartW/2), 0)
 			}
 			lineSeg.Fill(LineartColor)
 
-			lineSegOps := ebiten.DrawImageOptions{}
 			lineSegOps.GeoM.Translate(float64(lineStart.X), float64(lineStart.Y))
 			toDrawTo.DrawImage(lineSeg, &lineSegOps)
 			break
