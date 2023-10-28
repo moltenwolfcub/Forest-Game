@@ -110,7 +110,6 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	current := start
 	last := current
 	first := true
-	first = first
 
 	lineStart := current
 	for {
