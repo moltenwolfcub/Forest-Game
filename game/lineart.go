@@ -127,7 +127,6 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				} else {
 					current.Y = overlapRect.Sub(levelPos).Max.Y
 				}
-				//update lineStart
 				lineStart = current
 
 				continue
@@ -138,19 +137,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				//just started overlapping
 
 				//draw line
-				var lineSeg *ebiten.Image
-				lineSegOps := ebiten.DrawImageOptions{}
-				if side.isHorizontal() {
-					lineSeg = ebiten.NewImage(current.X-lineStart.X, lineartW)
-					lineSegOps.GeoM.Translate(0, -float64(lineartW/2))
-				} else {
-					lineSeg = ebiten.NewImage(lineartW, current.Y-lineStart.Y)
-					lineSegOps.GeoM.Translate(-float64(lineartW/2), 0)
-				}
-				lineSeg.Fill(LineartColor)
-
-				lineSegOps.GeoM.Translate(float64(lineStart.X), float64(lineStart.Y))
-				toDrawTo.DrawImage(lineSeg, &lineSegOps)
+				toDrawTo.DrawImage(generateLineSegment(lineStart, current, side.isHorizontal()))
 
 				//jumpPast
 				if side.isHorizontal() {
@@ -158,36 +145,39 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				} else {
 					current.Y = overlapRect.Sub(levelPos).Max.Y
 				}
-				//update lineStart
 				lineStart = current
 			}
 		}
 		last = current
 		current = current.Add(delta)
 		if !current.In(originalSeg) {
-			if last.Sub(lineStart).Eq(image.Pt(0, 0)) {
+			if last.Eq(lineStart) {
 				break
 			}
 
-			var lineSeg *ebiten.Image
-			lineSegOps := ebiten.DrawImageOptions{}
-			if side.isHorizontal() {
-				lineSeg = ebiten.NewImage(last.X-lineStart.X, lineartW)
-				lineSegOps.GeoM.Translate(0, -float64(lineartW/2))
-			} else {
-				lineSeg = ebiten.NewImage(lineartW, last.Y-lineStart.Y)
-				lineSegOps.GeoM.Translate(-float64(lineartW/2), 0)
-			}
-			lineSeg.Fill(LineartColor)
-
-			lineSegOps.GeoM.Translate(float64(lineStart.X), float64(lineStart.Y))
-			toDrawTo.DrawImage(lineSeg, &lineSegOps)
+			toDrawTo.DrawImage(generateLineSegment(lineStart, last, side.isHorizontal()))
 			break
 		}
 		first = false
 	}
 
 	return nil
+}
+
+func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) (*ebiten.Image, *ebiten.DrawImageOptions) {
+	var lineSeg *ebiten.Image
+	lineSegOps := ebiten.DrawImageOptions{}
+	if isHorizontal {
+		lineSeg = ebiten.NewImage(end.X-start.X, lineartW)
+		lineSegOps.GeoM.Translate(0, -float64(lineartW/2))
+	} else {
+		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y)
+		lineSegOps.GeoM.Translate(-float64(lineartW/2), 0)
+	}
+	lineSeg.Fill(LineartColor)
+
+	lineSegOps.GeoM.Translate(float64(start.X), float64(start.Y))
+	return lineSeg, &lineSegOps
 }
 
 func overlapsAny(point image.Point, rects []image.Rectangle) (bool, image.Rectangle) {
