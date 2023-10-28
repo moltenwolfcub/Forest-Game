@@ -113,8 +113,6 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 
 	lineStart := current
 	for {
-		// col := color.RGBA{0, 255, 0, 255}
-		// size := 1
 		if overlaps, overlapRect := overlapsAny(current.Add(levelPos), neighbours); overlaps {
 			//overlapping
 
@@ -131,13 +129,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				continue
 			}
 
-			// col = color.RGBA{255, 0, 0, 255}
 			if overlaps, _ := overlapsAny(last.Add(levelPos), neighbours); overlaps {
-				// if side.isHorizontal() {
-				// 	current.X = overlapRectInner.Sub(levelPos).Max.X
-				// } else {
-				// 	current.Y = overlapRectInner.Sub(levelPos).Max.Y
-				// }
 			} else {
 				//just started overlapping
 
@@ -164,25 +156,8 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				}
 				//update lineStart
 				lineStart = current
-
-				// col = color.RGBA{0, 0, 255, 255}
-				// size = 5
 			}
-
-			// var lineSeg *ebiten.Image
-			// lineSegOps := ebiten.DrawImageOptions{}
-			// if side.isHorizontal() {
-			// 	lineSeg := ebiten.NewImage(current.X-last.X, lineartW)
-			// 	lineSeg.Fill(LineartColor)
-
-			// 	lineSegOps.GeoM.Translate(0, -float64(lineartW)/2)
-			// }
-			// lineSegOps.GeoM.Translate(float64(last.X), float64(last.Y))
-			// toDrawTo.DrawImage(lineSeg, &lineSegOps)
-			// current.X = current.X + overlapRect.Dx()
-			// last = current
 		}
-		// vector.DrawFilledCircle(toDrawTo, float32(current.X), float32(current.Y), float32(size), col, false)
 		last = current
 		current = current.Add(delta)
 		if !current.In(originalSeg) {
@@ -209,54 +184,6 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	}
 
 	return nil
-	// region comments
-	// var lineart *ebiten.Image
-	//
-	// if side.isHorizontal() {
-	// 	lineart = ebiten.NewImage(toDrawTo.Bounds().Dx(), lineartW)
-	// } else {
-	// 	lineart = ebiten.NewImage(lineartW, toDrawTo.Bounds().Dy())
-	// }
-	// lineart.Fill(LineartColor)
-	//
-	// ops := ebiten.DrawImageOptions{}
-	// switch side {
-	// case bottom:
-	// 	ops.GeoM.Translate(0, float64(toDrawTo.Bounds().Dy()-lineartW))
-	// case right:
-	// 	ops.GeoM.Translate(float64(toDrawTo.Bounds().Dx()-lineartW), 0)
-	// }
-	// toDrawTo.DrawImage(lineart, &ops)
-	//
-	// return nil
-	//
-	// VERY OLD STUFF BELOW
-	//
-	// 	fullObjHitbox, err := fullObj.GetHitbox(Render)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
-	// 	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
-	// 	diff := int(end - start)
-	// 	if diff < lineartW {
-	// 		return nil
-	// 	}
-	// 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
-	// 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
-	// 	partialSide.Fill(LineartColor)
-	//
-	// 	lineartOptions := ebiten.DrawImageOptions{}
-	// 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
-	// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
-	// 	offset = side.getOffset(toDrawTo.Bounds())
-	// 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
-	//
-	// toDrawTo.DrawImage(partialSide, &lineartOptions)
-	// partialSide.Dispose()
-	// return nil
-	// endregion comments
 }
 
 func overlapsAny(point image.Point, rects []image.Rectangle) (bool, image.Rectangle) {
@@ -267,29 +194,6 @@ func overlapsAny(point image.Point, rects []image.Rectangle) (bool, image.Rectan
 	}
 	return false, image.Rectangle{}
 }
-
-// func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
-// 	point = side.getAxis(end.getCheckStart(thisSeg))
-
-// 	offset := thisSeg.Min
-// 	switch side {
-// 	case bottom:
-// 		offset = offset.Add(image.Pt(0, thisSeg.Dy()-lineartW))
-// 	case right:
-// 		offset = offset.Add(image.Pt(thisSeg.Dx()-lineartW, 0))
-// 	}
-// 	offsetEdge := edge.Add(offset)
-
-// 	for _, seg := range occluders {
-// 		if seg == thisSeg || !seg.Overlaps(offsetEdge) {
-// 			continue
-// 		}
-// 		if end.checkOnRightSide(side.getAxis(end.getCheckEnd(thisSeg)), side.getAxis(end.getCheckEnd(seg))) {
-// 			point = end.minMax(point, side.getAxis(end.getCheckEnd(seg)))
-// 		}
-// 	}
-// 	return
-// }
 
 type lineartSide int
 
@@ -310,91 +214,3 @@ func (l lineartSide) isHorizontal() bool {
 		return false
 	}
 }
-
-// func (l lineartSide) getOffset(rect image.Rectangle) image.Point {
-// 	switch l {
-// 	case bottom:
-// 		return image.Pt(0, rect.Dy()-lineartW)
-// 	case right:
-// 		return image.Pt(rect.Dx()-lineartW, 0)
-// 	default:
-// 		return image.Point{}
-// 	}
-// }
-
-// func (l lineartSide) getAxis(point image.Point) float64 {
-// 	if l == left || l == right {
-// 		return float64(point.Y)
-// 	} else if l == top || l == bottom {
-// 		return float64(point.X)
-// 	} else {
-// 		return 0
-// 	}
-// }
-// func (l lineartSide) getAxisPoint(point image.Point) image.Point {
-// 	if l == left || l == right {
-// 		return image.Pt(0, point.Y)
-// 	} else if l == top || l == bottom {
-// 		return image.Pt(point.X, 0)
-// 	} else {
-// 		return image.Point{}
-// 	}
-// }
-
-// // returns the point if `l` is horizontal if it's vertical then
-// // x and y get flipped in the point. Returns point of 0, 0 if
-// // there is a problem
-// func (l lineartSide) swapAxis(point image.Point) image.Point {
-// 	if l == left || l == right {
-// 		return point
-// 	} else if l == top || l == bottom {
-// 		return image.Pt(point.Y, point.X)
-// 	} else {
-// 		return image.Point{}
-// 	}
-// }
-
-// type lineartEnd int
-
-// const (
-// 	startSide lineartEnd = iota
-// 	endSide
-// )
-
-// func (l lineartEnd) getCheckStart(rect image.Rectangle) (point image.Point) {
-// 	switch l {
-// 	case startSide:
-// 		point = rect.Min
-// 	case endSide:
-// 		point = rect.Max
-// 	}
-// 	return
-// }
-// func (l lineartEnd) getCheckEnd(rect image.Rectangle) (point image.Point) {
-// 	switch l {
-// 	case startSide:
-// 		point = rect.Max
-// 	case endSide:
-// 		point = rect.Min
-// 	}
-// 	return
-// }
-// func (l lineartEnd) minMax(pos float64, potentialNew float64) (newPos float64) {
-// 	switch l {
-// 	case startSide:
-// 		newPos = max(pos, potentialNew)
-// 	case endSide:
-// 		newPos = min(pos, potentialNew)
-// 	}
-// 	return
-// }
-// func (l lineartEnd) checkOnRightSide(this float64, other float64) bool {
-// 	switch l {
-// 	case startSide:
-// 		return other < this
-// 	case endSide:
-// 		return other > this
-// 	default:
-// 		return false
-// 	}
-// }
