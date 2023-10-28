@@ -40,10 +40,14 @@ func (o *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	return nil
 }
 
-// Takes an image and adds lineart to all sides of it before returning the new image.
-// The image given should be a single rect out of the full object so that it can be
-// computed seperately. The new offset from the original image is also returned so the
-// image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
+/*
+Takes an image and adds lineart to its sides before returning this modified image
+as a an OffsetImage. The input image should be rectangular (either just a block
+colour or pattern on it). More complex shapes should be passed in segment at a time.
+
+If part of a larger image then the other segments should be given as the neighbours
+so they can be used to correctly calculate where lineart should be.
+*/
 func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours []image.Rectangle) (*OffsetImage, error) {
 	// image setup
 	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
