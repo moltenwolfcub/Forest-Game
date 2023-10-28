@@ -15,47 +15,64 @@ type OffsetImage struct {
 	Offset image.Point
 }
 
-func (l *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
+func (o OffsetImage) Overlaps(layer GameContext, other []image.Rectangle) (bool, error) {
+	return DefaultHitboxOverlaps(layer, o, other)
+}
+
+func (o OffsetImage) Origin(_ GameContext) (image.Point, error) {
+	return o.Offset, nil
+}
+
+func (o OffsetImage) Size(_ GameContext) (image.Point, error) {
+	return o.Image.Bounds().Size(), nil
+}
+
+func (o OffsetImage) GetHitbox(_ GameContext) ([]image.Rectangle, error) {
+	return []image.Rectangle{o.Image.Bounds()}, nil
+}
+
+func (o *OffsetImage) DrawAt(screen *ebiten.Image, pos image.Point) error {
 	ops := ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(float64(pos.X), float64(pos.Y))
-	ops.GeoM.Translate(float64(l.Offset.X), float64(l.Offset.Y))
+	ops.GeoM.Translate(float64(o.Offset.X), float64(o.Offset.Y))
 
-	screen.DrawImage(l.Image, &ops)
+	screen.DrawImage(o.Image, &ops)
 	return nil
 }
 
-// Takes an image and adds lineart to all sides of it before returning the new image.
-// The image given should be a single rect out of the full object so that it can be
-// computed seperately. The new offset from the original image is also returned so the
-// image can be seemlessly inserted.(This is useful for keeping it in line with hitboxes)
-func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rectangle) (*OffsetImage, error) {
+/*
+Takes an image and adds lineart to its sides before returning this modified image
+as a an OffsetImage. The input image should be rectangular (either just a block
+colour or pattern on it). More complex shapes should be passed in segment at a time.
 
-	//image setup
-	img := ebiten.NewImage(oldImgSeg.Bounds().Dx()+lineartW, oldImgSeg.Bounds().Dy()+lineartW)
+If part of a larger image then the other segments should be given as the neighbours
+so they can be used to correctly calculate where lineart should be.
+*/
+func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbours []image.Rectangle) (*OffsetImage, error) {
+	// image setup
+	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
 
-	//original image
-	oldImgOffset := ebiten.DrawImageOptions{}
-	oldImgOffset.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
-	img.DrawImage(oldImgSeg, &oldImgOffset)
+	// original image
+	ops := ebiten.DrawImageOptions{}
+	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
+	img.DrawImage(blankImage, &ops)
 
-	//line segments
-	fullHorizontal := image.Rect(0, 0, img.Bounds().Dx(), lineartW)
-	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
+	levelPos := segmentOrigin.Sub(image.Pt(lineartW/2, lineartW/2))
 
-	//line art
-	err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
+	// line art
+	err := drawSide(img, levelPos, neighbours, top)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
+	err = drawSide(img, levelPos, neighbours, bottom)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, thisSeg, fullObj, fullVertical, left)
+	err = drawSide(img, levelPos, neighbours, left)
 	if err != nil {
 		return nil, err
 	}
-	err = drawSide(img, thisSeg, fullObj, fullVertical, right)
+	err = drawSide(img, levelPos, neighbours, right)
 	if err != nil {
 		return nil, err
 	}
@@ -66,54 +83,108 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	}, nil
 }
 
-func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {
-	fullObjHitbox, err := fullObj.GetHitbox(Render)
-	if err != nil {
-		return err
+func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.Rectangle, side lineartSide) error {
+	originalSeg := image.Rectangle{
+		Min: toDrawTo.Bounds().Min.Add(image.Pt(lineartW/2, lineartW/2)),
+		Max: toDrawTo.Bounds().Max.Sub(image.Pt(lineartW/2, lineartW/2)),
 	}
 
-	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
-	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
-	diff := int(end - start)
-	if diff < lineartW {
+	var current image.Point
+
+	switch side {
+	case top:
+		current = originalSeg.Min
+	case bottom:
+		current = image.Pt(originalSeg.Min.X, originalSeg.Max.Y-1)
+	case left:
+		current = originalSeg.Min
+	case right:
+		current = image.Pt(originalSeg.Max.X-1, originalSeg.Min.Y)
+	default:
 		return nil
 	}
-	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
-	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
-	partialSide.Fill(LineartColor)
 
-	lineartOptions := ebiten.DrawImageOptions{}
-	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
-	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
-	offset = side.getOffset(toDrawTo.Bounds())
-	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+	var delta image.Point
+	if side.isHorizontal() {
+		delta = image.Pt(1, 0)
+	} else {
+		delta = image.Pt(0, 1)
+	}
 
-	toDrawTo.DrawImage(partialSide, &lineartOptions)
-	partialSide.Dispose()
+	last := current
+	first := true
+
+	lineStart := current
+	for {
+		if overlaps, overlapRect := overlapsAny(current.Add(levelPos), neighbours); overlaps {
+			//overlapping
+
+			if first {
+				//jumpPast
+				if side.isHorizontal() {
+					current.X = overlapRect.Sub(levelPos).Max.X
+				} else {
+					current.Y = overlapRect.Sub(levelPos).Max.Y
+				}
+				lineStart = current
+
+				continue
+			}
+
+			if overlaps, _ := overlapsAny(last.Add(levelPos), neighbours); overlaps {
+			} else {
+				//just started overlapping
+
+				//draw line
+				toDrawTo.DrawImage(generateLineSegment(lineStart, current, side.isHorizontal()))
+
+				//jumpPast
+				if side.isHorizontal() {
+					current.X = overlapRect.Sub(levelPos).Max.X
+				} else {
+					current.Y = overlapRect.Sub(levelPos).Max.Y
+				}
+				lineStart = current
+			}
+		}
+		last = current
+		current = current.Add(delta)
+		if !current.In(originalSeg) {
+			if last.Eq(lineStart) {
+				break
+			}
+
+			toDrawTo.DrawImage(generateLineSegment(lineStart, last, side.isHorizontal()))
+			break
+		}
+		first = false
+	}
+
 	return nil
 }
 
-func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
-	point = side.getAxis(end.getCheckStart(thisSeg))
-
-	offset := thisSeg.Min
-	switch side {
-	case bottom:
-		offset = offset.Add(image.Pt(0, thisSeg.Dy()-lineartW))
-	case right:
-		offset = offset.Add(image.Pt(thisSeg.Dx()-lineartW, 0))
+func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) (*ebiten.Image, *ebiten.DrawImageOptions) {
+	var lineSeg *ebiten.Image
+	lineSegOps := ebiten.DrawImageOptions{}
+	if isHorizontal {
+		lineSeg = ebiten.NewImage(end.X-start.X+lineartW, lineartW)
+	} else {
+		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y+lineartW)
 	}
-	offsetEdge := edge.Add(offset)
+	lineSegOps.GeoM.Translate(-float64(lineartW/2), -float64(lineartW/2))
+	lineSeg.Fill(LineartColor)
 
-	for _, seg := range occluders {
-		if seg == thisSeg || !seg.Overlaps(offsetEdge) {
-			continue
-		}
-		if end.checkOnRightSide(side.getAxis(end.getCheckEnd(thisSeg)), side.getAxis(end.getCheckEnd(seg))) {
-			point = end.minMax(point, side.getAxis(end.getCheckEnd(seg)))
+	lineSegOps.GeoM.Translate(float64(start.X), float64(start.Y))
+	return lineSeg, &lineSegOps
+}
+
+func overlapsAny(point image.Point, rects []image.Rectangle) (bool, image.Rectangle) {
+	for _, rect := range rects {
+		if point.In(rect) {
+			return true, rect
 		}
 	}
-	return
+	return false, image.Rectangle{}
 }
 
 type lineartSide int
@@ -125,89 +196,12 @@ const (
 	bottom
 )
 
-func (l lineartSide) getOffset(rect image.Rectangle) image.Point {
+func (l lineartSide) isHorizontal() bool {
 	switch l {
-	case bottom:
-		return image.Pt(0, rect.Dy()-lineartW)
-	case right:
-		return image.Pt(rect.Dx()-lineartW, 0)
-	default:
-		return image.Point{}
-	}
-}
-
-func (l lineartSide) getAxis(point image.Point) float64 {
-	if l == left || l == right {
-		return float64(point.Y)
-	} else if l == top || l == bottom {
-		return float64(point.X)
-	} else {
-		return 0
-	}
-}
-func (l lineartSide) getAxisPoint(point image.Point) image.Point {
-	if l == left || l == right {
-		return image.Pt(0, point.Y)
-	} else if l == top || l == bottom {
-		return image.Pt(point.X, 0)
-	} else {
-		return image.Point{}
-	}
-}
-
-// returns the point if `l` is horizontal if it's vertical then
-// x and y get flipped in the point. Returns point of 0, 0 if
-// there is a problem
-func (l lineartSide) swapAxis(point image.Point) image.Point {
-	if l == left || l == right {
-		return point
-	} else if l == top || l == bottom {
-		return image.Pt(point.Y, point.X)
-	} else {
-		return image.Point{}
-	}
-}
-
-type lineartEnd int
-
-const (
-	startSide lineartEnd = iota
-	endSide
-)
-
-func (l lineartEnd) getCheckStart(rect image.Rectangle) (point image.Point) {
-	switch l {
-	case startSide:
-		point = rect.Min
-	case endSide:
-		point = rect.Max
-	}
-	return
-}
-func (l lineartEnd) getCheckEnd(rect image.Rectangle) (point image.Point) {
-	switch l {
-	case startSide:
-		point = rect.Max
-	case endSide:
-		point = rect.Min
-	}
-	return
-}
-func (l lineartEnd) minMax(pos float64, potentialNew float64) (newPos float64) {
-	switch l {
-	case startSide:
-		newPos = max(pos, potentialNew)
-	case endSide:
-		newPos = min(pos, potentialNew)
-	}
-	return
-}
-func (l lineartEnd) checkOnRightSide(this float64, other float64) bool {
-	switch l {
-	case startSide:
-		return other < this
-	case endSide:
-		return other > this
+	case bottom, top:
+		return true
+	case left, right:
+		return false
 	default:
 		return false
 	}
