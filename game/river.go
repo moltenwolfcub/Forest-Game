@@ -167,7 +167,7 @@ func (r *RiverSegment) generateTexture() (*OffsetImage, error) {
 	img := ebiten.NewImage(hitbox.Dx(), hitbox.Dy())
 	img.Fill(RiverColor)
 
-	lineartImg, err := ApplyLineart(img, hitbox, r.neighbours)
+	lineartImg, err := ApplyLineart(img, hitbox.Min, r.neighbours)
 	if err != nil {
 		return nil, err
 	}

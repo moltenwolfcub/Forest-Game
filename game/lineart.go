@@ -48,7 +48,7 @@ colour or pattern on it). More complex shapes should be passed in segment at a t
 If part of a larger image then the other segments should be given as the neighbours
 so they can be used to correctly calculate where lineart should be.
 */
-func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours []image.Rectangle) (*OffsetImage, error) {
+func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbours []image.Rectangle) (*OffsetImage, error) {
 	// image setup
 	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
 
@@ -57,7 +57,7 @@ func ApplyLineart(blankImage *ebiten.Image, hitbox image.Rectangle, neighbours [
 	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
 	img.DrawImage(blankImage, &ops)
 
-	levelPos := hitbox.Min.Sub(image.Pt(lineartW/2, lineartW/2))
+	levelPos := segmentOrigin.Sub(image.Pt(lineartW/2, lineartW/2))
 
 	// line art
 	err := drawSide(img, levelPos, neighbours, top)

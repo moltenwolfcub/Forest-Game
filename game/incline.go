@@ -60,7 +60,11 @@ func (i *Incline) generateTexture() error {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(InclineColor)
 
-	lineartImg, err := ApplyLineart(img, i.hitbox, nil)
+	origin, err := i.Origin(Render)
+	if err != nil {
+		return err
+	}
+	lineartImg, err := ApplyLineart(img, origin, nil)
 	if err != nil {
 		return err
 	}
