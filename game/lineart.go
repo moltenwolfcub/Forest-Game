@@ -89,17 +89,17 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 		Max: toDrawTo.Bounds().Max.Sub(image.Pt(lineartW/2, lineartW/2)),
 	}
 
-	var start image.Point
+	var current image.Point
 
 	switch side {
 	case top:
-		start = originalSeg.Min
+		current = originalSeg.Min
 	case bottom:
-		start = image.Pt(originalSeg.Min.X, originalSeg.Max.Y-1)
+		current = image.Pt(originalSeg.Min.X, originalSeg.Max.Y-1)
 	case left:
-		start = originalSeg.Min
+		current = originalSeg.Min
 	case right:
-		start = image.Pt(originalSeg.Max.X-1, originalSeg.Min.Y)
+		current = image.Pt(originalSeg.Max.X-1, originalSeg.Min.Y)
 	default:
 		return nil
 	}
@@ -111,7 +111,6 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 		delta = image.Pt(0, 1)
 	}
 
-	current := start
 	last := current
 	first := true
 
