@@ -29,6 +29,7 @@ type Game struct {
 	rivers   []*River
 	trees    []*Tree
 	berries  []*Berry
+	pumpkins []*Pumpkin
 }
 
 func NewGame() (*Game, error) {
@@ -63,6 +64,12 @@ func NewGame() (*Game, error) {
 	}
 	g.berries = []*Berry{berry}
 
+	pumpkin, err := NewPumpkin(g, image.Pt(-64, -128))
+	if err != nil {
+		return nil, err
+	}
+	g.pumpkins = []*Pumpkin{pumpkin}
+
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g, nil
 }
@@ -81,6 +88,12 @@ func (g *Game) Update() (err error) {
 	g.timeHud.Update()
 	for i := range g.berries {
 		err = g.berries[i].Update()
+		if err != nil {
+			return err
+		}
+	}
+	for i := range g.pumpkins {
+		err = g.pumpkins[i].Update()
 		if err != nil {
 			return err
 		}
@@ -113,6 +126,9 @@ func (g Game) GenerateFrame() (*ebiten.Image, error) {
 	}
 	for _, berry := range g.berries {
 		mapElements = append(mapElements, DepthAwareDrawable(berry))
+	}
+	for _, pumpkin := range g.pumpkins {
+		mapElements = append(mapElements, DepthAwareDrawable(pumpkin))
 	}
 	for _, incline := range g.inclines {
 		mapElements = append(mapElements, DepthAwareDrawable(incline))

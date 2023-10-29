@@ -28,7 +28,8 @@ func MustLoadTextureMapping(file string) Textures {
 }
 
 var (
-	BerryStates Textures = MustLoadTextureMapping("berries")
+	BerryStates   Textures = MustLoadTextureMapping("berries")
+	PumpkinStates Textures = MustLoadTextureMapping("pumpkins")
 )
 
 type Textures struct {

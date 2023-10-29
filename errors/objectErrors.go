@@ -30,6 +30,34 @@ func (b InvalidBerryPhaseError) Error() string {
 	return fmt.Sprintf("Not a valid berry phase: %s", b.phase)
 }
 
+type UnknownPumpkinVariantError struct {
+	variant string
+}
+
+func NewUnknownPumpkinVariantError(variant string) UnknownPumpkinVariantError {
+	return UnknownPumpkinVariantError{
+		variant: variant,
+	}
+}
+
+func (p UnknownPumpkinVariantError) Error() string {
+	return fmt.Sprintf("Unkown pumpkin variant: %s", p.variant)
+}
+
+type InvalidPumpkinPhaseError struct {
+	phase string
+}
+
+func NewInvalidPumpkinPhaseError(phase string) InvalidPumpkinPhaseError {
+	return InvalidPumpkinPhaseError{
+		phase: phase,
+	}
+}
+
+func (b InvalidPumpkinPhaseError) Error() string {
+	return fmt.Sprintf("Not a valid pumpkin phase: %s", b.phase)
+}
+
 type MultiHitboxRiverSegmentError struct {
 	hitboxCount int
 }
