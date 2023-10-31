@@ -1,7 +1,5 @@
 github.com/ebitengine/purego v0.5.0 h1:JrMGKfRIAM4/QVKaesIIT7m/UVjTj5GYhRSQYwfVdpo=
 github.com/ebitengine/purego v0.5.0/go.mod h1:ah1In8AOtksoNK6yk5z1HTJeUkC1Ez4Wk2idgGslMwQ=
-github.com/hajimehoshi/ebiten/v2 v2.6.0-alpha.6 h1:lt29MrGBU+aKpI2BU4yVhuFUS29p9gTi0aQRz2TdSdA=
-github.com/hajimehoshi/ebiten/v2 v2.6.0-alpha.6/go.mod h1:NmbNdKirJeDoLGOxZqPl4klY95iG7uETPc1KY3j9L/Q=
 github.com/hajimehoshi/ebiten/v2 v2.6.1 h1:ljYS8zp6jp9lFd0zR/2vsIK4Km90/WvTEmxDGdAK8kE=
 github.com/hajimehoshi/ebiten/v2 v2.6.1/go.mod h1:TZtorL713an00UW4LyvMeKD8uXWnuIuCPtlH11b0pgI=
 github.com/jezek/xgb v1.1.0 h1:wnpxJzP1+rkbGclEkmwpVFQWpuE2PUGNUzP8SbfFobk=
@@ -12,8 +10,6 @@ golang.org/x/exp/shiny v0.0.0-20231006140011-7918f672742d h1:grE48C8cjIY0aiHVmFy
 golang.org/x/exp/shiny v0.0.0-20231006140011-7918f672742d/go.mod h1:UH99kUObWAZkDnWqppdQe5ZhPYESUw8I0zVV1uWBR+0=
 golang.org/x/image v0.13.0 h1:3cge/F/QTkNLauhf2QoE9zp+7sr+ZcL4HnoZmdwg9sg=
 golang.org/x/image v0.13.0/go.mod h1:6mmbMOeV28HuMTgA6OSRkdXKYw/t5W9Uwn2Yv1r3Yxk=
-golang.org/x/mobile v0.0.0-20230818142238-7088062f872d h1:Ouem7YgI783/xoG5NZUHbg/ggHFOutUUoq1ZRlCCTbM=
-golang.org/x/mobile v0.0.0-20230818142238-7088062f872d/go.mod h1:kQNMt2gXlYXNazoSeytBi7knmDN7YS/JzMKFYxgoNxc=
 golang.org/x/mobile v0.0.0-20231006135142-2b44d11868fe h1:lrXv4yHeD9FA8PSJATWowP1QvexpyAPWmPia+Kbzql8=
 golang.org/x/mobile v0.0.0-20231006135142-2b44d11868fe/go.mod h1:BrnXpEObnFxpaT75Jo9hsCazwOWcp7nVIa8NNuH5cuA=
 golang.org/x/sync v0.4.0 h1:zxkM55ReGkDlKSM+Fu41A+zmbZuaPVbGMzvvdUPznYQ=
