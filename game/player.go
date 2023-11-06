@@ -90,18 +90,16 @@ func (p Player) GetZ() (int, error) {
 }
 
 func (p *Player) Update() (err error) {
-	if !p.game.invHud.IsFocused() {
-		return nil
-	}
-
 	p.currentMoveSpeed, err = p.calculateMovementSpeed()
 	if err != nil {
 		return
 	}
 
-	err = p.movePlayer()
-	if err != nil {
-		return
+	if p.game.invHud.IsFocused() {
+		err = p.movePlayer()
+		if err != nil {
+			return
+		}
 	}
 
 	p.tryClimb()
@@ -114,7 +112,7 @@ func (p *Player) Update() (err error) {
 }
 
 func (p *Player) handleInteractions() error {
-	if p.game.input.IsJumping() {
+	if p.game.input.IsJumping() && p.game.invHud.IsFocused() {
 
 		rivers := []HasHitbox{}
 		for _, river := range p.game.rivers {
@@ -321,7 +319,7 @@ func (p *Player) tryClimb() error {
 		return err
 
 	} else if climbable != nil {
-		if p.game.input.IsClimbing() {
+		if p.game.input.IsClimbing() && p.game.invHud.IsFocused() {
 			p.hitbox = p.hitbox.Sub(image.Point{
 				Y: int(p.currentMoveSpeed),
 			})
@@ -366,6 +364,10 @@ func (p *Player) movePlayer() error {
 
 	x := image.Point{X: int(float64(-p.game.input.LeftImpulse()) * stepSize)}
 	y := image.Point{Y: int(float64(-p.game.input.ForwardsImpulse()) * stepSize)}
+
+	if x.X == 0 && y.Y == 0 {
+		return nil
+	}
 
 	preMoveClimbable, err := p.findCurrentClimbable()
 	if err != nil {
