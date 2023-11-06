@@ -4,12 +4,10 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var (
-	lineartW           = 10
-	lineartCurveRadius = 8
+	lineartW = 10
 )
 
 type OffsetImage struct {
@@ -44,34 +42,21 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	fullVertical := image.Rect(0, 0, lineartW, img.Bounds().Dy())
 
 	//line art
-	curveCenters := []image.Point{}
-	curvePoints, err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
+	err := drawSide(img, thisSeg, fullObj, fullHorizontal, top)
 	if err != nil {
 		return nil, err
 	}
-	curveCenters = append(curveCenters, curvePoints...)
-
-	curvePoints, err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
+	err = drawSide(img, thisSeg, fullObj, fullHorizontal, bottom)
 	if err != nil {
 		return nil, err
 	}
-	curveCenters = append(curveCenters, curvePoints...)
-
-	curvePoints, err = drawSide(img, thisSeg, fullObj, fullVertical, left)
+	err = drawSide(img, thisSeg, fullObj, fullVertical, left)
 	if err != nil {
 		return nil, err
 	}
-	curveCenters = append(curveCenters, curvePoints...)
-
-	curvePoints, err = drawSide(img, thisSeg, fullObj, fullVertical, right)
+	err = drawSide(img, thisSeg, fullObj, fullVertical, right)
 	if err != nil {
 		return nil, err
-	}
-	curveCenters = append(curveCenters, curvePoints...)
-
-	//optimise list to remove duplicates
-	for _, center := range curveCenters {
-		vector.DrawFilledCircle(img, float32(center.X), float32(center.Y), float32(lineartCurveRadius), LineartColor, false)
 	}
 
 	return &OffsetImage{
@@ -80,17 +65,17 @@ func ApplyLineart(oldImgSeg *ebiten.Image, fullObj HasHitbox, thisSeg image.Rect
 	}, nil
 }
 
-func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) ([]image.Point, error) {
+func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox, edge image.Rectangle, side lineartSide) error {
 	fullObjHitbox, err := fullObj.GetHitbox(Render)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge) + float64(lineartW)
-	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge) - float64(lineartW)
+	start := getPointOnBounds(side, startSide, thisSeg, fullObjHitbox, edge)
+	end := getPointOnBounds(side, endSide, thisSeg, fullObjHitbox, edge)
 	diff := int(end - start)
 	if diff < lineartW {
-		return nil, nil
+		return nil
 	}
 	imgSize := side.swapAxis(image.Pt(lineartW, diff+lineartW))
 	partialSide := ebiten.NewImage(imgSize.X, imgSize.Y)
@@ -98,59 +83,13 @@ func drawSide(toDrawTo *ebiten.Image, thisSeg image.Rectangle, fullObj HasHitbox
 
 	lineartOptions := ebiten.DrawImageOptions{}
 	offset := side.getAxisPoint(image.Pt(int(start)-thisSeg.Min.X, int(start)-thisSeg.Min.Y))
-	offset = offset.Add(side.getOffset(toDrawTo.Bounds()))
+	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
+	offset = side.getOffset(toDrawTo.Bounds())
 	lineartOptions.GeoM.Translate(float64(offset.X), float64(offset.Y))
 
 	toDrawTo.DrawImage(partialSide, &lineartOptions)
 	partialSide.Dispose()
-
-	//unsimplified form
-	var curveX1 int
-	var curveY1 int
-	var curveX2 int
-	var curveY2 int
-	circleCenters := []image.Point{}
-
-	//maybe change 0 and end to respect offset in lineartOptions idk
-	switch side {
-	case top:
-		curveX1 = 0 + lineartCurveRadius
-		curveY1 = 0 + lineartCurveRadius
-		curveX2 = toDrawTo.Bounds().Dx() - lineartW + (lineartW - lineartCurveRadius)
-		curveY2 = curveY1
-
-		circleCenters = append(circleCenters, image.Pt(curveX1, curveY1))
-		circleCenters = append(circleCenters, image.Pt(curveX2, curveY2))
-
-	case bottom:
-		curveX1 = 0 + lineartCurveRadius
-		curveY1 = toDrawTo.Bounds().Dy() - lineartW + (lineartW - lineartCurveRadius)
-		curveX2 = toDrawTo.Bounds().Dx() - lineartW + (lineartW - lineartCurveRadius)
-		curveY2 = curveY1
-
-		circleCenters = append(circleCenters, image.Pt(curveX1, curveY1))
-		circleCenters = append(circleCenters, image.Pt(curveX2, curveY2))
-
-	case left:
-		curveX1 = 0 + lineartCurveRadius
-		curveY1 = 0 + lineartCurveRadius
-		curveX2 = curveX1
-		curveY2 = toDrawTo.Bounds().Dy() - lineartW + (lineartW - lineartCurveRadius)
-
-		circleCenters = append(circleCenters, image.Pt(curveX1, curveY1))
-		circleCenters = append(circleCenters, image.Pt(curveX2, curveY2))
-
-	case right:
-		curveX1 = toDrawTo.Bounds().Dx() - lineartW + (lineartW - lineartCurveRadius)
-		curveY1 = 0 + lineartCurveRadius
-		curveX2 = curveX1
-		curveY2 = toDrawTo.Bounds().Dy() - lineartW + (lineartW - lineartCurveRadius)
-
-		circleCenters = append(circleCenters, image.Pt(curveX1, curveY1))
-		circleCenters = append(circleCenters, image.Pt(curveX2, curveY2))
-	}
-
-	return circleCenters, nil
+	return nil
 }
 
 func getPointOnBounds(side lineartSide, end lineartEnd, thisSeg image.Rectangle, occluders []image.Rectangle, edge image.Rectangle) (point float64) {
