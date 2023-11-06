@@ -167,11 +167,12 @@ func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) 
 	var lineSeg *ebiten.Image
 	lineSegOps := ebiten.DrawImageOptions{}
 	if isHorizontal {
-		lineSeg = ebiten.NewImage(end.X-start.X+lineartW, lineartW)
+		lineSeg = ebiten.NewImage(end.X-start.X, lineartW)
+		lineSegOps.GeoM.Translate(0, -float64(lineartW/2))
 	} else {
-		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y+lineartW)
+		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y)
+		lineSegOps.GeoM.Translate(-float64(lineartW/2), 0)
 	}
-	lineSegOps.GeoM.Translate(-float64(lineartW/2), -float64(lineartW/2))
 	lineSeg.Fill(LineartColor)
 
 	lineSegOps.GeoM.Translate(float64(start.X), float64(start.Y))
