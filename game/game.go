@@ -129,6 +129,7 @@ func (g Game) GenerateFrame() (*ebiten.Image, error) {
 
 	hudElements := []Drawable{
 		&g.timeHud,
+		g.invHud,
 	}
 
 	image, err := g.renderer.Render(mapElements, lights, hudElements)
