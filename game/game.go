@@ -23,6 +23,7 @@ type Game struct {
 	input    InputHandler
 
 	timeHud TextElement
+	invHud  InventoryOverlay
 	player  Player
 
 	inclines []*Incline
@@ -63,6 +64,7 @@ func NewGame() (*Game, error) {
 	}
 	g.berries = []*Berry{berry}
 
+	g.invHud = NewInventoryOverlay(g)
 	g.timeHud = NewTextElement(g.time.String(), TopCentre, assets.DefaultFont, 24)
 	return g, nil
 }
@@ -79,6 +81,8 @@ func (g *Game) Update() (err error) {
 	g.time.Tick()
 	g.timeHud.Contents = g.time.String()
 	g.timeHud.Update()
+	g.invHud.Update()
+
 	for i := range g.berries {
 		err = g.berries[i].Update()
 		if err != nil {

@@ -12,6 +12,7 @@ type InputHandler struct {
 	right     ebiten.Key
 	jump      ebiten.Key
 	climb     ebiten.Key
+	inventory ebiten.Key
 }
 
 func NewInputHandler() InputHandler {
@@ -22,6 +23,7 @@ func NewInputHandler() InputHandler {
 		right:     ebiten.KeyD,
 		jump:      ebiten.KeySpace,
 		climb:     ebiten.KeySpace,
+		inventory: ebiten.KeyE,
 	}
 }
 
@@ -36,6 +38,9 @@ func (p InputHandler) IsJumping() bool {
 }
 func (p InputHandler) IsClimbing() bool {
 	return ebiten.IsKeyPressed(p.jump)
+}
+func (p InputHandler) IsTogglingInventory() bool {
+	return inpututil.IsKeyJustPressed(p.inventory)
 }
 
 func calculateImpulse(positive bool, negative bool) float64 {

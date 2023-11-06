@@ -90,6 +90,10 @@ func (p Player) GetZ() (int, error) {
 }
 
 func (p *Player) Update() (err error) {
+	if !p.game.invHud.IsFocused() {
+		return nil
+	}
+
 	p.currentMoveSpeed, err = p.calculateMovementSpeed()
 	if err != nil {
 		return
