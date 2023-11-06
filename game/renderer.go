@@ -77,6 +77,10 @@ func (r *Renderer) bg() {
 	r.bgLayer.Fill(BackgroundColor)
 }
 func (r *Renderer) main(elements []DepthAwareDrawable) error {
+	if !r.game.invHud.IsFocused() {
+		return nil
+	}
+
 	var outerErr error
 	sort.SliceStable(elements, func(i, j int) bool {
 		iz, err := elements[i].GetZ()
@@ -105,6 +109,10 @@ func (r *Renderer) main(elements []DepthAwareDrawable) error {
 }
 func (r *Renderer) lighting(elements []Lightable) error {
 	r.lightingLayer.Fill(GetAmbientLight(r.game.time))
+
+	if !r.game.invHud.IsFocused() {
+		return nil
+	}
 
 	for _, e := range elements {
 		err := r.game.view.DrawToLighting(r.lightingLayer, e)
