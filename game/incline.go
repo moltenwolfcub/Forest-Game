@@ -45,8 +45,7 @@ func (i *Incline) DrawAt(screen *ebiten.Image, pos image.Point) error {
 		}
 	}
 
-	i.cachedTexture.DrawAt(screen, pos)
-	return nil
+	return i.cachedTexture.DrawAt(screen, pos)
 }
 
 func (i *Incline) markTextureDirty() {
@@ -61,7 +60,11 @@ func (i *Incline) generateTexture() error {
 	img := ebiten.NewImage(i.hitbox.Dx(), i.hitbox.Dy())
 	img.Fill(InclineColor)
 
-	lineartImg, err := ApplyLineart(img, i, i.hitbox)
+	origin, err := i.Origin(Render)
+	if err != nil {
+		return err
+	}
+	lineartImg, err := ApplyLineart(img, origin, nil)
 	if err != nil {
 		return err
 	}
