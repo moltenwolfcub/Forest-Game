@@ -150,25 +150,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				lineStart = current
 			}
 		} else if first {
-			var cx, cy float32
-
-			if side.isHorizontal() {
-				cx = float32(current.X) + 4
-			} else if side == left {
-				cx = float32(current.X) + 4
-			} else if side == right {
-				cx = float32(current.X) - 4
-			}
-
-			if !side.isHorizontal() {
-				cy = float32(current.Y) + 4
-			} else if side == top {
-				cy = float32(current.Y) + 4
-			} else if side == bottom {
-				cy = float32(current.Y) - 4
-			}
-
-			vector.DrawFilledCircle(toDrawTo, cx, cy, 8, LineartColor, false)
+			drawCorner(toDrawTo, current, side, 1)
 		}
 		last = current
 		current = current.Add(delta)
@@ -179,22 +161,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 
 			toDrawTo.DrawImage(generateLineSegment(lineStart, last, side.isHorizontal()))
 
-			var cx, cy float32
-			if side.isHorizontal() {
-				cx = float32(current.X) - 4
-			} else if side == left {
-				cx = float32(current.X) + 4
-			} else if side == right {
-				cx = float32(current.X) - 4
-			}
-			if !side.isHorizontal() {
-				cy = float32(current.Y) - 4
-			} else if side == top {
-				cy = float32(current.Y) + 4
-			} else if side == bottom {
-				cy = float32(current.Y) - 4
-			}
-			vector.DrawFilledCircle(toDrawTo, cx, cy, 8, LineartColor, false)
+			drawCorner(toDrawTo, current, side, -1)
 
 			break
 		}
@@ -202,6 +169,25 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	}
 
 	return nil
+}
+
+func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, fromPoint int) {
+	var cx, cy float32
+	if side.isHorizontal() {
+		cx = float32(current.X + 4*fromPoint)
+	} else if side == left {
+		cx = float32(current.X) + 4
+	} else if side == right {
+		cx = float32(current.X) - 4
+	}
+	if !side.isHorizontal() {
+		cy = float32(current.Y + 4*fromPoint)
+	} else if side == top {
+		cy = float32(current.Y) + 4
+	} else if side == bottom {
+		cy = float32(current.Y) - 4
+	}
+	vector.DrawFilledCircle(toDrawTo, cx, cy, 8, LineartColor, false)
 }
 
 func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) (*ebiten.Image, *ebiten.DrawImageOptions) {
