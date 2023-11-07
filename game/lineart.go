@@ -131,6 +131,8 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				}
 				lineStart = current
 
+				drawCorner(toDrawTo, current, side, 1, -1)
+
 				continue
 			}
 
@@ -150,7 +152,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				lineStart = current
 			}
 		} else if first {
-			drawCorner(toDrawTo, current, side, 1)
+			drawCorner(toDrawTo, current, side, 1, 1)
 		}
 		last = current
 		current = current.Add(delta)
@@ -161,7 +163,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 
 			toDrawTo.DrawImage(generateLineSegment(lineStart, last, side.isHorizontal()))
 
-			drawCorner(toDrawTo, current.Sub(delta), side, -1)
+			drawCorner(toDrawTo, current.Sub(delta), side, -1, 1)
 
 			break
 		}
@@ -171,23 +173,23 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	return nil
 }
 
-func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, fromPoint int) {
+func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, fromPoint int, reflexMod int) {
 	offset := 3
 
 	var cx, cy float32
 	if side.isHorizontal() {
 		cx = float32(current.X + offset*fromPoint)
 	} else if side == left {
-		cx = float32(current.X + offset)
+		cx = float32(current.X + offset*reflexMod)
 	} else if side == right {
-		cx = float32(current.X - offset)
+		cx = float32(current.X - offset*reflexMod)
 	}
 	if !side.isHorizontal() {
 		cy = float32(current.Y + offset*fromPoint)
 	} else if side == top {
-		cy = float32(current.Y + offset)
+		cy = float32(current.Y + offset*reflexMod)
 	} else if side == bottom {
-		cy = float32(current.Y - offset)
+		cy = float32(current.Y - offset*reflexMod)
 	}
 	vector.DrawFilledCircle(toDrawTo, cx, cy, 8, LineartColor, false)
 }
