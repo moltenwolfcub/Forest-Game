@@ -161,7 +161,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 
 			toDrawTo.DrawImage(generateLineSegment(lineStart, last, side.isHorizontal()))
 
-			drawCorner(toDrawTo, current, side, -1)
+			drawCorner(toDrawTo, current.Sub(delta), side, -1)
 
 			break
 		}
@@ -172,20 +172,22 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 }
 
 func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, fromPoint int) {
+	offset := 3
+
 	var cx, cy float32
 	if side.isHorizontal() {
-		cx = float32(current.X + 4*fromPoint)
+		cx = float32(current.X + offset*fromPoint)
 	} else if side == left {
-		cx = float32(current.X) + 4
+		cx = float32(current.X + offset)
 	} else if side == right {
-		cx = float32(current.X) - 4
+		cx = float32(current.X - offset)
 	}
 	if !side.isHorizontal() {
-		cy = float32(current.Y + 4*fromPoint)
+		cy = float32(current.Y + offset*fromPoint)
 	} else if side == top {
-		cy = float32(current.Y) + 4
+		cy = float32(current.Y + offset)
 	} else if side == bottom {
-		cy = float32(current.Y) - 4
+		cy = float32(current.Y - offset)
 	}
 	vector.DrawFilledCircle(toDrawTo, cx, cy, 8, LineartColor, false)
 }
