@@ -12,6 +12,14 @@ var (
 	padding  = lineartW / 2
 )
 
+func pad(in image.Point, sub bool) image.Point {
+	if sub {
+		return in.Sub(image.Point{padding, padding})
+	} else {
+		return in.Add(image.Point{padding, padding})
+	}
+}
+
 type OffsetImage struct {
 	Image  *ebiten.Image
 	Offset image.Point
@@ -52,14 +60,15 @@ so they can be used to correctly calculate where lineart should be.
 */
 func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbours []image.Rectangle) (*OffsetImage, error) {
 	// image setup
-	img := ebiten.NewImage(blankImage.Bounds().Dx()+padding*2, blankImage.Bounds().Dy()+padding*2)
+	newBounds := pad(pad(blankImage.Bounds().Size(), false), false) // 2 pads, 1 for each side of the axis
+	img := ebiten.NewImage(newBounds.X, newBounds.Y)
 
 	// original image
 	ops := ebiten.DrawImageOptions{}
 	ops.GeoM.Translate(float64(padding), float64(padding))
 	img.DrawImage(blankImage, &ops)
 
-	levelPos := segmentOrigin.Sub(image.Pt(padding, padding))
+	levelPos := pad(segmentOrigin, true)
 
 	// line art
 	err := drawSide(img, levelPos, neighbours, top)
@@ -81,14 +90,14 @@ func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbour
 
 	return &OffsetImage{
 		Image:  img,
-		Offset: image.Pt(-padding, -padding),
+		Offset: pad(image.Point{}, true),
 	}, nil
 }
 
 func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.Rectangle, side lineartSide) error {
 	originalSeg := image.Rectangle{
-		Min: toDrawTo.Bounds().Min.Add(image.Pt(padding, padding)),
-		Max: toDrawTo.Bounds().Max.Sub(image.Pt(padding, padding)),
+		Min: pad(toDrawTo.Bounds().Min, false),
+		Max: pad(toDrawTo.Bounds().Max, true),
 	}
 
 	var current image.Point
