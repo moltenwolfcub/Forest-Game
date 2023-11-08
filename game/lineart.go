@@ -9,6 +9,7 @@ import (
 
 var (
 	lineartW = 10
+	padding  = lineartW / 2
 )
 
 type OffsetImage struct {
@@ -51,14 +52,14 @@ so they can be used to correctly calculate where lineart should be.
 */
 func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbours []image.Rectangle) (*OffsetImage, error) {
 	// image setup
-	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
+	img := ebiten.NewImage(blankImage.Bounds().Dx()+padding*2, blankImage.Bounds().Dy()+padding*2)
 
 	// original image
 	ops := ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
+	ops.GeoM.Translate(float64(padding), float64(padding))
 	img.DrawImage(blankImage, &ops)
 
-	levelPos := segmentOrigin.Sub(image.Pt(lineartW/2, lineartW/2))
+	levelPos := segmentOrigin.Sub(image.Pt(padding, padding))
 
 	// line art
 	err := drawSide(img, levelPos, neighbours, top)
@@ -80,14 +81,14 @@ func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbour
 
 	return &OffsetImage{
 		Image:  img,
-		Offset: image.Pt(-lineartW/2, -lineartW/2),
+		Offset: image.Pt(-padding, -padding),
 	}, nil
 }
 
 func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.Rectangle, side lineartSide) error {
 	originalSeg := image.Rectangle{
-		Min: toDrawTo.Bounds().Min.Add(image.Pt(lineartW/2, lineartW/2)),
-		Max: toDrawTo.Bounds().Max.Sub(image.Pt(lineartW/2, lineartW/2)),
+		Min: toDrawTo.Bounds().Min.Add(image.Pt(padding, padding)),
+		Max: toDrawTo.Bounds().Max.Sub(image.Pt(padding, padding)),
 	}
 
 	var current image.Point
@@ -200,10 +201,10 @@ func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) 
 	lineSegOps := ebiten.DrawImageOptions{}
 	if isHorizontal {
 		lineSeg = ebiten.NewImage(end.X-start.X-lineartW, lineartW)
-		lineSegOps.GeoM.Translate(float64(lineartW)/2, -float64(lineartW)/2)
+		lineSegOps.GeoM.Translate(float64(lineartW/2), -float64(lineartW/2))
 	} else {
 		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y-lineartW)
-		lineSegOps.GeoM.Translate(-float64(lineartW)/2, float64(lineartW)/2)
+		lineSegOps.GeoM.Translate(-float64(lineartW/2), float64(lineartW/2))
 	}
 	lineSeg.Fill(LineartColor)
 
