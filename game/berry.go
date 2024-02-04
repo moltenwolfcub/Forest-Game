@@ -17,19 +17,19 @@ import (
 type berryVariant int
 
 const (
-	light berryVariant = iota
-	medium
-	dark
+	Light1 berryVariant = iota
+	Light2
+	Light3
 )
 
 func berryVariantFromStr(str string) (berryVariant, error) {
 	switch str {
-	case "light":
-		return light, nil
-	case "mid":
-		return medium, nil
-	case "dark":
-		return dark, nil
+	case "light1":
+		return Light1, nil
+	case "light2":
+		return Light2, nil
+	case "light3":
+		return Light3, nil
 	default:
 		return 0, errors.NewUnknownBerryVariantError(str)
 	}
@@ -37,12 +37,12 @@ func berryVariantFromStr(str string) (berryVariant, error) {
 
 func (b berryVariant) String() string {
 	switch b {
-	case light:
-		return "light"
-	case medium:
-		return "mid"
-	case dark:
-		return "dark"
+	case Light1:
+		return "light1"
+	case Light2:
+		return "light2"
+	case Light3:
+		return "light3"
 	default:
 		slog.Warn(errors.NewUnknownBerryVariantError((fmt.Sprintf("%d", int(b)))).Error())
 		return "VariantError"
@@ -91,6 +91,10 @@ func (b berryPhase) CheckForProgression(time Time, totalAge int) (progressions [
 	return
 }
 func (b berryPhase) oneMonthProgression(progressions []berryProgression, month int, growthMonth int, throughMonth float64, next ...berryPhase) []berryProgression {
+	if month != growthMonth {
+		return progressions
+	}
+
 	var nextPhase berryPhase
 	if len(next) > 0 {
 		nextPhase = next[0]
@@ -98,18 +102,19 @@ func (b berryPhase) oneMonthProgression(progressions []berryProgression, month i
 		nextPhase = b + 1
 	}
 
-	if month == growthMonth {
-		p := berryProgression{
-			NextPhase: nextPhase,
-			Chance:    mapTimeToChance(throughMonth),
-		}
-
-		progressions = append(progressions, p)
+	p := berryProgression{
+		NextPhase: nextPhase,
+		Chance:    mapTimeToChance(throughMonth),
 	}
+
+	progressions = append(progressions, p)
 
 	return progressions
 }
 func (b berryPhase) twoMonthProgression(progressions []berryProgression, month int, growthStart int, throughMonth float64) []berryProgression {
+	if month != growthStart && month != growthStart+1 {
+		return progressions
+	}
 	percentThrough := throughMonth / 2
 
 	progressions = b.oneMonthProgression(progressions, month, growthStart, percentThrough)

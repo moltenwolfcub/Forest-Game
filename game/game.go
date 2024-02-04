@@ -46,16 +46,17 @@ func NewGame() (*Game, error) {
 			NewIncline(NewBasicTerrainElement(1024, -128, 448, 256)),
 			NewIncline(NewBasicTerrainElement(1472, -256, 320, 256)),
 		},
-		rivers: []*River{
-			NewRiver(
-				NewBasicTerrainElement(0, 448, 1024, 256),
-				NewBasicTerrainElement(768, 576, 768, 256),
-				NewBasicTerrainElement(1280, 768, 448, 256),
-			),
-		},
 	}
 	g.player = NewPlayer(g)
 	g.renderer = NewRenderer(g)
+
+	river, _ := NewRiver(
+		image.Pt(0, 0),
+		NewRiverSegment(NewBasicTerrainElement(0, 448, 1024, 256)),
+		NewRiverSegment(NewBasicTerrainElement(768, 576, 768, 256)),
+		NewRiverSegment(NewBasicTerrainElement(1280, 768, 448, 256)),
+	)
+	g.rivers = append(g.rivers, river)
 
 	berry, err := NewBerry(g, image.Pt(256, -128))
 	if err != nil {
