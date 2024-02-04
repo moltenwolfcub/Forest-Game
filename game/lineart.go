@@ -2,6 +2,7 @@ package game
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -187,6 +188,7 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 }
 
 func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, fromPoint int, reflexMod int) {
+	curveImage := ebiten.NewImageFromImage(toDrawTo)
 
 	var cx, cy float32
 	if side.isHorizontal() {
@@ -203,7 +205,34 @@ func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, f
 	} else if side == bottom {
 		cy = float32(current.Y - curveOffset*reflexMod)
 	}
-	vector.DrawFilledCircle(toDrawTo, cx, cy, curveRadius, LineartColor, false)
+	vector.DrawFilledCircle(curveImage, cx, cy, curveRadius, LineartColor, false)
+
+	var x, y int
+	if side.isHorizontal() {
+		x = current.X + lineartW*fromPoint
+	} else if side == left {
+		x = current.X + lineartW*reflexMod
+	} else if side == right {
+		x = current.X - lineartW*reflexMod
+	}
+	if !side.isHorizontal() {
+		y = current.Y + lineartW*fromPoint
+	} else if side == top {
+		y = current.Y + lineartW*reflexMod
+	} else if side == bottom {
+		y = current.Y - lineartW*reflexMod
+	}
+
+	negativeImage := ebiten.NewImage(lineartW, lineartW)
+	vector.DrawFilledCircle(negativeImage, float32(lineartW)/2, float32(lineartW)/2, float32(lineartW)/2, color.Opaque, false)
+
+	drawOps := ebiten.DrawImageOptions{}
+	drawOps.GeoM.Translate(float64(x-lineartW/2), float64(y-lineartW/2))
+	drawOps.Blend.BlendOperationAlpha = ebiten.BlendOperationReverseSubtract
+	drawOps.Blend.BlendOperationRGB = ebiten.BlendOperationReverseSubtract
+	curveImage.DrawImage(negativeImage, &drawOps)
+
+	toDrawTo.DrawImage(curveImage, nil)
 }
 
 func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) (*ebiten.Image, *ebiten.DrawImageOptions) {
