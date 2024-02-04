@@ -2,13 +2,27 @@ package game
 
 import (
 	"image"
+	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 var (
-	lineartW = 10
+	lineartW    = 10
+	curveRadius = float32(lineartW) / 1.25
+	curveOffset = int(curveRadius - float32(lineartW)/2)
+
+	padding = lineartW/2 + int(curveRadius*2) - lineartW
 )
+
+func pad(in image.Point, sub bool) image.Point {
+	if sub {
+		return in.Sub(image.Point{padding, padding})
+	} else {
+		return in.Add(image.Point{padding, padding})
+	}
+}
 
 type OffsetImage struct {
 	Image  *ebiten.Image
@@ -50,14 +64,15 @@ so they can be used to correctly calculate where lineart should be.
 */
 func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbours []image.Rectangle) (*OffsetImage, error) {
 	// image setup
-	img := ebiten.NewImage(blankImage.Bounds().Dx()+lineartW, blankImage.Bounds().Dy()+lineartW)
+	newBounds := pad(pad(blankImage.Bounds().Size(), false), false) // 2 pads, 1 for each side of the axis
+	img := ebiten.NewImage(newBounds.X, newBounds.Y)
 
 	// original image
 	ops := ebiten.DrawImageOptions{}
-	ops.GeoM.Translate(float64(lineartW)/2, float64(lineartW)/2)
+	ops.GeoM.Translate(float64(padding), float64(padding))
 	img.DrawImage(blankImage, &ops)
 
-	levelPos := segmentOrigin.Sub(image.Pt(lineartW/2, lineartW/2))
+	levelPos := pad(segmentOrigin, true)
 
 	// line art
 	err := drawSide(img, levelPos, neighbours, top)
@@ -79,14 +94,14 @@ func ApplyLineart(blankImage *ebiten.Image, segmentOrigin image.Point, neighbour
 
 	return &OffsetImage{
 		Image:  img,
-		Offset: image.Pt(-lineartW/2, -lineartW/2),
+		Offset: pad(image.Point{}, true),
 	}, nil
 }
 
 func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.Rectangle, side lineartSide) error {
 	originalSeg := image.Rectangle{
-		Min: toDrawTo.Bounds().Min.Add(image.Pt(lineartW/2, lineartW/2)),
-		Max: toDrawTo.Bounds().Max.Sub(image.Pt(lineartW/2, lineartW/2)),
+		Min: pad(toDrawTo.Bounds().Min, false),
+		Max: pad(toDrawTo.Bounds().Max, true),
 	}
 
 	var current image.Point
@@ -120,6 +135,8 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 			//overlapping
 
 			if first {
+				first = false
+
 				//jumpPast
 				if side.isHorizontal() {
 					current.X = overlapRect.Sub(levelPos).Max.X
@@ -127,6 +144,8 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 					current.Y = overlapRect.Sub(levelPos).Max.Y
 				}
 				lineStart = current
+
+				drawCorner(toDrawTo, current, side, 1, -1)
 
 				continue
 			}
@@ -146,6 +165,8 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 				}
 				lineStart = current
 			}
+		} else if first {
+			drawCorner(toDrawTo, current, side, 1, 1)
 		}
 		last = current
 		current = current.Add(delta)
@@ -155,6 +176,9 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 			}
 
 			toDrawTo.DrawImage(generateLineSegment(lineStart, last, side.isHorizontal()))
+
+			drawCorner(toDrawTo, current.Sub(delta), side, -1, 1)
+
 			break
 		}
 		first = false
@@ -163,15 +187,64 @@ func drawSide(toDrawTo *ebiten.Image, levelPos image.Point, neighbours []image.R
 	return nil
 }
 
+func drawCorner(toDrawTo *ebiten.Image, current image.Point, side lineartSide, fromPoint int, reflexMod int) {
+	curveImage := ebiten.NewImageFromImage(toDrawTo)
+
+	var cx, cy float32
+	if side.isHorizontal() {
+		cx = float32(current.X + curveOffset*fromPoint)
+	} else if side == left {
+		cx = float32(current.X + curveOffset*reflexMod)
+	} else if side == right {
+		cx = float32(current.X - curveOffset*reflexMod)
+	}
+	if !side.isHorizontal() {
+		cy = float32(current.Y + curveOffset*fromPoint)
+	} else if side == top {
+		cy = float32(current.Y + curveOffset*reflexMod)
+	} else if side == bottom {
+		cy = float32(current.Y - curveOffset*reflexMod)
+	}
+	vector.DrawFilledCircle(curveImage, cx, cy, curveRadius, LineartColor, false)
+
+	var x, y int
+	if side.isHorizontal() {
+		x = current.X + lineartW*fromPoint
+	} else if side == left {
+		x = current.X + lineartW*reflexMod
+	} else if side == right {
+		x = current.X - lineartW*reflexMod
+	}
+	if !side.isHorizontal() {
+		y = current.Y + lineartW*fromPoint
+	} else if side == top {
+		y = current.Y + lineartW*reflexMod
+	} else if side == bottom {
+		y = current.Y - lineartW*reflexMod
+	}
+
+	negativeImage := ebiten.NewImage(lineartW, lineartW)
+	vector.DrawFilledCircle(negativeImage, float32(lineartW)/2, float32(lineartW)/2, float32(lineartW)/2, color.Opaque, false)
+
+	drawOps := ebiten.DrawImageOptions{}
+	drawOps.GeoM.Translate(float64(x-lineartW/2), float64(y-lineartW/2))
+	drawOps.Blend.BlendOperationAlpha = ebiten.BlendOperationReverseSubtract
+	drawOps.Blend.BlendOperationRGB = ebiten.BlendOperationReverseSubtract
+	curveImage.DrawImage(negativeImage, &drawOps)
+
+	toDrawTo.DrawImage(curveImage, nil)
+}
+
 func generateLineSegment(start image.Point, end image.Point, isHorizontal bool) (*ebiten.Image, *ebiten.DrawImageOptions) {
 	var lineSeg *ebiten.Image
 	lineSegOps := ebiten.DrawImageOptions{}
 	if isHorizontal {
-		lineSeg = ebiten.NewImage(end.X-start.X+lineartW, lineartW)
+		lineSeg = ebiten.NewImage(end.X-start.X-lineartW, lineartW)
+		lineSegOps.GeoM.Translate(float64(lineartW/2), -float64(lineartW/2))
 	} else {
-		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y+lineartW)
+		lineSeg = ebiten.NewImage(lineartW, end.Y-start.Y-lineartW)
+		lineSegOps.GeoM.Translate(-float64(lineartW/2), float64(lineartW/2))
 	}
-	lineSegOps.GeoM.Translate(-float64(lineartW/2), -float64(lineartW/2))
 	lineSeg.Fill(LineartColor)
 
 	lineSegOps.GeoM.Translate(float64(start.X), float64(start.Y))
