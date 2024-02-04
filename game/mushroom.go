@@ -297,7 +297,6 @@ func (m *Mushroom) Update() error {
 				}
 				if p.NextPhase == 4 {
 					m.lastSporulation = m.game.time
-					println(m.lastSporulation.String())
 				}
 
 				break
